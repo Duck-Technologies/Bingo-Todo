@@ -21,7 +21,7 @@ jobs:
       ubuntu-latest
     steps:
       - name: Validate Terraform
-        uses: ./.github/workflows/validate.yaml@main
+        uses: ./.github/workflows/action.yaml@main
         with:
           root_module_folder_relative_path: './infra/azure/resources'
           terraform_cli_version: ${{ inputs.terraform_cli_version }}
