@@ -34,7 +34,7 @@ on:
 
 jobs:
   dev_plan_and_apply:
-    uses: ./.github/templates/workflows/cd-template.yaml
+    uses: ./.github/templates/workflows/cd-template.yaml@main
     name: Development
     
     if: ${{ (inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'dev' }}
