@@ -27,7 +27,7 @@ jobs:
           terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   dev_plan:
-    uses: .github/workflows/ci-template.yaml
+    uses: .github/workflows/ci-template.yaml@main
     name: Development
     needs: validate
     permissions:
@@ -45,7 +45,7 @@ jobs:
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   # test_plan:
-  #   uses: .github/workflows/ci-template.yaml
+  #   uses: .github/workflows/ci-template.yaml@main
   #   name: Test
   #   needs: validate
   #   permissions:
@@ -63,7 +63,7 @@ jobs:
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   # prod_plan:
-  #   uses: .github/workflows/ci-template.yaml
+  #   uses: .github/workflows/ci-template.yaml@main
   #   name: Production
   #   needs: validate
   #   permissions:
