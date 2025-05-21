@@ -1,13 +1,15 @@
 ---
 name: Run Terraform Validate
 description: Run Terraform Validate
-inputs:
-  root_module_folder_relative_path:
-    description: 'Root Module Folder Relative Path'
-    required: true
-  terraform_cli_version:
-    description: 'Terraform CLI Version'
-    required: true
+on:
+  workflow_call:
+    inputs:
+      root_module_folder_relative_path:
+        description: 'Root Module Folder Relative Path'
+        required: true
+      terraform_cli_version:
+        description: 'Terraform CLI Version'
+        required: true
 
 runs:
   using: "composite"
