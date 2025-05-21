@@ -53,5 +53,5 @@ resource "github_actions_environment_variable" "var_file" {
   repository    = var.repository_name
   environment   = github_repository_environment.this[each.key].environment
   variable_name = "VAR_FILE_PATH"
-  value         = "./infra/azure/resources/config/${each.value.environment}.tfvars"
+  value         = "./config/${each.value.environment}.tfvars"
 }
