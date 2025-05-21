@@ -21,13 +21,13 @@ jobs:
       ubuntu-latest
     steps:
       - name: Validate Terraform
-        uses: ./.github/workflows/action.yaml@main
+        uses: .github/workflows/validate.yaml@main
         with:
           root_module_folder_relative_path: './infra/azure/resources'
           terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   dev_plan:
-    uses: ./.github/workflows/ci-template.yaml
+    uses: .github/workflows/ci-template.yaml
     name: Development
     needs: validate
     permissions:
@@ -45,7 +45,7 @@ jobs:
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   # test_plan:
-  #   uses: ./.github/workflows/ci-template.yaml
+  #   uses: .github/workflows/ci-template.yaml
   #   name: Test
   #   needs: validate
   #   permissions:
@@ -63,7 +63,7 @@ jobs:
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   # prod_plan:
-  #   uses: ./.github/workflows/ci-template.yaml
+  #   uses: .github/workflows/ci-template.yaml
   #   name: Production
   #   needs: validate
   #   permissions:
