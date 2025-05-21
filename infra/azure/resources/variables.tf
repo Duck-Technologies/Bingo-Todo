@@ -51,7 +51,7 @@ variable "resource_name_templates" {
   type        = map(string)
   description = "A map of resource names to use"
   default = {
-    resource_group_name    = "rg-$${workload}-$${environment}-$${location}-$${sequence}"
+    resource_group_name = "rg-$${workload}-$${environment}-$${location}-$${sequence}"
   }
 }
 
