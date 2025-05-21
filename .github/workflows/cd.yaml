@@ -34,7 +34,7 @@ on:
 
 jobs:
   dev_plan_and_apply:
-    uses: ./cd-template.yaml@main
+    uses: ./.github/workflows/cd-template.yaml@main
     name: Development
     
     if: ${{ (inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'dev' }}
@@ -54,7 +54,7 @@ jobs:
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   # test_plan_and_apply:
-  #   uses: ./cd-template.yaml@main
+  #   uses: ./.github/workflows/cd-template.yaml@main
   #   name: Test
   #   needs: dev_plan_and_apply
   #   if: ${{ always() && ((inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'test') && (needs.dev_plan_and_apply.result == 'success' || needs.dev_plan_and_apply.result == 'skipped') }}
@@ -74,7 +74,7 @@ jobs:
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
 
   # prod_plan_and_apply:
-  #   uses: ./cd-template.yaml@main
+  #   uses: ./.github/workflows/cd-template.yaml@main
   #   name: Production
   #   needs: test_plan_and_apply
   #   if: ${{ always() && ((inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'prod') && (needs.test_plan_and_apply.result == 'success' || needs.test_plan_and_apply.result == 'skipped') }}
