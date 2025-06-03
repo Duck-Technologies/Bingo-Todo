@@ -1,24 +1,24 @@
-using BookStoreApi.Models;
+namespace Bingo_Todo.Services;
+
+using Bingo_Todo.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace BookStoreApi.Services;
 
 public class BooksService
 {
     private readonly IMongoCollection<Book> _booksCollection;
 
     public BooksService(
-        IOptions<BookStoreDatabaseSettings> bookStoreDatabaseSettings)
+        IOptions<Models.MongoDatabaseSettings> mongoDatabaseSettings)
     {
         var mongoClient = new MongoClient(
-            bookStoreDatabaseSettings.Value.ConnectionString);
+            mongoDatabaseSettings.Value.ConnectionString);
 
         var mongoDatabase = mongoClient.GetDatabase(
-            bookStoreDatabaseSettings.Value.DatabaseName);
+            mongoDatabaseSettings.Value.DatabaseName);
 
-        _booksCollection = mongoDatabase.GetCollection<Book>(
-            bookStoreDatabaseSettings.Value.BooksCollectionName);
+        _booksCollection = mongoDatabase.GetCollection<Book>("Books");
     }
 
     public async Task<List<Book>> GetAsync() =>

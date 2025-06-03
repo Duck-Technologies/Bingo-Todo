@@ -1,5 +1,9 @@
-using BookStoreApi.Models;
-using BookStoreApi.Services;
+using System.Text.Json;
+using Azure.Identity;
+using Azure.Core;
+using Bingo_Todo.Models;
+using Bingo_Todo.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,8 +11,36 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.Configure<BookStoreDatabaseSettings>(
-    builder.Configuration.GetSection("BookStoreDatabase"));
+var cosmosConnectionString = Environment.GetEnvironmentVariable("AZURE_COSMOS_LISTCONNECTIONSTRINGURL");
+var cosmosDatabaseName = Environment.GetEnvironmentVariable("MONGO_DB_NAME");
+string connectionString = "";
+
+if (cosmosConnectionString is not null)
+{
+    var scope = "https://management.azure.com/.default";
+    var tokenProvider = new DefaultAzureCredential();
+
+    var accessToken = await tokenProvider.GetTokenAsync(new TokenRequestContext(scopes: [scope]));
+
+    var httpClient = new HttpClient();
+    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.Token}");
+    var response = await httpClient.PostAsync(new Uri(cosmosConnectionString), null);
+    var responseBody = await response.Content.ReadAsStringAsync();
+    var connectionStrings = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, string>>>>(responseBody);
+    connectionString = connectionStrings["connectionStrings"][0]["connectionString"];
+}
+
+builder.Services.Configure<MongoDatabaseSettings>(options => {
+    builder.Configuration.GetSection("MongoDB").Bind(options);
+
+    if (connectionString != "") {
+        options.ConnectionString = connectionString;
+    }
+
+    if (cosmosDatabaseName is not null) {
+        options.DatabaseName = cosmosDatabaseName;
+    }
+});
 
 builder.Services.AddSingleton<BooksService>();
 

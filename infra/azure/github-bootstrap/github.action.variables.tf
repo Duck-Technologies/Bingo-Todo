@@ -44,7 +44,8 @@ resource "github_actions_environment_variable" "additional_variables" {
   environment   = github_repository_environment.this[each.key].environment
   variable_name = "ADDITIONAL_ENVIRONMENT_VARIABLES"
   value = jsonencode({
-    TF_VAR_resource_group_name = module.resource_group_environments[each.value.environment].name
+    TF_VAR_resource_group_name = module.resource_group_environments[each.value.environment].name,
+    TF_VAR_subscription_id = data.azurerm_subscription.current.subscription_id
   })
 }
 
