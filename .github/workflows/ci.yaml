@@ -44,6 +44,7 @@ jobs:
       dependent_environment: 
       backend_azure_storage_account_container_name: dev
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
+    secrets:
       personal_access_token: ${{ secrets.ACCESS_TOKEN_FOR_TERRAFORM }}
 
   # test_plan:
@@ -63,6 +64,7 @@ jobs:
   #     dependent_environment: dev
   #     backend_azure_storage_account_container_name: test
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
+  #   secrets:
   #     personal_access_token: ${{ secrets.ACCESS_TOKEN_FOR_TERRAFORM }}
 
   # prod_plan:
@@ -82,4 +84,5 @@ jobs:
   #     dependent_environment: test
   #     backend_azure_storage_account_container_name: prod
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
+  #   secrets:
   #     personal_access_token: ${{ secrets.ACCESS_TOKEN_FOR_TERRAFORM }}
