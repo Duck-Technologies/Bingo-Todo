@@ -27,3 +27,7 @@ provider "azurerm" {
   }
   storage_use_azuread = true
 }
+
+resource "azurerm_resource_provider_registration" "reg" {
+  name = "Microsoft.App"
+}
