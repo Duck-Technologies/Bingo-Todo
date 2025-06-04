@@ -9,6 +9,9 @@ resource "azurerm_container_registry" "container_registry" {
   sku                 = "Basic"
   admin_enabled       = false
   tags                = var.tags
+  identity {
+    type = "SystemAssigned"
+  }
 
   depends_on = [
     data.azurerm_resource_group.container_rg
