@@ -10,8 +10,7 @@ resource "azurerm_container_app_environment" "container_environment" {
   tags = var.tags
 
   depends_on = [
-    data.azurerm_resource_group.container_rg,
-    azurerm_resource_provider_registration.reg
+    data.azurerm_resource_group.container_rg
   ]
 }
 
