@@ -2,6 +2,10 @@ data "azurerm_resource_group" "container_rg" {
   name = var.resource_group_name
 }
 
+resource "azurerm_resource_provider_registration" "reg" {
+  name = "Microsoft.App"
+}
+
 resource "azurerm_container_app_environment" "container_environment" {
   name                = "cae-${var.app_name}"
   location            = data.azurerm_resource_group.container_rg.location
@@ -10,7 +14,8 @@ resource "azurerm_container_app_environment" "container_environment" {
   tags = var.tags
 
   depends_on = [
-    data.azurerm_resource_group.container_rg
+    data.azurerm_resource_group.container_rg,
+    azurerm_resource_provider_registration.reg
   ]
 }
 
