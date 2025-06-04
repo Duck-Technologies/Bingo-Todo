@@ -52,34 +52,41 @@ data "github_repository_environments" "github_environments" {
   repository = data.github_repository.repo.name
 }
 
+locals {
+  github_envs = {
+    for k, v in data.github_repository_environments.github_environments.environments : k => v.name
+    if startswith(v.name, var.resource_name_environment)
+  }
+}
+
 resource "github_actions_environment_variable" "var_cr_name" {
-  for_each      = data.github_repository_environments.github_environments
+  for_each      = local.github_envs
   repository    = data.github_repository.repo.name
-  environment   = each.value.name
+  environment   = each.value
   variable_name = "ACR_NAME"
   value         = local.resource_names.container_registry_name
 }
 
 resource "github_actions_environment_variable" "var_ca_url" {
-  for_each      = data.github_repository_environments.github_environments
+  for_each      = local.github_envs
   repository    = data.github_repository.repo.name
-  environment   = each.value.name
+  environment   = each.value
   variable_name = "ACA_URL"
   value         = module.container_app.latest_revision_fqdn
 }
 
 resource "github_actions_environment_variable" "var_ca_name" {
-  for_each      = data.github_repository_environments.github_environments
+  for_each      = local.github_envs
   repository    = data.github_repository.repo.name
-  environment   = each.value.name
+  environment   = each.value
   variable_name = "ACA_NAME"
   value         = local.resource_names.container_app_name
 }
 
 resource "github_actions_environment_variable" "var_rg_name" {
-  for_each      = data.github_repository_environments.github_environments
+  for_each      = local.github_envs
   repository    = data.github_repository.repo.name
-  environment   = each.value.name
+  environment   = each.value
   variable_name = "RESOURCE_GROUP_NAME"
   value         = data.azurerm_resource_group.container_rg.name
 }
