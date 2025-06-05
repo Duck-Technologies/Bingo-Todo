@@ -5,7 +5,7 @@ EXPOSE 80
 ENV ASPNETCORE_URLS=http://+:80
 
 USER app
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG configuration=Release
 WORKDIR /src
 COPY ["apps/api-server/Bingo-Todo.csproj", "apps/api-server/"]
