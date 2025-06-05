@@ -14,17 +14,36 @@ resource "azurerm_container_app_environment" "container_environment" {
   ]
 }
 
+// https://github.com/hashicorp/terraform-provider-azurerm/issues/21242
+// There's a circular dependency issue regarding creating the container app and assigning the pull role
+// based on system assigned identity.
+// The container app is only created if it can connect to the container registry
+// so it's not an option to use System Assigned Managed Identity, as terraform will only move to the
+// role assignment step if the container app is successfully created, and while Azure does actually create it,
+// terraform gets stuck because Azure doesn't give a success response as it can't access the acr
+// and so terraform can never assign the role that would make it be able to access it.
+
+resource "azurerm_user_assigned_identity" "containerapp" {
+  location            = data.azurerm_resource_group.container_rg.location
+  name                = "containerappmi"
+  resource_group_name = data.azurerm_resource_group.container_rg.name
+}
+
+resource "azurerm_role_assignment" "containerapp_acrpull" {
+  scope                = var.identity_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
+  depends_on = [
+    azurerm_user_assigned_identity.containerapp
+  ]
+}
+
 resource "azurerm_container_app" "container_app" {
   name = var.app_name
 
   container_app_environment_id = azurerm_container_app_environment.container_environment.id
   resource_group_name          = data.azurerm_resource_group.container_rg.name
   revision_mode                = "Single"
-
-  registry {
-    server   = var.login_server
-    identity = "system"
-  }
 
   ingress {
     allow_insecure_connections = false
@@ -38,7 +57,13 @@ resource "azurerm_container_app" "container_app" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.containerapp.id]
+  }
+
+  registry {
+    server   = var.login_server
+    identity = azurerm_user_assigned_identity.containerapp.id
   }
 
   template {

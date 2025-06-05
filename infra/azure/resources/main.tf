@@ -19,18 +19,12 @@ module "container_app" {
   tags                   = var.tags
   app_name               = local.resource_names.container_app_name
   login_server           = module.container_registry.container_registry_login_server
-  identity_id            = module.container_registry.container_principal_id
+  identity_id            = module.container_registry.container_registry_id
   subscription_id        = var.subscription_id
   cosmos_account_name    = local.resource_names.cosmosdb_account_name
   image_name             = "${var.resource_name_workload}/dotnetapi:latest"
   mongodb_db_name        = local.resource_names.mongodb_db_name
   aspnetcore_environment = var.aspnetcore_environment
-}
-
-resource "azurerm_role_assignment" "containerapp_acrpull" {
-  scope                = module.container_registry.container_registry_id
-  role_definition_name = "AcrPull"
-  principal_id         = module.container_app.container_app_id
 }
 
 resource "azurerm_app_service_connection" "example" {
