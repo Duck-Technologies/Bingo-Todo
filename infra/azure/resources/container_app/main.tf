@@ -23,7 +23,7 @@ resource "azurerm_container_app" "container_app" {
 
   registry {
     server   = var.login_server
-    identity = var.identity_id
+    identity = "system"
   }
 
   ingress {
