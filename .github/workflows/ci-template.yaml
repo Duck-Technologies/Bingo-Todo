@@ -68,7 +68,7 @@ jobs:
       ARM_USE_AZUREAD: true
       ARM_USE_OIDC: true
       TF_VAR_github_personal_access_token: ${{ secrets.personal_access_token }}
-      TF_VAR_image_tag: "${{ vars.image_tag }}"
+      TF_VAR_image_tag: "${{ inputs.image_tag }}"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
