@@ -39,6 +39,10 @@ on:
         description: 'Terraform CLI Version'
         default: 'latest'
         type: string
+      image_tag:
+        description: 'Image tag to use during container app creation'
+        type: string
+        required: true
     secrets:
       personal_access_token:
         required: true
@@ -64,6 +68,7 @@ jobs:
       ARM_USE_AZUREAD: true
       ARM_USE_OIDC: true
       TF_VAR_github_personal_access_token: ${{ secrets.personal_access_token }}
+      TF_VAR_image_tag: "${{ vars.image_tag }}"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

@@ -22,7 +22,7 @@ module "container_app" {
   identity_id            = module.container_registry.container_registry_id
   subscription_id        = var.subscription_id
   cosmos_account_name    = local.resource_names.cosmosdb_account_name
-  image_name             = "${var.resource_name_workload}/dotnetapi:latest"
+  image_name             = "${var.resource_name_workload}/dotnetapi:${var.image_tag}"
   mongodb_db_name        = local.resource_names.mongodb_db_name
   aspnetcore_environment = var.aspnetcore_environment
 }
