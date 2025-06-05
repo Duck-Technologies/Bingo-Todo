@@ -70,5 +70,5 @@ variable "github_personal_access_token" {
 }
 
 variable "image_tag" {
-  type    = string
+  type = string
 }
