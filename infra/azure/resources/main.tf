@@ -27,7 +27,7 @@ module "container_app" {
   aspnetcore_environment = var.aspnetcore_environment
 }
 
-resource "azurerm_app_service_connection" "example" {
+resource "azurerm_app_service_connection" "cosmosdb_connector" {
   name               = "container-app-cosmosdb-connector"
   app_service_id     = module.container_app.container_app_id
   target_resource_id = module.cosmos_mongodb.cosmos_account_id

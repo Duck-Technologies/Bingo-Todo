@@ -15,6 +15,14 @@ locals {
         role_definition_id_or_name = "Reader"
         principal_id               = module.user_assigned_managed_identity["${env_key}-plan"].principal_id
       }
+      cosmosdbContributorPlan = {
+        role_definition_id_or_name = "DocumentDB Account Contributor"
+        principal_id               = module.user_assigned_managed_identity["${env_key}-plan"].principal_id
+      }
+      cosmosdbContributorApply = {
+        role_definition_id_or_name = "DocumentDB Account Contributor"
+        principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
+      }
       contributor = {
         role_definition_id_or_name = "Contributor"
         principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id

@@ -56,7 +56,7 @@ jobs:
       dependent_environment: 
       backend_azure_storage_account_container_name: dev
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
-      image_tag: ${{ github.event.inputs.sha || github.sha }}
+      image_tag: ${{ inputs.sha || github.sha }}
     secrets:
       personal_access_token: ${{ secrets.ACCESS_TOKEN_FOR_TERRAFORM }}
 
@@ -79,7 +79,7 @@ jobs:
   #     dependent_environment: dev
   #     backend_azure_storage_account_container_name: test
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
-  #     image_tag: ${{ github.event.inputs.sha || github.sha }}
+  #     image_tag: ${{ inputs.sha || github.sha }}
   #   secrets:
   #     personal_access_token: ${{ secrets.ACCESS_TOKEN_FOR_TERRAFORM }}
 
@@ -102,7 +102,7 @@ jobs:
   #     dependent_environment: test
   #     backend_azure_storage_account_container_name: prod
   #     terraform_cli_version: ${{ inputs.terraform_cli_version }}
-  #     image_tag: ${{ github.event.inputs.sha || github.sha }}
+  #     image_tag: ${{ inputs.sha || github.sha }}
   #   secrets:
   #     personal_access_token: ${{ secrets.ACCESS_TOKEN_FOR_TERRAFORM }}
 
