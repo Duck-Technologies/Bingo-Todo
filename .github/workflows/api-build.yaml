@@ -39,4 +39,4 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f apps\api-server\Dockerfile -t bingo/dotnetapi:${{ github.sha }} .
+            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f apps/api-server/Dockerfile -t bingo/dotnetapi:${{ github.sha }} .
