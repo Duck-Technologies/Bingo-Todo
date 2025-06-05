@@ -26,5 +26,5 @@ module "storage_account" {
   }
 
   private_endpoints_manage_dns_zone_group = true
-  private_endpoints = {}
+  private_endpoints                       = {}
 }

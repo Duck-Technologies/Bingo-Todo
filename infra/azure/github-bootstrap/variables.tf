@@ -71,10 +71,10 @@ variable "resource_name_templates" {
   type        = map(string)
   description = "A map of resource names to use"
   default = {
-    resource_group_state_name             = "rg-$${workload}-state-$${environment}-$${location}-$${sequence}"
-    resource_group_identity_name          = "rg-$${workload}-identity-$${environment}-$${location}-$${sequence}"
-    storage_account_name                  = "sto$${workload}$${environment}$${location_short}$${sequence}$${uniqueness}"
-    repository_main_name                  = "$${repository_name}"
+    resource_group_state_name    = "rg-$${workload}-state-$${environment}-$${location}-$${sequence}"
+    resource_group_identity_name = "rg-$${workload}-identity-$${environment}-$${location}-$${sequence}"
+    storage_account_name         = "sto$${workload}$${environment}$${location_short}$${sequence}$${uniqueness}"
+    repository_main_name         = "$${repository_name}"
   }
 }
 
