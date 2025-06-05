@@ -7,7 +7,9 @@ services:
       context: ../../../Bingo-Todo
       dockerfile: apps/api-server/Dockerfile
     ports:
-      - 5043:5043
+      - 80:80
+    environment:
+    - ASPNETCORE_ENVIRONMENT=Production
     depends_on:
       mongodb:
         condition: service_healthy

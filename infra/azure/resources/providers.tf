@@ -10,9 +10,19 @@ terraform {
       source  = "hashicorp/random"
       version = ">= 3.0.0"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5"
+    }
   }
+  backend "azurerm" {}
 }
 
 provider "azurerm" {
   features {}
+}
+
+provider "github" {
+  token = var.github_personal_access_token
+  owner = "Duck-Technologies"
 }

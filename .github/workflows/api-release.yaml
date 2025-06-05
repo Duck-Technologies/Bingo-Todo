@@ -1,0 +1,42 @@
+---
+name: Release Backend
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose Environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          # - 'All'
+          - dev
+          # - test
+          # - prod 
+
+jobs:
+  dev_build_and_publish:
+    runs-on: ubuntu-latest
+    environment: dev-apply
+    
+    if: ${{ (inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'dev' }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Azure CLI script
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update --name ${{ vars.ACA_NAME }} --resource-group ${{ vars.RESOURCE_GROUP_NAME }} --image ${{ vars.ACR_NAME }}.azurecr.io/bingo/dotnetapi:${{ github.sha }}

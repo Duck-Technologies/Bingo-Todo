@@ -6,7 +6,7 @@ locals {
     identity = {
       name = local.resource_names.resource_group_identity_name
     }
-    })
+  })
 
   resource_groups_environments = { for env_key, env_value in local.environments : env_key => {
     name = env_value.resource_group_name
@@ -17,6 +17,10 @@ locals {
       }
       contributor = {
         role_definition_id_or_name = "Contributor"
+        principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
+      }
+      roleManager = {
+        role_definition_id_or_name = "Role Based Access Control Administrator"
         principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
       }
     }

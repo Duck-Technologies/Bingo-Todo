@@ -1,16 +1,3 @@
-variable "location" {
-  type        = string
-  description = "The location/region where the resources will be created. Must be in the short form (e.g. 'uksouth')"
-  validation {
-    condition     = can(regex("^[a-z0-9-]+$", var.location))
-    error_message = "The location must only contain lowercase letters, numbers, and hyphens"
-  }
-  validation {
-    condition     = length(var.location) <= 20
-    error_message = "The location must be 20 characters or less"
-  }
-}
-
 variable "resource_name_workload" {
   type        = string
   description = "The name segment for the workload"
@@ -51,10 +38,33 @@ variable "resource_name_templates" {
   type        = map(string)
   description = "A map of resource names to use"
   default = {
-    resource_group_name = "rg-$${workload}-$${environment}-$${location}-$${sequence}"
+    cosmosdb_account_name   = "cdb-$${workload}-$${environment}-$${location}-$${sequence}"
+    mongodb_db_name         = "$${workload}-$${environment}"
+    container_registry_name = "cr$${workload}$${environment}$${location}"
+    container_app_name      = "ca-$${workload}-$${environment}"
   }
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group in which the resource will be created."
+  type        = string
+}
+
+variable "subscription_id" {
+  type        = string
+  description = "The subscription id in which the resources live"
+}
+
+variable "aspnetcore_environment" {
+  type    = string
+  default = "Production"
 }
 
 variable "tags" {
   type = map(string)
+}
+
+variable "github_personal_access_token" {
+  type      = string
+  sensitive = true
 }
