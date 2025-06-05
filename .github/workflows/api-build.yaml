@@ -17,7 +17,7 @@ on:
 jobs:
   dev_build_and_publish:
     runs-on: ubuntu-latest
-    environment: dev-plan
+    environment: dev-apply
     
     if: ${{ (inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'dev' }}
     permissions:
