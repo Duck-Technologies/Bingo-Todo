@@ -57,6 +57,7 @@ resource "azurerm_container_app" "container_app" {
   container_app_environment_id = azurerm_container_app_environment.container_environment.id
   resource_group_name          = data.azurerm_resource_group.container_rg.name
   revision_mode                = "Single"
+  max_inactive_revisions       = 20
 
   ingress {
     allow_insecure_connections = false
