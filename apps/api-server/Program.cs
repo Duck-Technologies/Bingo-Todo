@@ -32,8 +32,15 @@ if (cosmosConnectionString is not null)
     httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.Token}");
     var response = await httpClient.PostAsync(new Uri(cosmosConnectionString), null);
     var responseBody = await response.Content.ReadAsStringAsync();
-    var connectionStrings = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, string>>>>(responseBody);
-    connectionString = connectionStrings["connectionStrings"][0]["connectionString"];
+    if (response.IsSuccessStatusCode)
+    {
+        var connectionStrings = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, string>>>>(responseBody);
+        connectionString = connectionStrings["connectionStrings"][0]["connectionString"];
+    }
+    else
+    {
+        throw new Exception(response.StatusCode + responseBody);
+    }
 }
 
 builder.Services.Configure<MongoDatabaseSettings>(options => {
