@@ -11,6 +11,7 @@ resource "azurerm_cosmosdb_account" "cosmosdb_account" {
   automatic_failover_enabled    = false
   free_tier_enabled             = true
   local_authentication_disabled = true
+  mongo_server_version          = "7.0"
 
   capabilities {
     name = "EnableMongo"

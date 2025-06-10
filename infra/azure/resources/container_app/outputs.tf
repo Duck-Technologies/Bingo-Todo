@@ -3,5 +3,5 @@ output "container_app_id" {
 }
 
 output "latest_revision_fqdn" {
-  value = azurerm_container_app.container_app.latest_revision_fqdn
+  value = "https://${azurerm_container_app.container_app.ingress[0].fqdn}"
 }
