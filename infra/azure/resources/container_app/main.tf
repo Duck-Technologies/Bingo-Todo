@@ -92,6 +92,11 @@ resource "azurerm_container_app" "container_app" {
         name  = "ASPNETCORE_ENVIRONMENT"
         value = var.aspnetcore_environment
       }
+
+      env {
+        name  = "AZURE_COSMOS_SCOPE"
+        value = "https://management.azure.com/.default"
+      }
     }
 
     min_replicas = 0
