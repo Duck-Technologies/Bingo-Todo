@@ -27,16 +27,18 @@ module "container_app" {
   aspnetcore_environment = var.aspnetcore_environment
 }
 
-resource "azurerm_app_service_connection" "cosmosdb_connector" {
-  name               = "container-app-cosmosdb-connector"
-  app_service_id     = module.container_app.container_app_id
-  target_resource_id = module.cosmos_mongodb.cosmos_account_id
-  client_type        = "dotnet"
+# https://github.com/hashicorp/terraform-provider-azurerm/issues/27079
+# Currently can't create service connection with Terraform for ACA
+# resource "azurerm_app_service_connection" "cosmosdb_connector" {
+#   name               = "container-app-cosmosdb-connector"
+#   app_service_id     = module.container_app.container_app_id
+#   target_resource_id = module.cosmos_mongodb.cosmos_account_id
+#   client_type        = "dotnet"
 
-  authentication {
-    type = "systemAssignedIdentity"
-  }
-}
+#   authentication {
+#     type = "systemAssignedIdentity"
+#   }
+# }
 
 data "github_repository" "repo" {
   full_name = "Duck-Technologies/Bingo-Todo"
