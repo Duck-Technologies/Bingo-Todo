@@ -18,7 +18,13 @@ string connectionString = "";
 if (cosmosConnectionString is not null)
 {
     var scope = Environment.GetEnvironmentVariable("AZURE_COSMOS_SCOPE");
-    var tokenProvider = new DefaultAzureCredential();
+
+    var tokenProvider = new DefaultAzureCredential(
+        new DefaultAzureCredentialOptions
+        {
+            ManagedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_COSMOS_CLIENTID")
+        }
+    );
 
     var accessToken = await tokenProvider.GetTokenAsync(new TokenRequestContext(scopes: [scope]));
 

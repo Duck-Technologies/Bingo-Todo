@@ -99,8 +99,8 @@ resource "azurerm_container_app" "container_app" {
       }
 
       env {
-        name  = "AZURE_CLIENT_ID"
-        value = azurerm_user_assigned_identity.containerapp.id
+        name  = "AZURE_COSMOS_CLIENTID"
+        value = azurerm_user_assigned_identity.containerapp.client_id
       }
     }
 
