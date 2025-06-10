@@ -82,7 +82,7 @@
             ],
             "dockerRun": {
                 "ports": [
-                    { "hostPort": 5043, "containerPort": 5043 }
+                    { "hostPort": 8080, "containerPort": 8080 }
                 ]
             },
             "netCore": {

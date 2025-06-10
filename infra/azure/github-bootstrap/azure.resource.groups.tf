@@ -23,6 +23,10 @@ locals {
         role_definition_id_or_name = "DocumentDB Account Contributor"
         principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
       }
+      containerAppOperatorPlan = {
+        role_definition_id_or_name = "Container Apps Operator"
+        principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
+      }
       contributor = {
         role_definition_id_or_name = "Contributor"
         principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
