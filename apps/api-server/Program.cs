@@ -3,7 +3,6 @@ using Azure.Identity;
 using Azure.Core;
 using Bingo_Todo.Models;
 using Bingo_Todo.Services;
-using Azure.Core.Diagnostics;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,17 +19,6 @@ if (cosmosConnectionString is not null)
 {
     var scope = Environment.GetEnvironmentVariable("AZURE_COSMOS_SCOPE");
     var tokenProvider = new DefaultAzureCredential();
-
-    AzureEventSourceListener listener = AzureEventSourceListener.CreateConsoleLogger();
-
-    try
-    {
-        var token = await tokenProvider.GetTokenAsync(new TokenRequestContext(scopes: [scope]));
-    }
-    finally
-    {
-        System.Diagnostics.Trace.Flush();
-    }
 
     var accessToken = await tokenProvider.GetTokenAsync(new TokenRequestContext(scopes: [scope]));
 

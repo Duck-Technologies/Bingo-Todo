@@ -97,6 +97,11 @@ resource "azurerm_container_app" "container_app" {
         name  = "AZURE_COSMOS_SCOPE"
         value = "https://management.azure.com/.default"
       }
+
+      env {
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.containerapp.id
+      }
     }
 
     min_replicas = 0
