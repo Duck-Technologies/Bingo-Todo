@@ -14,17 +14,18 @@ module "container_registry" {
 }
 
 module "container_app" {
-  source                 = "./container_app"
-  resource_group_name    = data.azurerm_resource_group.container_rg.name
-  tags                   = var.tags
-  app_name               = local.resource_names.container_app_name
-  login_server           = module.container_registry.container_registry_login_server
-  identity_id            = module.container_registry.container_registry_id
-  subscription_id        = var.subscription_id
-  cosmos_account_name    = local.resource_names.cosmosdb_account_name
-  image_name             = "${var.resource_name_workload}/dotnetapi:${var.image_tag}"
-  mongodb_db_name        = local.resource_names.mongodb_db_name
-  aspnetcore_environment = var.aspnetcore_environment
+  source                     = "./container_app"
+  resource_group_name        = data.azurerm_resource_group.container_rg.name
+  tags                       = var.tags
+  app_name                   = local.resource_names.container_app_name
+  login_server               = module.container_registry.container_registry_login_server
+  identity_id                = module.container_registry.container_registry_id
+  cosmos_account_identity_id = module.cosmos_mongodb.cosmos_account_id
+  subscription_id            = var.subscription_id
+  cosmos_account_name        = local.resource_names.cosmosdb_account_name
+  image_name                 = "${var.resource_name_workload}/dotnetapi:${var.image_tag}"
+  mongodb_db_name            = local.resource_names.mongodb_db_name
+  aspnetcore_environment     = var.aspnetcore_environment
 }
 
 # https://github.com/hashicorp/terraform-provider-azurerm/issues/27079

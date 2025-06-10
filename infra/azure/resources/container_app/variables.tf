@@ -33,6 +33,11 @@ variable "cosmos_account_name" {
   description = "The Cosmos DB account name."
 }
 
+variable "cosmos_account_identity_id" {
+  description = "The resource id associated to the cosmos account."
+  type        = string
+}
+
 variable "mongodb_db_name" {
   type        = string
   description = "The Database name."

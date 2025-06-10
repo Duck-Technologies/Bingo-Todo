@@ -43,7 +43,7 @@ resource "azurerm_role_assignment" "containerapp_acrpull" {
 # this default role has way more permissions than needed for this purpose, so a custom role might be safer for production
 # Microsoft.DocumentDB/databaseAccounts/listConnectionStrings is the important one
 resource "azurerm_role_assignment" "containerapp_listConnectionStrings" {
-  scope                = var.identity_id
+  scope                = var.cosmos_account_identity_id
   role_definition_name = "DocumentDB Account Contributor"
   principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
   depends_on = [
