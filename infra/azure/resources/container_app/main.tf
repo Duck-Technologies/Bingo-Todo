@@ -71,7 +71,7 @@ resource "azurerm_container_app" "container_app" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.containerapp.id]
   }
 

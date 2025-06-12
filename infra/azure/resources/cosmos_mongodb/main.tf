@@ -10,7 +10,7 @@ resource "azurerm_cosmosdb_account" "cosmosdb_account" {
   kind                          = "MongoDB"
   automatic_failover_enabled    = false
   free_tier_enabled             = true
-  # local_authentication_disabled = true // this doesn't apply to MongoDB as of now
+  local_authentication_disabled = true // this doesn't apply to MongoDB as of now, but keeping it true anyway
   mongo_server_version          = "7.0"
 
   # default is true, but I had trouble with making it work, so changed it to "selected networks public access"
