@@ -13,8 +13,7 @@ resource "azurerm_cosmosdb_account" "cosmosdb_account" {
   local_authentication_disabled = true // this doesn't apply to MongoDB as of now, but keeping it true anyway
   mongo_server_version          = "7.0"
 
-  # default is true, but I had trouble with making it work, so changed it to "selected networks public access"
-  public_network_access_enabled = false
+  public_network_access_enabled = true
   # Azure portal and Azure resources
   ip_range_filter = ["0.0.0.0", "4.210.172.107", "13.88.56.148", "13.91.105.215", "13.95.130.121", "20.245.81.54", "40.80.152.199", "40.91.218.243", "40.118.23.126"]
 
