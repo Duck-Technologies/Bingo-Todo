@@ -43,7 +43,7 @@ resource "azurerm_api_management_api" "api" {
   protocols             = ["https"]
   service_url           = "https://${data.azurerm_container_app.container_app.ingress[0].fqdn}"
   subscription_required = false
-  version               = "1"
+  version               = "v1"
   version_set_id        = azurerm_api_management_api_version_set.version_set.id 
 
   import {
