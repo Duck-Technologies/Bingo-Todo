@@ -9,7 +9,7 @@ data "azurerm_container_app" "container_app" {
 
 # https://www.mytechramblings.com/posts/how-to-update-an-azure-api-mgmt-api-that-uses-a-remote-openapi-using-terraform/
 data "http" "openapi_def" {
-  url = "https://${ata.azurerm_container_app.container_app.ingress[0].fqdn}/openapi/v1.json"
+  url = "https://${data.azurerm_container_app.container_app.ingress[0].fqdn}/openapi/v1.json"
   request_headers = {
     Accept = "application/json"
   }
