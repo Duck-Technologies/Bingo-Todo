@@ -39,9 +39,9 @@ locals {
   }
   environment_split = { for environment_split in flatten([for env_key, env_value in local.environments : [
     for split_key, split_value in local.environment_split_type : {
-      composite_key      = "${env_key}-${split_key}"
-      environment        = env_key
-      type               = split_key
+      composite_key = "${env_key}-${split_key}"
+      environment   = env_key
+      type          = split_key
       # originally ["ci-template.yaml", "cd-template.yaml"] : ["cd-template.yaml"] but then tf tries to create cd-template twice
       required_templates = split_key == local.environment_split_type.plan ? ["ci-template.yaml"] : ["cd-template.yaml"]
       has_approval       = env_value.has_approval

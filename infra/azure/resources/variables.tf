@@ -42,6 +42,8 @@ variable "resource_name_templates" {
     mongodb_db_name         = "$${workload}-$${environment}"
     container_registry_name = "cr$${workload}$${environment}$${location}"
     container_app_name      = "ca-$${workload}-$${environment}"
+    api_management_name     = "apim-$${workload}-$${environment}-$${location}"
+    api_management_api_name = "apima-$${workload}-$${environment}-$${location}"
   }
 }
 
@@ -70,5 +72,9 @@ variable "github_personal_access_token" {
 }
 
 variable "image_tag" {
+  type = string
+}
+
+variable "contact_email" {
   type = string
 }

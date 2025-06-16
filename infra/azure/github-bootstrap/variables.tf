@@ -116,3 +116,8 @@ variable "organization_name" {
   type = string
 }
 
+variable "contact_email" {
+  type      = string
+  sensitive = true
+}
+
