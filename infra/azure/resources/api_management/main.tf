@@ -25,6 +25,14 @@ resource "azurerm_api_management" "management" {
   sku_name = "Consumption_0"
 }
 
+resource "azurerm_api_management_api_version_set" "version_set" {
+  name                = "${var.api_name}_vset"
+  resource_group_name = data.azurerm_resource_group.container_rg.name
+  api_management_name = azurerm_api_management.management.name
+  display_name        = "${var.api_path} version set"
+  versioning_scheme   = "Segment"
+}
+
 resource "azurerm_api_management_api" "api" {
   name                  = var.api_name
   resource_group_name   = data.azurerm_resource_group.container_rg.name
@@ -36,6 +44,7 @@ resource "azurerm_api_management_api" "api" {
   service_url           = "https://${data.azurerm_container_app.container_app.ingress[0].fqdn}"
   subscription_required = false
   version               = "1"
+  version_set_id        = azurerm_api_management_api_version_set.version_set.id 
 
   import {
     content_format = "openapi+json"
