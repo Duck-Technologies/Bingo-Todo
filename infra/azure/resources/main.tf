@@ -53,6 +53,10 @@ module "api_management" {
   api_path            = "bingo"
 }
 
+module "entra" {
+  source = "./entra"
+}
+
 data "github_repository" "repo" {
   full_name = "Duck-Technologies/Bingo-Todo"
 }
