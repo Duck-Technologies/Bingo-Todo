@@ -42,7 +42,7 @@ variable "resource_name_templates" {
     mongodb_db_name         = "$${workload}-$${environment}"
     container_registry_name = "cr$${workload}$${environment}$${location}"
     container_app_name      = "ca-$${workload}-$${environment}"
-    api_management_name     = "apim-$${workload}-$${environment}-$${location}"
+    api_management_name     = "duck-technologies"
     api_management_api_name = "apima-$${workload}-$${environment}-$${location}"
   }
 }

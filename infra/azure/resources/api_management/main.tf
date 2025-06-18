@@ -29,7 +29,7 @@ resource "azurerm_api_management_api_version_set" "version_set" {
   name                = "${var.api_name}_vset"
   resource_group_name = data.azurerm_resource_group.container_rg.name
   api_management_name = azurerm_api_management.management.name
-  display_name        = "${var.api_path} version set"
+  display_name        = "${var.api_path}"
   versioning_scheme   = "Segment"
 }
 
