@@ -1,3 +1,3 @@
 output "api_url" {
-  value = "${azurerm_api_management.management.gateway_url}/${var.api_path}/${var.version}"
+  value = "${azurerm_api_management.management.gateway_url}/${var.api_path}/${var.path_version}"
 }

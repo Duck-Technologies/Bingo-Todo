@@ -54,7 +54,7 @@ variable "revision" {
   default     = "1"
 }
 
-variable "version" {
+variable "path_version" {
   description = "Version Path"
   type        = string
   default     = "v1"
