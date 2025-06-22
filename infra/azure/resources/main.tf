@@ -41,6 +41,20 @@ module "container_app" {
 #   }
 # }
 
+module "api_management" {
+  source                   = "./api_management"
+  resource_group_name      = data.azurerm_resource_group.container_rg.name
+  tags                     = var.tags
+  container_app_name       = local.resource_names.container_app_name
+  publisher_name           = "Duck Technologies"
+  publisher_mail           = var.contact_email
+  management_name          = local.resource_names.api_management_name
+  api_name                 = local.resource_names.api_management_api_name
+  api_path                 = "bingo"
+  container_app_client_id  = var.service_client_id
+  container_app_client_ids = [var.ui_client_id, var.test_client_id]
+}
+
 data "github_repository" "repo" {
   full_name = "Duck-Technologies/Bingo-Todo"
 }
@@ -69,7 +83,7 @@ resource "github_actions_environment_variable" "var_ca_url" {
   repository    = data.github_repository.repo.name
   environment   = each.value
   variable_name = "ACA_URL"
-  value         = module.container_app.latest_revision_fqdn
+  value         = module.api_management.api_url
 }
 
 resource "github_actions_environment_variable" "var_ca_name" {

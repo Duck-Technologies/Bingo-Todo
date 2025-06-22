@@ -22,7 +22,6 @@ locals {
   environments = { for key, value in var.environments : key => {
     display_order         = value.display_order
     display_name          = value.display_name
-    has_approval          = value.has_approval
     dependent_environment = value.dependent_environment
     resource_group_create = value.resource_group_create
     resource_group_name = templatestring(value.resource_group_name_template, {
@@ -39,12 +38,11 @@ locals {
   }
   environment_split = { for environment_split in flatten([for env_key, env_value in local.environments : [
     for split_key, split_value in local.environment_split_type : {
-      composite_key      = "${env_key}-${split_key}"
-      environment        = env_key
-      type               = split_key
+      composite_key = "${env_key}-${split_key}"
+      environment   = env_key
+      type          = split_key
       # originally ["ci-template.yaml", "cd-template.yaml"] : ["cd-template.yaml"] but then tf tries to create cd-template twice
       required_templates = split_key == local.environment_split_type.plan ? ["ci-template.yaml"] : ["cd-template.yaml"]
-      has_approval       = env_value.has_approval
       user_assigned_managed_identity_name = templatestring(env_value.user_assigned_managed_identity_name_template, {
         workload    = local.name_replacements.workload
         environment = env_key

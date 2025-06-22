@@ -3,5 +3,6 @@ output "container_app_id" {
 }
 
 output "latest_revision_fqdn" {
-  value = "https://${azurerm_container_app.container_app.ingress[0].fqdn}"
+  value     = "https://${azurerm_container_app.container_app.ingress[0].fqdn}"
+  sensitive = true
 }
