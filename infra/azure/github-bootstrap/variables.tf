@@ -82,7 +82,6 @@ variable "environments" {
   type = map(object({
     display_order                                = number
     display_name                                 = string
-    has_approval                                 = optional(bool, false)
     dependent_environment                        = optional(string, "")
     resource_group_create                        = optional(bool, true)
     resource_group_name_template                 = optional(string, "rg-$${workload}-env-$${environment}-$${location}-$${sequence}")
@@ -101,7 +100,6 @@ variable "environments" {
     # prod = {
     #   display_order         = 3
     #   display_name          = "Production"
-    #   has_approval          = true
     #   dependent_environment = "test"
     # }
   }
@@ -121,3 +119,7 @@ variable "contact_email" {
   sensitive = true
 }
 
+variable "test_environment" {
+  type    = string
+  default = "dev" # this should be test if test resources are being deployed
+}

@@ -78,3 +78,15 @@ variable "image_tag" {
 variable "contact_email" {
   type = string
 }
+
+variable "service_client_id" {
+  type = string
+}
+
+variable "ui_client_id" {
+  type = string
+}
+
+variable "test_client_id" {
+  type = string
+}

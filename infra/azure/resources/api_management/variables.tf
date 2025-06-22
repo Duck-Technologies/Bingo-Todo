@@ -8,6 +8,16 @@ variable "container_app_name" {
   type        = string
 }
 
+variable "container_app_client_id" {
+  description = "The Entra Client Id associated to the Container App."
+  type        = string
+}
+
+variable "container_app_client_ids" {
+  description = "The Entra Client Ids authorized to use the Container App."
+  type        = list(string)
+}
+
 variable "publisher_name" {
   description = "The name of the API publisher."
   type        = string
@@ -42,4 +52,10 @@ variable "revision" {
   description = "API Revision."
   type        = string
   default     = "1"
+}
+
+variable "version" {
+  description = "Version Path"
+  type        = string
+  default     = "v1"
 }
