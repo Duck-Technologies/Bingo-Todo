@@ -59,7 +59,7 @@ locals {
 }
 
 resource "azurerm_api_management_api_policy" "api_policy" {
-  api_name            = var.api_name
+  api_name            = azurerm_api_management_api.api.name
   api_management_name = azurerm_api_management.management.name
   resource_group_name = data.azurerm_resource_group.container_rg.name
 
