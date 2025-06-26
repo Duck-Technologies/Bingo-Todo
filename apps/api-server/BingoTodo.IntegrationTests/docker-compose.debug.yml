@@ -1,0 +1,38 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+
+services:
+  integrationTest:
+    image: bingotodo-integtest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    network_mode: host
+    depends_on:
+      dotnetserver:
+        condition: service_started
+  dotnetserver:
+    image: bingotodo
+    build:
+      context: ../Api
+      dockerfile: ../Api/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - 8080:8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
+    depends_on:
+      mongodb:
+        condition: service_healthy
+  mongodb:
+    image: mongodb/mongodb-community-server:8.0.9-ubuntu2204
+    restart: always
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

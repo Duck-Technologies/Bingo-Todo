@@ -19,6 +19,10 @@ output "service_user_impersonation_scope" {
   value = "api://${var.app_name}-api/access_as_user"
 }
 
+output "service_default_scope" {
+  value = "api://${var.app_name}-api/.default"
+}
+
 output "environment" {
   value = var.environment
 }

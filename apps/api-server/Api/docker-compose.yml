@@ -4,16 +4,12 @@ services:
   dotnetserver:
     image: bingotodo
     build:
-      context: ../../../Bingo-Todo
-      dockerfile: apps/api-server/Dockerfile
-      args:
-        - configuration=Debug
+      context: .
+      dockerfile: ./Dockerfile
     ports:
       - 8080:8080
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-    volumes:
-      - ~/.vsdbg:/remote_debugger:rw
+    - ASPNETCORE_ENVIRONMENT=Production
     depends_on:
       mongodb:
         condition: service_healthy

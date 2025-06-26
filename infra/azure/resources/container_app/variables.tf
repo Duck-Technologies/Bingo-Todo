@@ -51,3 +51,8 @@ variable "image_name" {
   description = "Image name"
   type        = string
 }
+
+variable "entra_client_id" {
+  description = "The Entra Client Id of the API"
+  type        = string
+}

@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/apps/api-server/bin/Debug/net9.0/Bingo-Todo.dll",
+            "program": "${workspaceFolder}/apps/api-server/Api/bin/Debug/net9.0/BingoTodo.Api.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/apps/api-server",
+            "cwd": "${workspaceFolder}/apps/api-server/Api",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
@@ -32,10 +32,19 @@
             "request": "launch",
             "preLaunchTask": "docker-run: debug",
             "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/Bingo-Todo.csproj"
+                "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
             },
             "dockerServerReadyAction": {
                 "uriFormat": "%s://localhost:%s/WeatherForecast"
+            }
+        },
+        {
+            "name": "Containers: .NET Unit Test",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: unittest",
+            "netCore": {
+                "appProject": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/BingoTodo.UnitTests.csproj"
             }
         }
     ]

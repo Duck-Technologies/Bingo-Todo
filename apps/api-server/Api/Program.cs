@@ -1,6 +1,9 @@
 using System.Text.Json;
+using System.Security.Claims;
 using Azure.Identity;
 using Azure.Core;
+using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Bingo_Todo.Models;
 using Bingo_Todo.Services;
 
@@ -10,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Configuration.AddEnvironmentVariables(prefix: "OVERRIDE_");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
 var cosmosConnectionString = Environment.GetEnvironmentVariable("AZURE_COSMOS_LISTCONNECTIONSTRINGURL");
 var cosmosDatabaseName = Environment.GetEnvironmentVariable("MONGO_DB_NAME");
@@ -57,7 +63,22 @@ builder.Services.Configure<MongoDatabaseSettings>(options => {
 
 builder.Services.AddSingleton<BooksService>();
 
+// var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy(name: MyAllowSpecificOrigins,
+//                       policy  =>
+//                       {
+//                           policy.WithOrigins("http://localhost:4200")
+//                           .WithHeaders("Authorization");
+//                       });
+// });
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+// app.UseCors(MyAllowSpecificOrigins);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -86,11 +107,23 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-app.MapGet("/books", async (BooksService booksService) =>
+app.MapGet("/books", async (BooksService booksService, ClaimsPrincipal user) =>
 {
     return (await booksService.GetAsync()).ToArray();
 })
-.WithName("GetBooks");
+.WithName("GetBooks").RequireAuthorization();
+
+app.MapGet("/books/test", async (BooksService booksService, ClaimsPrincipal user) =>
+{
+    return (await booksService.GetAsync()).ToArray().Append<Book>(
+        new Book
+        {
+            BookName = "test",
+            Author = user.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value ?? (user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role && c.Value == "Application.TestAgent") != null ? "test" : "unknown")
+        }
+        );
+})
+.WithName("GetBooksTest").RequireAuthorization();
 
 app.MapPost("/book", async (BooksService booksService) =>
 {

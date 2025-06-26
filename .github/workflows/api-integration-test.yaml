@@ -1,0 +1,35 @@
+---
+name: Api Integration Test
+on:
+  workflow_dispatch:
+
+jobs:
+  api_integration_test:
+    name: Run dotnet integration tests
+    runs-on: ubuntu-latest
+    environment: dev-apply
+    defaults:
+      run:
+        working-directory: ./apps/api-server/BingoTodo.IntegrationTests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Install dependencies
+        run: dotnet restore
+      - name: App Settings Variable Substitution
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: './appsettings.json'
+        env:
+          AzureAd.ClientCredentials.ClientSecret: ${{ secrets.TEST_AGENT_CLIENT_SECRET }}
+          AzureAd.TenantId: ${{ env.AZURE_TENANT_ID }}
+          AzureAd.ClientId: ${{ env.TEST_CLIENT_ID }}
+          WebAPI.BaseUrl: ${{ env.ACA_URL }}
+          WebAPI.Scopes.0: ${{ env.SERVICE_DEFAULT_SCOPE }}
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test with the dotnet CLI
+        run: dotnet test --no-build

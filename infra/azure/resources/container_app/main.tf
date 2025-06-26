@@ -116,6 +116,11 @@ resource "azurerm_container_app" "container_app" {
         name  = "AZURE_COSMOS_CLIENTID"
         value = azurerm_user_assigned_identity.containerapp.client_id
       }
+
+      env {
+        name  = "OVERRIDE_AzureAd__ClientId"
+        value = var.entra_client_id
+      }
     }
 
     min_replicas = 0
