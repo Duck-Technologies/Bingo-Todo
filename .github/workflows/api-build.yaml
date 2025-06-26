@@ -36,6 +36,9 @@ jobs:
 
   dev_build_and_publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/api-server/Api
     environment: dev-apply
     name: Build and publish to ACR
     needs: api_unit_test
@@ -57,7 +60,6 @@ jobs:
 
       - name: Azure CLI script
         uses: azure/cli@v2
-        working-directory: ./apps/api-server/Api
         with:
           azcliversion: latest
           inlineScript: |
