@@ -83,6 +83,14 @@ resource "github_actions_environment_variable" "access_as_user_scope" {
   value         = module.entra[var.test_environment].service_user_impersonation_scope
 }
 
+resource "github_actions_environment_variable" "default_scope" {
+  for_each      = module.entra
+  repository    = var.repository_name
+  environment   = "${var.test_environment}-apply"
+  variable_name = "SERVICE_DEFAULT_SCOPE"
+  value         = module.entra[var.test_environment].service_default_scope
+}
+
 resource "github_actions_environment_variable" "var_file" {
   for_each      = local.environment_split
   repository    = var.repository_name
