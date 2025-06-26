@@ -21,7 +21,7 @@ public class ApiTests : IClassFixture<ClientFixture>
         {
             options.RelativePath = $"books";
         });
-        Console.WriteLine($"result = {result}");
+        // Console.WriteLine($"result = {result}");
         Assert.Equal("[]", result.ToString());
     }
 }
