@@ -25,10 +25,10 @@ jobs:
           files: './apps/api-server/BingoTodo.IntegrationTests/appsettings.json'
         env:
           AzureAd.ClientCredentials.ClientSecret: ${{ secrets.TEST_AGENT_CLIENT_SECRET }}
-          AzureAd.TenantId: ${{ env.AZURE_TENANT_ID }}
-          AzureAd.ClientId: ${{ env.TEST_CLIENT_ID }}
-          WebAPI.BaseUrl: ${{ env.ACA_URL }}
-          WebAPI.Scopes.0: ${{ env.SERVICE_DEFAULT_SCOPE }}
+          AzureAd.TenantId: ${{ vars.AZURE_TENANT_ID }}
+          AzureAd.ClientId: ${{ vars.TEST_CLIENT_ID }}
+          WebAPI.BaseUrl: ${{ vars.ACA_URL }}
+          WebAPI.Scopes.0: ${{ vars.SERVICE_DEFAULT_SCOPE }}
       - name: Build
         run: dotnet build --no-restore
       - name: Test with the dotnet CLI
