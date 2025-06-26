@@ -26,6 +26,7 @@ module "container_app" {
   image_name                 = "${var.resource_name_workload}/dotnetapi:${var.image_tag}"
   mongodb_db_name            = local.resource_names.mongodb_db_name
   aspnetcore_environment     = var.aspnetcore_environment
+  entra_client_id            = var.service_client_id
 }
 
 # https://github.com/hashicorp/terraform-provider-azurerm/issues/27079
