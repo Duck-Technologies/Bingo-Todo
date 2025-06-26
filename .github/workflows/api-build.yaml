@@ -15,9 +15,30 @@ on:
           # - prod 
 
 jobs:
+  api_unit_test:
+    name: Run dotnet unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/api-server/BingoTodo.UnitTests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test with the dotnet CLI
+        run: dotnet test --no-build
+
   dev_build_and_publish:
     runs-on: ubuntu-latest
     environment: dev-apply
+    name: Build and publish to ACR
+    needs: plan
     
     if: ${{ (inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'dev' }}
     permissions:
@@ -39,4 +60,4 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f apps/api-server/Dockerfile -t bingo/dotnetapi:${{ github.sha }} .
+            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f apps/api-server/Api/Dockerfile -t bingo/dotnetapi:${{ github.sha }} .

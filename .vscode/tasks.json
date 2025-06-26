@@ -46,12 +46,29 @@
             "dockerBuild": {
                 "tag": "bingotodo:dev",
                 "target": "base",
-                "dockerfile": "${workspaceFolder}/apps/api-server/Dockerfile",
+                "dockerfile": "${workspaceFolder}/apps/api-server/Api/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/Bingo-Todo.csproj"
+                "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
+            }
+        },
+        {
+            "type": "docker-build",
+            "label": "docker-build: unittest",
+            "dependsOn": [
+                "build"
+            ],
+            "dockerBuild": {
+                "tag": "bingotodo:unittest",
+                "target": "build",
+                "dockerfile": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/Dockerfile",
+                "context": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests",
+                "pull": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/BingoTodo.UnitTests.csproj"
             }
         },
         {
@@ -62,7 +79,7 @@
             ],
             "dockerBuild": {
                 "tag": "bingotodo:latest",
-                "dockerfile": "${workspaceFolder}/apps/api-server/Dockerfile",
+                "dockerfile": "${workspaceFolder}/apps/api-server/Api/Dockerfile",
                 "context": "${workspaceFolder}",
                 "platform": {
                     "os": "linux",
@@ -71,7 +88,7 @@
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/Bingo-Todo.csproj"
+                "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
             }
         },
         {
@@ -82,11 +99,14 @@
             ],
             "dockerRun": {
                 "ports": [
-                    { "hostPort": 8080, "containerPort": 8080 }
+                    {
+                        "hostPort": 8080,
+                        "containerPort": 8080
+                    }
                 ]
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/Bingo-Todo.csproj",
+                "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj",
                 "enableDebugging": true
             }
         },
@@ -98,7 +118,19 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/Bingo-Todo.csproj"
+                "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
+            }
+        },
+        {
+            "type": "docker-run",
+            "label": "docker-run: unittest",
+            "dependsOn": [
+                "docker-build: unittest"
+            ],
+            "dockerRun": {},
+            "netCore": {
+                "appProject": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/BingoTodo.UnitTests.csproj",
+                "enableDebugging": true
             }
         }
     ]
