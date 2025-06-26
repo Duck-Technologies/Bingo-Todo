@@ -36,9 +36,6 @@ jobs:
 
   dev_build_and_publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./apps/api-server/Api
     environment: dev-apply
     name: Build and publish to ACR
     needs: api_unit_test
@@ -63,4 +60,4 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f apps/api-server/Api/Dockerfile -t bingo/dotnetapi:${{ github.sha }} .
+            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f ./Dockerfile -t bingo/dotnetapi:${{ github.sha }} ./apps/api-server/Api
