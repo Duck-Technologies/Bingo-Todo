@@ -57,7 +57,8 @@ jobs:
 
       - name: Azure CLI script
         uses: azure/cli@v2
+        working-directory: ./apps/api-server/Api
         with:
           azcliversion: latest
           inlineScript: |
-            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f apps/api-server/Api/Dockerfile -t bingo/dotnetapi:${{ github.sha }} .
+            az acr build -r ${{ vars.ACR_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }} -f ./Dockerfile -t bingo/dotnetapi:${{ github.sha }} .
