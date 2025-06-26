@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev-apply
     name: Build and publish to ACR
-    needs: plan
+    needs: api_unit_test
     
     if: ${{ (inputs.environment || 'All') == 'All' || (inputs.environment || 'All') == 'dev' }}
     permissions:
