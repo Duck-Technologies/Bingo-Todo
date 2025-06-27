@@ -24,7 +24,7 @@ jobs:
         with:
           files: './apps/api-server/BingoTodo.IntegrationTests/appsettings.json'
         env:
-          AzureAd.ClientCredentials.ClientSecret: ${{ secrets.TEST_AGENT_CLIENT_SECRET }}
+          AzureAd.ClientCredentials.0.ClientSecret: ${{ secrets.TEST_AGENT_CLIENT_SECRET }}
           AzureAd.TenantId: ${{ vars.AZURE_TENANT_ID }}
           AzureAd.ClientId: ${{ vars.TEST_CLIENT_ID }}
           WebAPI.BaseUrl: ${{ vars.ACA_URL }}
