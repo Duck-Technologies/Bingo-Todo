@@ -1,0 +1,13 @@
+{
+    "AzureAd": {
+        "ClientId": "2112b3f9-6048-44ed-9636-decdb6deaac7",
+        "Authority": "https://login.microsoftonline.com/consumers",
+        "RedirectUri": "http://localhost:4200"
+    },
+    "BingoApi": {
+        "Uri": "http://localhost:8080",
+        "Scopes": [
+            "api://bingo_todo-api/access_as_user"
+        ]
+    }
+}

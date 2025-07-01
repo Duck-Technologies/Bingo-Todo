@@ -389,6 +389,7 @@ FodyWeavers.xsd
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+.history/*
 
 # Local History for Visual Studio Code
 .history/
@@ -488,3 +489,31 @@ $RECYCLE.BIN/
 tfplan
 terraform.tfstate.*
 terraform.tfstate
+
+# Angular
+# Compiled output
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Miscellaneous
+.angular/
+/connect.lock
+coverage/
+/libpeerconnection.log
+testem.log
+typings/

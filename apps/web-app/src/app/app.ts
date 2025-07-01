@@ -1,0 +1,27 @@
+import { Component, inject } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
+import { User } from './core/auth/user';
+import { AsyncPipe } from '@angular/common';
+import { AuthOperations } from './core/auth/auth-operations';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet, RouterLink, AsyncPipe],
+  templateUrl: './app.html',
+  styleUrl: './app.scss'
+})
+export class App {
+  private userProvider = inject(User);
+  private authOperations = inject(AuthOperations);
+  public user$ = this.userProvider.user$;
+
+  protected title = 'web-app';
+
+  public login() {
+    this.authOperations.loginRedirect();
+  }
+
+  public logout() {
+    this.authOperations.logout();
+  }
+}

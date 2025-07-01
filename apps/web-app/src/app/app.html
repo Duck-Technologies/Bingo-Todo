@@ -1,0 +1,20 @@
+@let user = user$ | async;
+
+<a class="navbar navbar-dark bg-primary" variant="dark" href="/">
+    <a class="navbar-brand"> Test Header </a>
+    <a>
+      @if (!!user) {
+        <button class="btn btn-secondary" (click)="logout()">Sign Out</button>
+      } @else {
+        <button class="btn btn-secondary" (click)="login()">Sign In</button>
+      }
+    </a>
+</a>
+
+@if (!!user) {
+  <a [routerLink]="['profile']" class="btn btn-secondary">View Your Profile {{user.name}}</a> 
+}
+
+<div class="container">
+    <router-outlet></router-outlet>
+</div>
