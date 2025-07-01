@@ -1,51 +1,67 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": ".NET Core Launch (web)",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/apps/api-server/Api/bin/Debug/net9.0/BingoTodo.Api.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/apps/api-server/Api",
-            "stopAtEntry": false,
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-            },
-            "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
-            },
-            "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
-            }
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach"
-        },
-        {
-            "name": "Containers: .NET Launch",
-            "type": "docker",
-            "request": "launch",
-            "preLaunchTask": "docker-run: debug",
-            "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
-            },
-            "dockerServerReadyAction": {
-                "uriFormat": "%s://localhost:%s/WeatherForecast"
-            }
-        },
-        {
-            "name": "Containers: .NET Unit Test",
-            "type": "docker",
-            "request": "launch",
-            "preLaunchTask": "docker-run: unittest",
-            "netCore": {
-                "appProject": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/BingoTodo.UnitTests.csproj"
-            }
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET Core Launch (web)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/apps/api-server/Api/bin/Debug/net9.0/BingoTodo.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/apps/api-server/Api",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "Containers: .NET Launch",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-run: debug",
+      "netCore": {
+        "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
+      },
+      "dockerServerReadyAction": {
+        "uriFormat": "%s://localhost:%s/WeatherForecast"
+      }
+    },
+    {
+      "name": "Containers: .NET Unit Test",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-run: unittest",
+      "netCore": {
+        "appProject": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/BingoTodo.UnitTests.csproj"
+      }
+    },
+    {
+      "name": "ng serve",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "npm: start",
+      "webRoot": "${workspaceFolder}/apps/web-app",
+      "url": "http://localhost:4200/"
+    },
+    {
+      "name": "ng test",
+      "type": "chrome",
+      "request": "launch",
+      "webRoot": "${workspaceFolder}/apps/web-app",
+      "preLaunchTask": "npm: test",
+      "url": "http://localhost:9876/debug.html"
+    }
+  ]
 }

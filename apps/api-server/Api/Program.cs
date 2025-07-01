@@ -63,22 +63,22 @@ builder.Services.Configure<MongoDatabaseSettings>(options => {
 
 builder.Services.AddSingleton<BooksService>();
 
-// var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-// builder.Services.AddCors(options =>
-// {
-//     options.AddPolicy(name: MyAllowSpecificOrigins,
-//                       policy  =>
-//                       {
-//                           policy.WithOrigins("http://localhost:4200")
-//                           .WithHeaders("Authorization");
-//                       });
-// });
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy  =>
+                      {
+                          policy.WithOrigins("*")
+                          .WithHeaders("Authorization");
+                      });
+});
 
 var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
-// app.UseCors(MyAllowSpecificOrigins);
+app.UseCors(MyAllowSpecificOrigins);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
