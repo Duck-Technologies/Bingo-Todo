@@ -17,3 +17,8 @@ variable "repository_url" {
   description = "The URL off the repository"
   type        = string
 }
+
+variable "repository_token" {
+  type      = string
+  sensitive = true
+}
