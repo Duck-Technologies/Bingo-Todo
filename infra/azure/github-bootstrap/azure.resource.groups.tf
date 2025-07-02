@@ -1,3 +1,28 @@
+resource "azurerm_role_definition" "permissions_for_management" {
+  name        = local.resource_names.azure_role_for_terraform
+  scope       = "${data.azurerm_subscription.current.id}/resourcegroups/${local.resource_group_names[0]}"
+  description = "Containing all permissions that are needed for terraform plan or apply, not included in Reader and/or Contributor."
+
+  permissions {
+    actions = [
+      "Microsoft.App/containerApps/listSecrets/action",
+      "Microsoft.Authorization/roleAssignments/delete",
+      "Microsoft.Authorization/roleAssignments/write",
+      "Microsoft.Web/staticSites/listSecrets/action",
+      "Microsoft.Web/staticSites/listAppSettings/action",
+      "Microsoft.DocumentDB/databaseAccounts/listKeys/action",
+      "Microsoft.DocumentDB/databaseAccounts/readonlykeys/action",
+      "Microsoft.DocumentDB/databaseAccounts/listConnectionStrings/action"
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    for resource_group_name in local.resource_group_names :
+    "${data.azurerm_subscription.current.id}/resourcegroups/${resource_group_name}"
+  ]
+}
+
 locals {
   resource_groups = merge({
     state = {
@@ -8,6 +33,10 @@ locals {
     }
   })
 
+  resource_group_names = [
+    for env_key, env_value in local.environments : env_value.resource_group_name
+  ]
+
   resource_groups_environments = { for env_key, env_value in local.environments : env_key => {
     name = env_value.resource_group_name
     role_assignments = {
@@ -15,24 +44,16 @@ locals {
         role_definition_id_or_name = "Reader"
         principal_id               = module.user_assigned_managed_identity["${env_key}-plan"].principal_id
       }
-      cosmosdbContributorPlan = {
-        role_definition_id_or_name = "DocumentDB Account Contributor"
-        principal_id               = module.user_assigned_managed_identity["${env_key}-plan"].principal_id
-      }
-      cosmosdbContributorApply = {
-        role_definition_id_or_name = "DocumentDB Account Contributor"
-        principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
-      }
-      containerAppOperatorPlan = {
-        role_definition_id_or_name = "Container Apps Operator"
-        principal_id               = module.user_assigned_managed_identity["${env_key}-plan"].principal_id
-      }
       contributor = {
         role_definition_id_or_name = "Contributor"
         principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
       }
-      roleManager = {
-        role_definition_id_or_name = "Role Based Access Control Administrator"
+      extra_plan = {
+        role_definition_id_or_name = azurerm_role_definition.permissions_for_management.name
+        principal_id               = module.user_assigned_managed_identity["${env_key}-plan"].principal_id
+      }
+      extra_apply = {
+        role_definition_id_or_name = azurerm_role_definition.permissions_for_management.name
         principal_id               = module.user_assigned_managed_identity["${env_key}-apply"].principal_id
       }
     }

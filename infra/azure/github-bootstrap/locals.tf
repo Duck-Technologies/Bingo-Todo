@@ -22,6 +22,7 @@ locals {
   environments = { for key, value in var.environments : key => {
     display_order         = value.display_order
     display_name          = value.display_name
+    redirect_urls         = value.redirect_urls
     dependent_environment = value.dependent_environment
     resource_group_create = value.resource_group_create
     resource_group_name = templatestring(value.resource_group_name_template, {

@@ -75,6 +75,7 @@ variable "resource_name_templates" {
     resource_group_identity_name = "rg-$${workload}-identity-$${environment}-$${location}-$${sequence}"
     storage_account_name         = "sto$${workload}$${environment}$${location_short}$${sequence}$${uniqueness}"
     repository_main_name         = "$${repository_name}"
+    azure_role_for_terraform     = "Terraform Deployment for $${workload} CI/CD"
   }
 }
 
@@ -82,6 +83,7 @@ variable "environments" {
   type = map(object({
     display_order                                = number
     display_name                                 = string
+    redirect_urls                                = optional(list(string), [])
     dependent_environment                        = optional(string, "")
     resource_group_create                        = optional(bool, true)
     resource_group_name_template                 = optional(string, "rg-$${workload}-env-$${environment}-$${location}-$${sequence}")
@@ -91,6 +93,7 @@ variable "environments" {
     dev = {
       display_order = 1
       display_name  = "Development"
+      redirect_urls = ["https://kind-meadow-08270b403-staging.1.azurestaticapps.net/", "https://kind-meadow-08270b403.1.azurestaticapps.net/"]
     }
     # test = {
     #   display_order         = 2
