@@ -42,14 +42,14 @@ module "container_app" {
 #   }
 # }
 
-module "static_web_app" {
-  source              = "./static_web_app"
-  resource_group_name = data.azurerm_resource_group.container_rg.name
-  tags                = var.tags
-  web_app_name        = local.resource_names.web_app_name
-  repository_url      = var.repository_url
-  repository_token    = var.github_personal_access_token
-}
+# module "static_web_app" {
+#   source              = "./static_web_app"
+#   resource_group_name = data.azurerm_resource_group.container_rg.name
+#   tags                = var.tags
+#   web_app_name        = local.resource_names.web_app_name
+#   repository_url      = var.repository_url
+#   repository_token    = var.github_personal_access_token
+# }
 
 module "api_management" {
   source                   = "./api_management"
@@ -112,26 +112,26 @@ resource "github_actions_environment_variable" "var_rg_name" {
   value         = data.azurerm_resource_group.container_rg.name
 }
 
-resource "github_actions_environment_secret" "var_webapp_token" {
-  for_each        = local.github_envs
-  repository      = data.github_repository.repo.name
-  environment     = each.value
-  secret_name     = "AZURE_STATIC_WEB_APPS_API_TOKEN"
-  plaintext_value = module.static_web_app.api_key
-}
+# resource "github_actions_environment_secret" "var_webapp_token" {
+#   for_each        = local.github_envs
+#   repository      = data.github_repository.repo.name
+#   environment     = each.value
+#   secret_name     = "AZURE_STATIC_WEB_APPS_API_TOKEN"
+#   plaintext_value = module.static_web_app.api_key
+# }
 
-resource "github_actions_environment_variable" "var_webapp_url" {
-  for_each      = local.github_envs
-  repository    = data.github_repository.repo.name
-  environment   = each.value
-  variable_name = "UI_URL"
-  value         = module.static_web_app.prod_url
-}
+# resource "github_actions_environment_variable" "var_webapp_url" {
+#   for_each      = local.github_envs
+#   repository    = data.github_repository.repo.name
+#   environment   = each.value
+#   variable_name = "UI_URL"
+#   value         = module.static_web_app.prod_url
+# }
 
-resource "github_actions_environment_variable" "var_webapp_staging_url" {
-  for_each      = local.github_envs
-  repository    = data.github_repository.repo.name
-  environment   = each.value
-  variable_name = "UI_STAGING_URL"
-  value         = module.static_web_app.staging_url
-}
+# resource "github_actions_environment_variable" "var_webapp_staging_url" {
+#   for_each      = local.github_envs
+#   repository    = data.github_repository.repo.name
+#   environment   = each.value
+#   variable_name = "UI_STAGING_URL"
+#   value         = module.static_web_app.staging_url
+# }
