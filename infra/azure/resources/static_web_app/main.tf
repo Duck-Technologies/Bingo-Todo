@@ -11,5 +11,5 @@ resource "azurerm_static_web_app" "front" {
   tags                = var.tags
   repository_url      = var.repository_url
   repository_branch   = "main"
-  repository_token    = null
+  repository_token    = ""
 }
