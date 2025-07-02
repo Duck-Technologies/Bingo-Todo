@@ -12,3 +12,13 @@ variable "web_app_name" {
   description = "The name of the web app."
   type        = string
 }
+
+variable "repository_url" {
+  description = "The URL off the repository"
+  type        = string
+}
+
+variable "repository_token" {
+  type      = string
+  sensitive = true
+}

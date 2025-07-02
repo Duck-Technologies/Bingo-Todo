@@ -91,3 +91,9 @@ variable "ui_client_id" {
 variable "test_client_id" {
   type = string
 }
+
+variable "repository_url" {
+  description = "The URL off the repository"
+  type        = string
+  default     = "https://github.com/Duck-Technologies/Bingo-Todo"
+}

@@ -9,4 +9,7 @@ resource "azurerm_static_web_app" "front" {
   sku_size            = "Free"
   sku_tier            = "Free"
   tags                = var.tags
+  repository_url      = var.repository_url
+  repository_branch   = "main"
+  repository_token    = var.repository_token
 }
