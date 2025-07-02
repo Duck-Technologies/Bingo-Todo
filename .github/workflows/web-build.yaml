@@ -61,7 +61,7 @@ jobs:
           production_branch: "main"
           github_id_token: ${{ steps.idtoken.outputs.result }}
           deployment_environment: github.ref != 'refs/heads/main' ?? "staging" || null
-          api_build_command: "npm build --configuration production"
+          api_build_command: "npm run ng build --configuration=production"
           ###### End of Repository/Build Configurations ######
 
   # close_pull_request_job:
