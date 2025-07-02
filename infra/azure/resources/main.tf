@@ -110,12 +110,12 @@ resource "github_actions_environment_variable" "var_rg_name" {
   value         = data.azurerm_resource_group.container_rg.name
 }
 
-resource "github_actions_environment_variable" "var_webapp_token" {
-  for_each      = local.github_envs
-  repository    = data.github_repository.repo.name
-  environment   = each.value
-  variable_name = "AZURE_STATIC_WEB_APPS_API_TOKEN"
-  value         = module.static_web_app.api_key
+resource "github_actions_environment_secret" "var_webapp_token" {
+  for_each        = local.github_envs
+  repository      = data.github_repository.repo.name
+  environment     = each.value
+  secret_name     = "AZURE_STATIC_WEB_APPS_API_TOKEN"
+  plaintext_value = module.static_web_app.api_key
 }
 
 resource "github_actions_environment_variable" "var_webapp_url" {
