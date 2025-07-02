@@ -14,5 +14,5 @@ module "entra" {
   app_name              = "bingo_todo"
   app_display_name      = "Bingo TODO"
   add_test_appreg       = each.key == var.test_environment
-  ui_urls = []
+  ui_urls               = each.value.redirect_urls
 }

@@ -44,6 +44,7 @@ variable "resource_name_templates" {
     container_app_name      = "ca-$${workload}-$${environment}"
     api_management_name     = "duck-technologies"
     api_management_api_name = "apima-$${workload}-$${environment}-$${location}"
+    web_app_name            = "swa-$${workload}-$${environment}-$${location}"
   }
 }
 

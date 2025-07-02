@@ -23,6 +23,7 @@ resource "azurerm_api_management" "management" {
   publisher_email     = var.publisher_mail
 
   sku_name = "Consumption_0"
+  tags     = var.tags
 }
 
 resource "azurerm_api_management_api_version_set" "version_set" {

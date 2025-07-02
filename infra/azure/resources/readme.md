@@ -5,6 +5,8 @@ This part of the code requires the github-bootstrap folder to be run first local
 
 Another requirement is to create an "access_token_for_terraform" environment secret with a github access token that has write access to the repository. This is needed for certain terraform outputs to be stored as environment variables. These variables are needed for building and deploying the app.
 
+Once Azure Static Web App is set up, you should take the web app URLs and add it to the [variables file](../github-bootstrap/variables.tf) so it can modify the App Registration and set the given URLs as redirect targets. If you have a custom domain, you might be able to calculate these URLs when you first run the github-bootstrap folder, before the static web app is created.
+
 ## Running the Continuous Delivery step
 As of now all resources can't be created using one terraform action. The reason for this is that creating an Azure Container App is impossible without a valid container image. That's because I think the container image creation and storage should be decoupled from other parts of the infrastructure, as generally I think terraform should be responsible for creating resources and not for building and deploying to existing resources. (An argument for this is that this is a monorepo with multiple resources. Terraform should be able to set up all parts of the app while I might only want to build & deploy the UI or the API.)
 

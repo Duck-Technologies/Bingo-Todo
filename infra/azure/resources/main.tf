@@ -42,6 +42,13 @@ module "container_app" {
 #   }
 # }
 
+module "static_web_app" {
+  source              = "./static_web_app"
+  resource_group_name = data.azurerm_resource_group.container_rg.name
+  tags                = var.tags
+  web_app_name        = local.resource_names.web_app_name
+}
+
 module "api_management" {
   source                   = "./api_management"
   resource_group_name      = data.azurerm_resource_group.container_rg.name
@@ -83,7 +90,7 @@ resource "github_actions_environment_variable" "var_ca_url" {
   for_each      = local.github_envs
   repository    = data.github_repository.repo.name
   environment   = each.value
-  variable_name = "ACA_URL"
+  variable_name = "SERVICE_URL"
   value         = module.api_management.api_url
 }
 
@@ -101,4 +108,28 @@ resource "github_actions_environment_variable" "var_rg_name" {
   environment   = each.value
   variable_name = "RESOURCE_GROUP_NAME"
   value         = data.azurerm_resource_group.container_rg.name
+}
+
+resource "github_actions_environment_variable" "var_webapp_token" {
+  for_each      = local.github_envs
+  repository    = data.github_repository.repo.name
+  environment   = each.value
+  variable_name = "AZURE_STATIC_WEB_APPS_API_TOKEN"
+  value         = module.static_web_app.api_key
+}
+
+resource "github_actions_environment_variable" "var_webapp_url" {
+  for_each      = local.github_envs
+  repository    = data.github_repository.repo.name
+  environment   = each.value
+  variable_name = "UI_URL"
+  value         = module.static_web_app.prod_url
+}
+
+resource "github_actions_environment_variable" "var_webapp_staging_url" {
+  for_each      = local.github_envs
+  repository    = data.github_repository.repo.name
+  environment   = each.value
+  variable_name = "UI_STAGING_URL"
+  value         = module.static_web_app.staging_url
 }
