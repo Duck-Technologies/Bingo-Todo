@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '**.tf'
+      - infra/azure/resources/**
   workflow_dispatch:
     inputs:
       terraform_cli_version:
