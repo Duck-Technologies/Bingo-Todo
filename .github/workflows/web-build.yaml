@@ -1,4 +1,4 @@
-name: Build and release Frontend
+name: Build and Release Frontend
 
 on:
   workflow_dispatch:
@@ -60,7 +60,7 @@ jobs:
           output_location: "dist" # Built app content directory - optional
           production_branch: "main"
           github_id_token: ${{ steps.idtoken.outputs.result }}
-          deployment_environment: ${{ github.ref != 'refs/heads/main' ?? "staging" || null }}
+          deployment_environment: ${{ github.ref != 'refs/heads/main' && 'staging' || null }}
           app_build_command: "npm run ng build --configuration=production"
           ###### End of Repository/Build Configurations ######
 
