@@ -47,6 +47,7 @@ module "static_web_app" {
   resource_group_name = data.azurerm_resource_group.container_rg.name
   tags                = var.tags
   web_app_name        = local.resource_names.web_app_name
+  repository_url      = var.repository_url 
 }
 
 module "api_management" {
