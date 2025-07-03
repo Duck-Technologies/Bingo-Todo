@@ -93,7 +93,7 @@ variable "environments" {
     dev = {
       display_order = 1
       display_name  = "Development"
-      redirect_urls = ["https://kind-meadow-08270b403-staging.1.azurestaticapps.net/", "https://kind-meadow-08270b403.1.azurestaticapps.net/"]
+      redirect_urls = ["https://gentle-desert-004159c03-staging.1.azurestaticapps.net/", "https://gentle-desert-004159c03.1.azurestaticapps.net/"]
     }
     # test = {
     #   display_order         = 2
