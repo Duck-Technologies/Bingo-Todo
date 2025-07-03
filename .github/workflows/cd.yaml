@@ -32,7 +32,7 @@ on:
         default: 'latest'
         type: string
       sha:
-        description: 'Image tag to use during container app creation'
+        description: 'Image tag to use during container app creation. Ignored once created.'
         type: string
         required: false
 

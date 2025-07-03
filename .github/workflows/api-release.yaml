@@ -13,6 +13,10 @@ on:
           - dev
           # - test
           # - prod 
+      sha:
+        description: 'Image tag to use during container app creation. Default to latest commit.'
+        type: string
+        required: false
 
 jobs:
   dev_build_and_publish:
@@ -39,4 +43,4 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            az containerapp update --name ${{ vars.ACA_NAME }} --resource-group ${{ vars.RESOURCE_GROUP_NAME }} --image ${{ vars.ACR_NAME }}.azurecr.io/bingo/dotnetapi:${{ github.sha }}
+            az containerapp update --name ${{ vars.ACA_NAME }} --resource-group ${{ vars.RESOURCE_GROUP_NAME }} --image ${{ vars.ACR_NAME }}.azurecr.io/bingo/dotnetapi:${{ inputs.sha || github.sha }}
