@@ -57,6 +57,10 @@ locals {
   client_app_ids = join("", [
     for client_id in var.container_app_client_ids : "<application-id>${client_id}</application-id>"
   ])
+
+  allowed_origins = join("", [
+    for url in var.cors_allowed_origins : "<origin>${url}</origin>"
+  ])
 }
 
 resource "azurerm_api_management_api_policy" "api_policy" {
@@ -83,6 +87,26 @@ resource "azurerm_api_management_api_policy" "api_policy" {
                 <!-- if there are multiple possible audiences, then add additional audience elements -->
             </audiences>
         </validate-azure-ad-token>
+        <cors allow-credentials="false">
+            <allowed-origins>
+                ${local.allowed_origins}
+            </allowed-origins>
+            <allowed-methods>
+                <method>GET</method>
+                <method>POST</method>
+                <method>PUT</method>
+                <method>DELETE</method>
+                <method>HEAD</method>
+                <method>OPTIONS</method>
+                <method>PATCH</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>Authorization</header>
+            </allowed-headers>
+            <expose-headers>
+                <header>Access-Control-Allow-Origin</header>
+            </expose-headers>
+        </cors>
     </inbound>
     <!-- Control if and how the requests are forwarded to services  -->
     <backend>

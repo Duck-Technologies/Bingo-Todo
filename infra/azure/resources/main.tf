@@ -63,6 +63,7 @@ module "api_management" {
   api_path                 = "bingo"
   container_app_client_id  = var.service_client_id
   container_app_client_ids = [var.ui_client_id, var.test_client_id]
+  cors_allowed_origins     = [module.static_web_app.prod_url, module.static_web_app.staging_url]
 }
 
 data "github_repository" "repo" {

@@ -18,6 +18,11 @@ variable "container_app_client_ids" {
   type        = list(string)
 }
 
+variable "cors_allowed_origins" {
+  description = "The URLs of the web sites that can access the API."
+  type        = list(string)
+}
+
 variable "publisher_name" {
   description = "The name of the API publisher."
   type        = string
