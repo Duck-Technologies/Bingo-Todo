@@ -78,11 +78,13 @@ var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors(MyAllowSpecificOrigins);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // CORS in the deployment scenario of the solution 
+    // can be handled either on the Container Apps layer or the API Management layer
+    app.UseCors(MyAllowSpecificOrigins);
     app.MapOpenApi();
 }
 
