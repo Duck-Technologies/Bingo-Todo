@@ -1,20 +1,25 @@
 @let user = user$ | async;
 
-<a class="navbar navbar-dark bg-primary" variant="dark" href="/">
-    <a class="navbar-brand"> Test Header </a>
+<mat-toolbar>
+    <a class="brand" [routerLink]="''">
+      <mat-icon>pattern</mat-icon>
+      BINGO TODO
+    </a>
     <a>
       @if (!!user) {
-        <button class="btn btn-secondary" (click)="logout()">Sign Out</button>
+        <button matButton (click)="logout()">Sign Out</button>
       } @else {
-        <button class="btn btn-secondary" (click)="login()">Sign In</button>
+        <button matButton (click)="login()">Sign In</button>
       }
     </a>
-</a>
+</mat-toolbar>
 
-@if (!!user) {
-  <a [routerLink]="['profile']" class="btn btn-secondary">View Your Profile {{user.name}}</a> 
-}
+<mat-sidenav-container>
+  <mat-sidenav-content>
+    @if (!!user) {
+      <a [routerLink]="['profile']" class="btn btn-secondary">View Your Profile {{user.name}}</a> 
+    }
 
-<div class="container">
     <router-outlet></router-outlet>
-</div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
