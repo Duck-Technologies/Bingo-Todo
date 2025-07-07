@@ -1,11 +1,32 @@
 :host {
-    .container, .navbar {
-        padding: 0.5rem;
-    }
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 
-    .navbar {
-        display: flex;
-        justify-content: space-between;
-        background-color: cadetblue;
+  .container,
+  .navbar {
+    padding: 0.5rem;
+  }
+
+  mat-toolbar {
+    display: flex;
+    justify-content: space-between;
+
+    & > a:first-of-type {
+      display: flex;
+      gap: 0.3rem;
+      align-items: center;
     }
+  }
+
+  mat-sidenav-container {
+    flex: 1;
+
+    mat-sidenav-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.5rem;
+    }
+  }
 }
