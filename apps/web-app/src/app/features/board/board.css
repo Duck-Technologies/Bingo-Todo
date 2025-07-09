@@ -1,0 +1,49 @@
+:host() {
+  --box-size: 8rem;
+  --box-number: 3;
+  --box-max-lines: 6;
+
+  &.four {
+    --box-number: 4;
+  }
+
+  &.five {
+    --box-number: 5;
+  }
+
+  display: grid;
+  grid-template-columns: repeat(var(--box-number), var(--box-size));
+  grid-template-rows: repeat(var(--box-number), var(--box-size));
+  justify-content: center;
+  gap: 0.5rem;
+  margin: auto;
+
+  & mat-card {
+    text-align: center;
+    justify-content: center;
+    padding: 0.4rem;
+
+    &.done {
+        background-color: #F2A516;
+        color: black;
+    }
+
+    &.bingo {
+        background-color: #027333;
+        color: white;
+    }
+
+    &.selected {
+        background-color: #00458f;
+        color: white;   
+    }
+
+    & div {
+      cursor: default;
+      display: -webkit-box;
+      -webkit-line-clamp: var(--box-max-lines);
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+}
