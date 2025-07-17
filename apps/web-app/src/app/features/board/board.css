@@ -2,6 +2,21 @@
   container: component / inline-size;
   display: block;
 
+  &.indicator > div,
+  &.indicator > div.five {
+    --box-size: 2rem;
+  }
+
+  &:not(.preview) > div mat-card:hover:not(.done):not(.bingo) {
+    cursor: pointer;
+    & div {
+      cursor: pointer;
+    }
+
+    filter: brightness(1.2);
+    --mat-card-elevated-container-elevation: var(--mat-sys-level3);
+  }
+
   & > div {
     --box-size: 7.5rem;
     --box-number: 3;
@@ -27,16 +42,6 @@
       text-align: center;
       justify-content: center;
       padding: 0.4rem;
-
-      &:hover:not(.done):not(.bingo) {
-        cursor: pointer;
-        & div {
-          cursor: pointer;
-        }
-
-        filter: brightness(1.2);
-        --mat-card-elevated-container-elevation: var(--mat-sys-level3);
-      }
 
       &.done {
         background-color: #f2a516;
@@ -64,30 +69,38 @@
   }
 
   @container component (width < 632px) {
-    & > div.five {
+    &:not(.indicator) > div.five {
       --box-size: 5.65rem;
       --box-max-lines: 3;
     }
   }
 
   @container component (width < 560px) {
-    & > div.four {
+    &:not(.indicator) > div.four {
       --box-size: 7.2rem;
-    }
-
-    & > div.five {
-      --box-size: 5.65rem;
     }
   }
 
   @container component (width < 484px) {
-    & > div.four {
+    &:not(.indicator) > div.four {
       --box-size: 5.5rem;
       --box-max-lines: 3;
     }
 
-    & > div.five {
+    &:not(.indicator) > div.five {
       --box-size: 4.3rem;
+    }
+  }
+
+  @container component (width < 380px) {
+    &:not(.indicator) > div.four {
+      --box-size: 4.5rem;
+      --box-max-lines: 2;
+    }
+
+    &:not(.indicator) > div.five {
+      --box-size: 3.3rem;
+      --box-max-lines: 2;
     }
   }
 }

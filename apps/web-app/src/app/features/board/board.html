@@ -10,7 +10,7 @@
         [class.selected]="card.Selected"
         (click)="checkCard(card)"
     >
-        <div [matTooltip]="card.Name">{{ card.Name }}</div>
+        <div [matTooltip]="card.Name">{{ previewMode() === 'indicator' ? "" : card.Name }}</div>
     </mat-card>
   }
 </div>
