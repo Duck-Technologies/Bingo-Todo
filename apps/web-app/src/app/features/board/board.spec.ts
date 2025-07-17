@@ -15,6 +15,7 @@ describe('Board', () => {
 
     fixture = TestBed.createComponent(Board);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('cards', []);
     fixture.detectChanges();
   });
 
@@ -25,11 +26,13 @@ describe('Board', () => {
   it('should color bingo cols as expected 5', () => {
     const mode = 5;
     [4, 3, 2, 1, 0].forEach((i) => {
-      component.cards.set(
+      fixture.componentRef.setInput(
+        'cards',
         [...Array(mode * mode).keys()].map((num) => ({
           Name: '',
           CheckedDateUTC: (num - i) % mode === 0 ? new Date() : null,
           IsBingo: false,
+          Selected: false,
         }))
       );
 
@@ -42,11 +45,13 @@ describe('Board', () => {
   it('should color bingo cols as expected 4', () => {
     const mode = 4;
     [3, 2, 1, 0].forEach((i) => {
-      component.cards.set(
+      fixture.componentRef.setInput(
+        'cards',
         [...Array(mode * mode).keys()].map((num) => ({
           Name: '',
           CheckedDateUTC: (num - i) % mode === 0 ? new Date() : null,
           IsBingo: false,
+          Selected: false,
         }))
       );
 
@@ -57,7 +62,8 @@ describe('Board', () => {
   });
 
   it("shouldn't color bingo cols when not applicable", () => {
-    component.cards.set(
+    fixture.componentRef.setInput(
+      'cards',
       [...new Array(5)].reduce(
         (acc, curr, idx) => [
           ...acc,
@@ -65,11 +71,13 @@ describe('Board', () => {
             Name: '',
             CheckedDateUTC: idx === 0 ? null : new Date(),
             IsBingo: false,
+            Selected: false,
           },
           ...new Array(4).fill({
             Name: '',
             CheckedDateUTC: null,
             IsBingo: false,
+            Selected: false,
           }),
         ],
         []
@@ -82,11 +90,13 @@ describe('Board', () => {
   });
 
   it('should color bingo rows as expected', () => {
-    component.cards.set(
+    fixture.componentRef.setInput(
+      'cards',
       [...Array(16).keys()].map((num, idx) => ({
         Name: '',
         CheckedDateUTC: num < 4 ? new Date() : null,
         IsBingo: false,
+        Selected: false,
       }))
     );
 
@@ -96,11 +106,13 @@ describe('Board', () => {
   });
 
   it('should color bingo rows as expected v2', () => {
-    component.cards.set(
+    fixture.componentRef.setInput(
+      'cards',
       [...Array(16).keys()].map((num, idx) => ({
         Name: '',
         CheckedDateUTC: num >= 12 ? new Date() : null,
         IsBingo: false,
+        Selected: false,
       }))
     );
 
@@ -110,11 +122,13 @@ describe('Board', () => {
   });
 
   it("shouldn' color bingo rows when not applicable", () => {
-    component.cards.set(
+    fixture.componentRef.setInput(
+      'cards',
       [...Array(16).keys()].map((num, idx) => ({
         Name: '',
         CheckedDateUTC: num > 12 ? new Date() : null,
         IsBingo: false,
+        Selected: false,
       }))
     );
 
@@ -125,11 +139,13 @@ describe('Board', () => {
 
   it('should color diagonal bingo as expected', () => {
     [3, 4, 5].forEach((mode) => {
-      component.cards.set(
+      fixture.componentRef.setInput(
+        'cards',
         [...Array(mode * mode).keys()].map((num, idx) => ({
           Name: '',
           CheckedDateUTC: num % (mode + 1) === 0 ? new Date() : null,
           IsBingo: false,
+          Selected: false,
         }))
       );
 
@@ -150,11 +166,17 @@ describe('Board', () => {
 
   it('should color diagonal bingo as expected v2', () => {
     [3, 4, 5].forEach((mode) => {
-      component.cards.set(
+      fixture.componentRef.setInput(
+        'cards',
         [...Array(mode * mode).keys()].map((num, idx) => ({
           Name: '',
-          CheckedDateUTC: (mode === 3 && [2, 4, 6].includes(idx)) || (mode !== 3 && num % (mode - 1) === 0) ? new Date() : null,
+          CheckedDateUTC:
+            (mode === 3 && [2, 4, 6].includes(idx)) ||
+            (mode !== 3 && num % (mode - 1) === 0)
+              ? new Date()
+              : null,
           IsBingo: false,
+          Selected: false,
         }))
       );
 

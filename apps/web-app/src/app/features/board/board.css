@@ -1,49 +1,93 @@
-:host() {
-  --box-size: 8rem;
-  --box-number: 3;
-  --box-max-lines: 6;
+:host {
+  container: component / inline-size;
+  display: block;
 
-  &.four {
-    --box-number: 4;
-  }
+  & > div {
+    --box-size: 7.5rem;
+    --box-number: 3;
+    --box-max-lines: 5;
 
-  &.five {
-    --box-number: 5;
-  }
-
-  display: grid;
-  grid-template-columns: repeat(var(--box-number), var(--box-size));
-  grid-template-rows: repeat(var(--box-number), var(--box-size));
-  justify-content: center;
-  gap: 0.5rem;
-  margin: auto;
-
-  & mat-card {
-    text-align: center;
+    display: grid;
+    grid-template-columns: repeat(var(--box-number), var(--box-size));
+    grid-template-rows: repeat(var(--box-number), var(--box-size));
     justify-content: center;
-    padding: 0.4rem;
+    gap: 0.5rem;
+    margin: auto;
 
-    &.done {
-        background-color: #F2A516;
-        color: black;
+    &.four {
+      --box-number: 4;
     }
 
-    &.bingo {
+    &.five {
+      --box-number: 5;
+      --box-size: 6.8rem;
+    }
+
+    & mat-card {
+      text-align: center;
+      justify-content: center;
+      padding: 0.4rem;
+
+      &:hover:not(.done):not(.bingo) {
+        cursor: pointer;
+        & div {
+          cursor: pointer;
+        }
+
+        filter: brightness(1.2);
+        --mat-card-elevated-container-elevation: var(--mat-sys-level3);
+      }
+
+      &.done {
+        background-color: #f2a516;
+        color: black;
+      }
+
+      &.bingo {
         background-color: #027333;
         color: white;
-    }
+      }
 
-    &.selected {
+      &.selected {
         background-color: #00458f;
-        color: white;   
+        color: white;
+      }
+
+      & div {
+        cursor: default;
+        display: -webkit-box;
+        -webkit-line-clamp: var(--box-max-lines);
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    }
+  }
+
+  @container component (width < 632px) {
+    & > div.five {
+      --box-size: 5.65rem;
+      --box-max-lines: 3;
+    }
+  }
+
+  @container component (width < 560px) {
+    & > div.four {
+      --box-size: 7.2rem;
     }
 
-    & div {
-      cursor: default;
-      display: -webkit-box;
-      -webkit-line-clamp: var(--box-max-lines);
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    & > div.five {
+      --box-size: 5.65rem;
+    }
+  }
+
+  @container component (width < 484px) {
+    & > div.four {
+      --box-size: 5.5rem;
+      --box-max-lines: 3;
+    }
+
+    & > div.five {
+      --box-size: 4.3rem;
     }
   }
 }

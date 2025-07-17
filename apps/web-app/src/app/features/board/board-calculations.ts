@@ -1,21 +1,39 @@
 import { Injectable } from '@angular/core';
 
+type Properties = {
+  rows: number[][];
+  cols: number[][];
+  diagonals: number[][];
+};
+
 @Injectable({
   providedIn: 'root',
 })
 export class BoardCalculations {
-  private threeByThreeIndexes = BoardCalculations.calcCellIndexes(3);
-  private fourByFourIndexes = BoardCalculations.calcCellIndexes(4);
-  private fiveByFiveIndexes = BoardCalculations.calcCellIndexes(5);
+  public readonly threeByThree: Properties;
+  public readonly fourByFour: Properties;
+  public readonly fiveByFive: Properties;
 
-  constructor() {}
+  constructor() {
+    const threeByThreeIndexes = BoardCalculations.calcCellIndexes(3);
+    const fourByFourIndexes = BoardCalculations.calcCellIndexes(4);
+    const fiveByFiveIndexes = BoardCalculations.calcCellIndexes(5);
 
-  threeByThree = {
-    cellIndexes: this.threeByThreeIndexes,
-    rows: BoardCalculations.calcRows(3, this.threeByThreeIndexes),
-    cols: BoardCalculations.calcCols(3, this.threeByThreeIndexes),
-    diagonals: BoardCalculations.calcDiagonals(3),
-  };
+    this.threeByThree = BoardCalculations.calcProperties(
+      3,
+      threeByThreeIndexes
+    );
+    this.fourByFour = BoardCalculations.calcProperties(4, fourByFourIndexes);
+    this.fiveByFive = BoardCalculations.calcProperties(5, fiveByFiveIndexes);
+  }
+
+  private static calcProperties(dimension: number, cellIndexes: number[]) {
+    return {
+      rows: BoardCalculations.calcRows(dimension, cellIndexes),
+      cols: BoardCalculations.calcCols(dimension, cellIndexes),
+      diagonals: BoardCalculations.calcDiagonals(dimension),
+    };
+  }
 
   private static calcCellIndexes(dimension: number) {
     return [...Array(dimension * dimension).keys()];
@@ -42,14 +60,14 @@ export class BoardCalculations {
 
   private static calcDiagonals(dimension: number) {
     return [
-      [...Array(dimension)].reduce((acc, curr, idx) => {
+      [...Array(dimension)].reduce((acc, _, idx) => {
         acc.push((dimension + 1) * idx);
         return acc;
       }, []),
-      [...Array(dimension)].reduce((acc, curr, idx) => {
+      [...Array(dimension)].reduce((acc, _, idx) => {
         acc.push((dimension - 1) * (idx + 1));
         return acc;
       }, []),
-    ];
+    ] as number[][];
   }
 }

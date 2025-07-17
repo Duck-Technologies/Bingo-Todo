@@ -1,12 +1,16 @@
-<div style="position: absolute; left: 0; width: 9rem;">{{bingoDiagonal() | json}}</div>
-@for (card of displayedCards(); track idx; let idx = $index) {
-    @let a = "Night of the Day of the Dawn of the Son of the Bride of the Return of the Revenge of the Terror of the Attack of the Evil, Mutant, Hellbound, Flesh-Eating Subhumanoid Zombified Living Dead, Part 3";
-    @let b = "Lord of the rings";
-    @let c = "Gym";
-
-    @let displayed = idx % 3 == 0 ? a : idx % 2 == 0 ? b : c;
-
-    <mat-card [class.bingo]="card.IsBingo" [class.done]="!!card.CheckedDateUTC" [class.selected]="">
-        <div [matTooltip]="displayed">{{idx + displayed}}</div>
+<div
+  [class.three]="mode() === 3"
+  [class.four]="mode() === 4"
+  [class.five]="mode() === 5"
+>
+  @for (card of displayedCards(); track idx; let idx = $index) {
+    <mat-card
+        [class.bingo]="card.IsBingo"
+        [class.done]="!!card.CheckedDateUTC"
+        [class.selected]="card.Selected"
+        (click)="checkCard(card)"
+    >
+        <div [matTooltip]="card.Name">{{ card.Name }}</div>
     </mat-card>
-}
+  }
+</div>
