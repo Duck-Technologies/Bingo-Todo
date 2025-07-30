@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  model,
   output,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +20,14 @@ export type BoardCell = {
   CheckedDateUTC: Date | null;
   IsBingo: boolean;
   Selected: boolean;
+};
+
+export type BoardInfo = {
+  Name: string | null;
+  GameMode: 'traditional' | 'todo';
+  CompletionDeadlineUtc: Date | null;
+  Cells: BoardCell[];
+  Visibility: 'local' | 'unlisted' | 'public';
 };
 
 @Component({
@@ -41,15 +50,15 @@ export type BoardCell = {
   },
 })
 export class Board {
-  private calculationService = inject(BoardCalculations);
+  private readonly calculationService = inject(BoardCalculations);
 
-  public cards = input.required<BoardCell[]>();
-  public previewMode = input.required<null | 'indicator' | 'preview'>();
-  public reachedBingo = output<boolean>();
-  public checkedAll = output<boolean>();
-  public isPreview = computed(() => this.previewMode() !== null);
+  public readonly cards = model.required<BoardCell[]>();
+  public readonly previewMode = input.required<
+    null | 'indicator' | 'preview'
+  >();
+  public readonly isPreview = computed(() => this.previewMode() !== null);
 
-  private setting = computed(
+  private readonly setting = computed(
     () =>
       ({
         '25': this.calculationService.fiveByFive,
@@ -58,37 +67,38 @@ export class Board {
       }[this.cards().length])
   );
 
-  public mode = computed(
+  public readonly mode = computed(
     () => ({ '25': 5, '16': 4, '9': 3 }[this.cards().length] ?? 0)
   );
 
-  public bingoRows = computed(() => this.setting()?.rows ?? []);
-
-  public bingoCols = computed(() => this.setting()?.cols ?? []);
-
-  public bingoDiagonal = computed(() => this.setting()?.diagonals ?? []);
-
-  public displayedCards = computed(() =>
-    this.cards().map((c, i) => {
-      c.IsBingo =
-        c.IsBingo ||
-        (c.CheckedDateUTC !== null &&
-          c.CheckedDateUTC !== undefined &&
-          (Board.cellInBingoFormation(this.bingoDiagonal(), this.cards(), i) ||
-            Board.cellInBingoFormation(this.bingoRows(), this.cards(), i) ||
-            Board.cellInBingoFormation(this.bingoCols(), this.cards(), i)));
-      return c;
-    })
+  public readonly bingoRows = computed(() => this.setting()?.rows ?? []);
+  public readonly bingoCols = computed(() => this.setting()?.cols ?? []);
+  public readonly bingoDiagonal = computed(
+    () => this.setting()?.diagonals ?? []
   );
 
   constructor() {
+    let cards = [] as BoardCell[];
+
+    // TODO: rethink this effect approach
     effect(() => {
-      const reached = this.displayedCards().find((c) => c.IsBingo);
-      if (reached) {
-        this.reachedBingo.emit(true);
-      }
-      if (!this.displayedCards().find(c => !c.IsBingo)) {
-        this.checkedAll.emit(true);
+      if (cards !== this.cards()) {
+        const cardsCalculated = this.cards().map((c, i) => {
+          c.IsBingo =
+            c.IsBingo ||
+            (c.CheckedDateUTC !== null &&
+              c.CheckedDateUTC !== undefined &&
+              (Board.cellInBingoFormation(
+                this.bingoDiagonal(),
+                this.cards(),
+                i
+              ) ||
+                Board.cellInBingoFormation(this.bingoRows(), this.cards(), i) ||
+                Board.cellInBingoFormation(this.bingoCols(), this.cards(), i)));
+          return c;
+        });
+        cards = cardsCalculated;
+        this.cards.set(cards);
       }
     });
   }
@@ -97,6 +107,7 @@ export class Board {
     if (!!card.CheckedDateUTC || this.isPreview()) return;
 
     card.Selected = !card.Selected;
+    this.cards.set([...this.cards()]);
   }
 
   private static cellInBingoFormation(
@@ -104,9 +115,10 @@ export class Board {
     cards: BoardCell[],
     cellIdx: number
   ) {
-    const combinationsToCheck = combinations.filter((c) => c.includes(cellIdx));
-    return !!combinationsToCheck.find((combination) =>
-      combination?.every((x) => cards[x].CheckedDateUTC !== null)
-    );
+    return !!combinations
+      .filter((c) => c.includes(cellIdx))
+      .find((combination) =>
+        combination?.every((x) => cards[x].CheckedDateUTC !== null)
+      );
   }
 }

@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { Board, BoardCell } from '../../board/board';
-import { MatButton } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
+import { AsyncPipe } from '@angular/common';
 import {
-  MAT_FORM_FIELD_DEFAULT_OPTIONS,
-  MatFormFieldModule,
-} from '@angular/material/form-field';
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -14,16 +13,20 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatButton } from '@angular/material/button';
 import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  startWith,
-} from 'rxjs';
-import { AsyncPipe, TitleCasePipe } from '@angular/common';
+  MatFormFieldModule,
+  MAT_FORM_FIELD_DEFAULT_OPTIONS,
+} from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatStepperModule } from '@angular/material/stepper';
+import { Board, BoardCell } from '../../features/board/board';
+import { startWith, map } from 'rxjs';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { BingoLocalStorage } from '../../features/persistence/bingo-local';
+import { Router } from '@angular/router';
+import { BingoApi } from '../../features/persistence/bingo-api';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
@@ -32,7 +35,7 @@ type CellForm = FormGroup<{
 }>;
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-board-setup',
   imports: [
     Board,
     MatButton,
@@ -43,7 +46,6 @@ type CellForm = FormGroup<{
     ReactiveFormsModule,
     MatInputModule,
     AsyncPipe,
-    TitleCasePipe,
   ],
   providers: [
     {
@@ -51,42 +53,35 @@ type CellForm = FormGroup<{
       useValue: { appearance: 'outline' },
     },
   ],
-  templateUrl: './home.html',
-  styleUrl: './home.css',
+  templateUrl: './board-setup.html',
+  styleUrl: './board-setup.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Home {
-  public boardSize = 9;
-  public boardCols = 3;
-  public focused = false;
-  public Math = Math;
-  public displayPlayAgain = false;
+export class BoardSetup implements OnInit {
+  private readonly router = inject(Router);
+  private readonly bingoApi = inject(BingoApi);
 
-  public board: {
-    Name: string | null;
-    GameMode: 'traditional' | 'todo';
-    Deadline: Date | null;
-    Cells: BoardCell[];
-  } = {
-    Name: null,
-    GameMode: 'traditional',
-    Deadline: null,
-    Cells: [],
-  };
+  public readonly baseBoard = { ...BingoLocalStorage.DefaultBoard, Cells: [] }; // once copying boards is implemented, this should be dynamic
+  public readonly Math = Math;
+  public readonly defaultBoardSize = 9;
+  public boardCols: number = 3;
+  public inputFocused = false;
+  public isLoggedIn = false;
 
-  public mode: 'edit' | 'view' = 'edit';
-
-  public boardForm = new FormGroup({
+  public readonly boardForm = new FormGroup({
     Name: new FormControl<string | null>(null),
-    BoardSize: new FormControl<number>(this.boardSize),
+    BoardSize: new FormControl<number>(this.defaultBoardSize),
     GameMode: new FormControl<'traditional' | 'todo'>('traditional', {
       nonNullable: true,
     }),
-    Deadline: new FormControl<Date | null>(null),
+    CompletionDeadlineUtc: new FormControl<Date | null>(null),
+    Visibility: new FormControl<'local' | 'unlisted' | 'public'>('unlisted', {
+      nonNullable: true,
+    }),
   });
 
-  public cardsFormArray = new FormArray<CellForm>(
-    [...Array(this.boardSize).keys()].map((_) => {
+  public readonly cardsFormArray = new FormArray<CellForm>(
+    [...Array(this.defaultBoardSize).keys()].map((_) => {
       return new FormGroup({
         Name: new FormControl<string | null>(null, [Validators.required]),
         Selected: new FormControl<boolean>(false, { nonNullable: true }),
@@ -95,19 +90,45 @@ export class Home {
     })
   );
 
-  public cards$ = this.cardsFormArray.valueChanges.pipe(
+  public readonly cards$ = this.cardsFormArray.valueChanges.pipe(
     startWith(this.cardsFormArray.getRawValue()),
     map(
-      (cards) =>
-        cards.map((c) => {
+      () =>
+        this.cardsFormArray.getRawValue().map((c) => {
           c.IsBingo = !!c.Name?.length;
           return c;
         }) as BoardCell[]
     )
   );
 
-  public abandon() {
-    this.mode = 'edit';
+  ngOnInit(): void {
+    this.boardForm.patchValue(this.baseBoard);
+    this.resizeBoard(
+      (this.baseBoard.Cells.length as any) || this.defaultBoardSize
+    );
+    this.cardsFormArray.patchValue(this.baseBoard.Cells);
+  }
+
+  public createBoard() {
+    const board = this.boardForm.getRawValue();
+
+    if (board.Visibility === 'local') {
+      BingoLocalStorage.createBoard({
+        ...board,
+        Cells: this.cardsFormArray.getRawValue().map(
+          (c) =>
+            ({
+              Name: c.Name,
+              CheckedDateUTC: null,
+              Selected: false,
+              IsBingo: false,
+            } as BoardCell)
+        ),
+      });
+      this.router.navigate(['board/local']);
+    } else {
+      // this.bingoApi.createBoard(board).subscribe();
+    }
   }
 
   public indicateFocused(
@@ -116,7 +137,7 @@ export class Home {
     hover: boolean = false
   ) {
     if (!hover) {
-      this.focused = action !== 'out';
+      this.inputFocused = action !== 'out';
     }
 
     control.controls.Selected.setValue(action !== 'out');
@@ -135,12 +156,12 @@ export class Home {
     );
   }
 
-  public resizeBoard(dimension: number) {
+  public resizeBoard(dimension: 9 | 16 | 25) {
     this.boardCols = {
       9: 3,
       16: 4,
       25: 5,
-    }[dimension] as number;
+    }[dimension];
 
     this.cardsFormArray.clear();
     [...Array(dimension).keys()].forEach((_) => {
@@ -154,37 +175,18 @@ export class Home {
     });
   }
 
-  public save() {
-    this.board.Cells = this.board.Cells.map((c) => {
-      if (c.Selected) {
-        c.CheckedDateUTC = new Date();
-        c.Selected = false;
-      }
-
-      return c;
-    });
-  }
-
-  public start() {
-    this.mode = 'view';
-    this.board = {
-      ...this.boardForm.getRawValue(),
-      Cells: this.cardsFormArray.getRawValue().map(
-        (c) =>
-          ({
-            Name: c.Name,
-            CheckedDateUTC: null,
-            Selected: false,
-            IsBingo: false,
-          } as BoardCell)
-      ),
-    };
-  }
-
   public scramble() {
     this.cardsFormArray.patchValue(
       this._scramble(this.cardsFormArray.getRawValue() as BoardCell[])
     );
+  }
+
+  public scrollTo(event: StepperSelectionEvent) {
+    setTimeout(() => {
+      [...document.querySelectorAll('.action-footer')]
+        .at(event.selectedIndex)
+        ?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    }, 200);
   }
 
   private _scramble(list: BoardCell[]) {

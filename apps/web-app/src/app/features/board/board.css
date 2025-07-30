@@ -17,6 +17,7 @@
     --mat-card-elevated-container-elevation: var(--mat-sys-level3);
   }
 
+  /* had to use an inner div to make the container query work */
   & > div {
     --box-size: 7.5rem;
     --box-number: 3;
@@ -35,35 +36,36 @@
 
     &.five {
       --box-number: 5;
-      --box-size: 6.8rem;
+      --box-size: 6.6rem;
     }
 
-    & mat-card {
+    mat-card {
       text-align: center;
       justify-content: center;
       padding: 0.4rem;
 
       &.done {
-        background-color: #f2a516;
+        background-color: var(--yellow-primary);
         color: black;
       }
 
       &.bingo {
-        background-color: #027333;
+        background-color: var(--green-primary);
         color: white;
       }
 
       &.selected {
-        background-color: #00458f;
+        background-color: var(--blue-primary);
         color: white;
       }
 
-      & div {
+      div {
         cursor: default;
         display: -webkit-box;
         -webkit-line-clamp: var(--box-max-lines);
         -webkit-box-orient: vertical;
         overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
@@ -93,13 +95,18 @@
   }
 
   @container component (width < 380px) {
+    &:not(.indicator) > div.three {
+      --box-size: 6.8rem;
+      --box-max-lines: 4;
+    }
+
     &:not(.indicator) > div.four {
-      --box-size: 4.5rem;
-      --box-max-lines: 2;
+      --box-size: 5rem;
+      --box-max-lines: 3;
     }
 
     &:not(.indicator) > div.five {
-      --box-size: 3.3rem;
+      --box-size: 3.9rem;
       --box-max-lines: 2;
     }
   }

@@ -16,12 +16,17 @@ describe('Board', () => {
     fixture = TestBed.createComponent(Board);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('cards', []);
+    fixture.componentRef.setInput('previewMode', null);
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  // TODO tests:
+  // - disabled state based on previewMode
+  // - cells should be empty in indicator mode
 
   it('should color bingo cols as expected 5', () => {
     const mode = 5;
@@ -36,8 +41,11 @@ describe('Board', () => {
         }))
       );
 
+      // needed because of the effect()
+      fixture.detectChanges();
+
       expect(
-        component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+        component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
       ).toEqual(mode);
     });
   });
@@ -55,8 +63,10 @@ describe('Board', () => {
         }))
       );
 
+      fixture.detectChanges();
+
       expect(
-        component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+        component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
       ).toEqual(mode);
     });
   });
@@ -85,7 +95,7 @@ describe('Board', () => {
     );
 
     expect(
-      component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
     ).toEqual(0);
   });
 
@@ -100,8 +110,10 @@ describe('Board', () => {
       }))
     );
 
+    fixture.detectChanges();
+
     expect(
-      component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
     ).toEqual(4);
   });
 
@@ -116,8 +128,10 @@ describe('Board', () => {
       }))
     );
 
+    fixture.detectChanges();
+
     expect(
-      component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
     ).toEqual(4);
   });
 
@@ -132,8 +146,10 @@ describe('Board', () => {
       }))
     );
 
+    fixture.detectChanges();
+
     expect(
-      component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
     ).toEqual(0);
   });
 
@@ -155,9 +171,11 @@ describe('Board', () => {
         '5': [0, 6, 12, 18, 24],
       }[mode.toString()] as number[];
 
+      fixture.detectChanges();
+
       expect(
         component
-          .displayedCards()
+          .cards()
           .map((c, idx) => (c.IsBingo === false ? undefined : idx))
           .filter((c) => c !== undefined)
       ).toEqual(expected);
@@ -186,15 +204,17 @@ describe('Board', () => {
         '5': [4, 8, 12, 16, 20],
       }[mode.toString()] as number[];
 
+      fixture.detectChanges();
+
       expect(
         component
-          .displayedCards()
+          .cards()
           .map((c, idx) => (c.IsBingo === false ? undefined : idx))
           .filter((c) => c !== undefined)
       ).toEqual(expected);
 
       expect(
-        component.displayedCards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+        component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
       ).toEqual(mode);
     });
   });

@@ -46,11 +46,33 @@ body {
   // }
 }
 
+mat-stepper.no-space-on-last-step {
+  & .mat-step:last-of-type {
+    & .mat-vertical-content {
+      padding: 0;
+    }
+
+    & .mat-vertical-content-container {
+      margin-left: 0;
+    }
+  }
+}
+
 :root {
   @include mat.toolbar-overrides(
     (
       container-background-color: #00458f,
-      container-text-color: white
+      container-text-color: white,
     )
   );
+
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--mat-sys-primary),
+    )
+  );
+
+  --yellow-primary: #f2a516;
+  --green-primary: #027333;
+  --blue-primary: #00458f;
 }

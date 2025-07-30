@@ -1,0 +1,108 @@
+@let cardsPreview = cards$ | async; @if (!!cardsPreview) {
+<mat-stepper
+  class="no-space-on-last-step"
+  [linear]="true"
+  orientation="vertical"
+  #stepper
+  (selectionChange)="scrollTo($event)">
+  <mat-step [stepControl]="boardForm">
+    <form [formGroup]="boardForm" class="details">
+      <ng-template matStepLabel>Board details</ng-template>
+      <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
+
+      <mat-form-field [subscriptSizing]="'dynamic'">
+        <mat-label>Board size</mat-label>
+        <mat-select formControlName="BoardSize" (selectionChange)="resizeBoard($event.value)">
+          <mat-option [value]="9">3x3</mat-option>
+          <mat-option [value]="16">4x4</mat-option>
+          <mat-option [value]="25">5x5</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field [subscriptSizing]="'dynamic'">
+        <mat-label>Game mode</mat-label>
+        <mat-select formControlName="GameMode">
+          <mat-option [value]="'traditional'"
+            ><img class="icon" src="bingo.svg" /> Traditional (1 strike)</mat-option
+          >
+          <mat-option [value]="'todo'"
+            ><img class="icon" src="todo.svg" /> Todo (check all)</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field [subscriptSizing]="'dynamic'">
+        <mat-label>Name</mat-label>
+        <input matInput placeholder="Enter board name" formControlName="Name" />
+      </mat-form-field>
+
+      <mat-form-field [subscriptSizing]="'dynamic'">
+        <mat-label>Visibility</mat-label>
+        <mat-select formControlName="Visibility">
+          <mat-option [value]="'unlisted'" [disabled]="!isLoggedIn">Unlisted</mat-option>
+          <mat-option [value]="'public'" [disabled]="!isLoggedIn">Public</mat-option>
+          <mat-option [value]="'local'">Local</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="action-footer">
+        <button matButton matStepperNext>Next</button>
+      </div>
+    </form>
+  </mat-step>
+  <mat-step [stepControl]="cardsFormArray" label="Board cells">
+    <form class="details">
+      <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
+
+      <div class="cells">
+        @for (control of cardsFormArray.controls; track idx; let idx = $index) {
+        <ng-container [formGroup]="control">
+          <mat-form-field>
+            <mat-label
+              >Row {{ Math.ceil((idx + 1) / boardCols) }}, Col
+              {{ (idx % boardCols) + 1 }}</mat-label
+            >
+            <input
+              matInput
+              (focus)="indicateFocused(control)"
+              (blur)="indicateFocused(control, 'out')"
+              (mouseover)="
+                !inputFocused ? indicateFocused(control, null, true) : null
+              "
+              (mouseout)="
+                !inputFocused ? indicateFocused(control, 'out', true) : null
+              "
+              placeholder="Enter something"
+              formControlName="Name" />
+          </mat-form-field>
+        </ng-container>
+        }
+      </div>
+
+      <div class="action-footer">
+        <button mat-stroked-button (click)="prefill()">Prefill</button>
+        <button matButton matStepperPrevious>Back</button>
+        <button matButton matStepperNext [disabled]="cardsFormArray.invalid">Next</button>
+      </div>
+    </form>
+  </mat-step>
+  <mat-step>
+    @let boardDetails = boardForm.getRawValue();
+
+    <ng-template matStepLabel>Done</ng-template>
+    <div class="overview">
+      <h3>
+        <img class="icon" src="{{ boardDetails.GameMode === 'todo' ? 'todo' : 'bingo' }}.svg" />
+        {{ boardDetails.Name || "Untitled Board" }}
+      </h3>
+      <app-board [cards]="$any(cardsFormArray.getRawValue())" [previewMode]="'preview'"></app-board>
+
+      <div class="action-footer">
+        <button mat-stroked-button (click)="scramble()">Scramble</button>
+        <button matButton matStepperPrevious>Back</button>
+        <button mat-flat-button (click)="createBoard()">Start</button>
+      </div>
+    </div>
+  </mat-step>
+</mat-stepper>
+}
