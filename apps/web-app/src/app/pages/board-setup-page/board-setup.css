@@ -7,14 +7,7 @@
     }
   }
 
-  img.icon {
-    height: 1.3rem;
-    width: 1.3rem;
-    vertical-align: text-bottom;
-  }
-
-  .overview,
-  form.details {
+  .container {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -22,9 +15,7 @@
     & > *:first-child {
       margin-top: 1rem;
     }
-  }
 
-  form.details {
     & .cells {
       height: 21rem;
       overflow: auto;

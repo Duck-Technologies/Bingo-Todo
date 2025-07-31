@@ -19,40 +19,48 @@
 @let totalCells = board().Cells.length;
 
 <div>
-  <h3>
-    <img
-      class="icon"
-      src="{{ board().GameMode === 'todo' ? 'todo' : 'bingo' }}.svg"
-      [matTooltip]="board().GameMode === 'todo' ? tooltips['game_mode_todo'] : tooltips['game_mode_bingo']"
-      alt="{{ board().GameMode === 'todo' ? tooltips['game_mode_todo'] : tooltips['game_mode_bingo'] }}" /><span
-      >{{ board().Name || "Untitled Board" }}</span
-    >
-  </h3>
-  @if (pendingSelectCount() !== 0) {
+  <img
+    class="icon"
+    src="{{ board().GameMode === 'todo' ? 'todo' : 'bingo' }}.svg"
+    [matTooltip]="board().GameMode === 'todo' ? tooltips['game_mode_todo'] : tooltips['game_mode_bingo']"
+    alt="{{ board().GameMode === 'todo' ? tooltips['game_mode_todo'] : tooltips['game_mode_bingo'] }}" />
+
+  <h1>{{ board().Name || "Untitled Board" }}</h1>
+
   <div class="actions">
+    @if (pendingSelectCount() !== 0) {
     <button mat-button (click)="unselect()">Unselect</button>
     <button mat-flat-button (click)="saveSelected()">Save ({{ pendingSelectCount() }})</button>
-  </div>
-  } @else if (!editMode) {
-  <button
-    matIconButton
-    (click)="editBoard()"
-    attr.aria-label="{{ tooltips['edit_button'] }}"
-    [matTooltip]="tooltips['edit_button']">
-    <mat-icon>edit</mat-icon>
-  </button>
-  } @else {
-  <div class="actions">
+    } @else if (!editMode) {
+    <button
+      matIconButton
+      (click)="editBoard()"
+      attr.aria-label="{{ tooltips['edit_button'] }}"
+      [matTooltip]="tooltips['edit_button']">
+      <mat-icon>edit</mat-icon>
+    </button>
+    } @else {
     <button mat-button (click)="cancelChanges()">Cancel</button>
     <button mat-flat-button (click)="saveChanges()">Save</button>
+    }
   </div>
-  }
 </div>
 
-<div>
+<div [class.edit]="editMode">
   @if (editMode) {
+  <app-board-details-form
+    [isLoggedIn]="board().Visibility !== 'local'"
+    [board]="board()"
+    [createMode]="false"></app-board-details-form>
+
+  <mat-divider></mat-divider>
+
+  <h4>Actions</h4>
   <mat-checkbox [(ngModel)]="doDelete">Delete board</mat-checkbox>
   <button matButton disabled>Create copy</button>
+
+  <mat-divider></mat-divider>
+
   } @else {
 
   <!-- prettier-ignore -->
@@ -123,14 +131,16 @@
     </button>
   </div>
 
-  <button
-    disabled
-    [matTooltip]="buttonLabel"
-    attr.aria-label="{{ buttonLabel }}"
-    matIconButton
-    (click)="gridMode === 'grid' ? (gridMode = 'list') : (gridMode = 'grid')">
-    <mat-icon>{{ gridMode === "grid" ? "list" : "grid_on" }}</mat-icon>
-  </button>
+  <div class="actions">
+    <button
+      disabled
+      [matTooltip]="buttonLabel"
+      attr.aria-label="{{ buttonLabel }}"
+      matIconButton
+      (click)="gridMode === 'grid' ? (gridMode = 'list') : (gridMode = 'grid')">
+      <mat-icon>{{ gridMode === "grid" ? "list" : "grid_on" }}</mat-icon>
+    </button>
+  </div>
   }
 </div>
 

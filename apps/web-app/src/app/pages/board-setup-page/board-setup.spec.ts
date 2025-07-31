@@ -30,10 +30,8 @@ describe('BoardSetup', () => {
   });
 
   // TODO tests:
-  // - form prefilled with defaults
   // - Check that the Done step is not reachable without filling all cells
   // - Check hover and focus behavior
   // - Check cell input labels
-  // - Check disabled options and warnings related to Visibility
   // - Check scramble (same items scrambled, not the same order)
 });

@@ -15,6 +15,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { BingoApi } from '../../features/persistence/bingo-api';
+import { BoardDetailsForm } from "../../features/board-details-form/board-details-form";
+import { boardForm } from '../../features/board-details-form/form';
+import { MatDivider } from '@angular/material/divider';
 
 @Component({
   selector: 'app-board-page',
@@ -26,7 +29,9 @@ import { BingoApi } from '../../features/persistence/bingo-api';
     MatTooltip,
     MatCheckboxModule,
     FormsModule,
-  ],
+    BoardDetailsForm,
+    MatDivider
+],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +71,7 @@ export class BoardPage {
     this.cells().reduce((acc, curr) => (acc += +curr.Selected), 0)
   );
 
+  private readonly boardForm = boardForm;
   public readonly doDelete = model(false);
   public editMode = false;
   public goalAchieved = false;
@@ -96,12 +102,17 @@ export class BoardPage {
 
   public saveChanges() {
     this.editMode = false;
+    const updatedBoard = {
+      ...this.boardForm.getRawValue(),
+      Cells: this.cells()
+    }
+
     if (this.isLocal()) {
       if (this.doDelete()) {
         BingoLocalStorage.resetBoard();
         this.router.navigate(['board/create']);
       } else {
-        // map from form to board
+        this.board.set(updatedBoard);
         BingoLocalStorage.updateBoard(this.board());
       }
     } else {

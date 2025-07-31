@@ -23,6 +23,7 @@ export type BoardCell = {
 };
 
 export type BoardInfo = {
+  Id?: string;
   Name: string | null;
   GameMode: 'traditional' | 'todo';
   CompletionDeadlineUtc: Date | null;

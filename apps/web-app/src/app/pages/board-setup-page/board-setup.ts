@@ -27,6 +27,8 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 import { Router } from '@angular/router';
 import { BingoApi } from '../../features/persistence/bingo-api';
+import { BoardDetailsForm } from "../../features/board-details-form/board-details-form";
+import { boardForm } from '../../features/board-details-form/form';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
@@ -40,13 +42,14 @@ type CellForm = FormGroup<{
     Board,
     MatButton,
     MatSelectModule,
+    MatInputModule,
     MatFormFieldModule,
     FormsModule,
-    MatStepperModule,
     ReactiveFormsModule,
-    MatInputModule,
+    MatStepperModule,
     AsyncPipe,
-  ],
+    BoardDetailsForm
+],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -68,17 +71,7 @@ export class BoardSetup implements OnInit {
   public inputFocused = false;
   public isLoggedIn = false;
 
-  public readonly boardForm = new FormGroup({
-    Name: new FormControl<string | null>(null),
-    BoardSize: new FormControl<number>(this.defaultBoardSize),
-    GameMode: new FormControl<'traditional' | 'todo'>('traditional', {
-      nonNullable: true,
-    }),
-    CompletionDeadlineUtc: new FormControl<Date | null>(null),
-    Visibility: new FormControl<'local' | 'unlisted' | 'public'>('unlisted', {
-      nonNullable: true,
-    }),
-  });
+  public boardForm = boardForm;
 
   public readonly cardsFormArray = new FormArray<CellForm>(
     [...Array(this.defaultBoardSize).keys()].map((_) => {
@@ -102,7 +95,6 @@ export class BoardSetup implements OnInit {
   );
 
   ngOnInit(): void {
-    this.boardForm.patchValue(this.baseBoard);
     this.resizeBoard(
       (this.baseBoard.Cells.length as any) || this.defaultBoardSize
     );
@@ -163,11 +155,13 @@ export class BoardSetup implements OnInit {
       25: 5,
     }[dimension];
 
+    const cellsBeforeResize = JSON.parse(JSON.stringify(this.cardsFormArray.getRawValue().filter(x => !!x.Name)))
+
     this.cardsFormArray.clear();
-    [...Array(dimension).keys()].forEach((_) => {
+    [...Array(dimension).keys()].forEach((_, idx) => {
       this.cardsFormArray.push(
         new FormGroup({
-          Name: new FormControl<string | null>(null, [Validators.required]),
+          Name: new FormControl<string | null>(cellsBeforeResize.at(idx)?.Name, [Validators.required]),
           Selected: new FormControl<boolean>(false, { nonNullable: true }),
           IsBingo: new FormControl<boolean>(false, { nonNullable: true }),
         })
