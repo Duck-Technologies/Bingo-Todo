@@ -7,6 +7,21 @@
     }
   }
 
+  app-board-list-view {
+    height: 30rem;
+    max-width: 50rem;
+    min-width: min(50rem, 100%);
+    margin: 0 auto;
+  }
+
+  div.title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: min(50rem, 100%);
+    margin: 0 auto;
+  }
+
   .container {
     display: flex;
     flex-direction: column;
@@ -34,6 +49,6 @@
   }
 
   .action-footer {
-    text-align: end;
+    align-self: flex-end;
   }
 }

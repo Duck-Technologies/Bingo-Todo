@@ -1,0 +1,16 @@
+@for (card of cards(); track idx; let idx = $index, last = $last) {
+<mat-card
+  [class.bg-green]="card.IsBingo"
+  [class.bg-yellow]="!!card.CheckedDateUTC"
+  [class.bg-blue]="card.Selected"
+  (click)="checkCard(card)">
+  <mat-card-header
+    >Row {{ Math.ceil((idx + 1) / boardSize()) }}, Col
+    {{ (idx % boardSize()) + 1 }}</mat-card-header
+  >
+  <mat-card-content>{{card.Name}}</mat-card-content>
+</mat-card>
+
+@if(($index + 1) % boardSize() === 0 && !last) {
+<mat-divider></mat-divider>
+} }

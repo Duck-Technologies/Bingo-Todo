@@ -4,6 +4,7 @@ import {
   Component,
   inject,
   OnInit,
+  signal,
 } from '@angular/core';
 import {
   FormArray,
@@ -13,7 +14,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MatFormFieldModule,
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -29,6 +30,9 @@ import { Router } from '@angular/router';
 import { BingoApi } from '../../features/persistence/bingo-api';
 import { BoardDetailsForm } from "../../features/board-details-form/board-details-form";
 import { boardForm } from '../../features/board-details-form/form';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { BoardListView } from "../../features/board-list-view/board-list-view";
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
@@ -41,6 +45,7 @@ type CellForm = FormGroup<{
   imports: [
     Board,
     MatButton,
+    MatIconButton,
     MatSelectModule,
     MatInputModule,
     MatFormFieldModule,
@@ -48,7 +53,10 @@ type CellForm = FormGroup<{
     ReactiveFormsModule,
     MatStepperModule,
     AsyncPipe,
-    BoardDetailsForm
+    BoardDetailsForm,
+    MatIcon,
+    MatTooltip,
+    BoardListView
 ],
   providers: [
     {
@@ -67,7 +75,8 @@ export class BoardSetup implements OnInit {
   public readonly baseBoard = { ...BingoLocalStorage.DefaultBoard, Cells: [] }; // once copying boards is implemented, this should be dynamic
   public readonly Math = Math;
   public readonly defaultBoardSize = 9;
-  public boardCols: number = 3;
+  public boardCols: 3 | 4 | 5 = 3;
+  public readonly gridMode = signal<'grid' | 'list'>('grid');
   public inputFocused = false;
   public isLoggedIn = false;
 
@@ -149,11 +158,11 @@ export class BoardSetup implements OnInit {
   }
 
   public resizeBoard(dimension: 9 | 16 | 25) {
-    this.boardCols = {
+    this.boardCols = ({
       9: 3,
       16: 4,
       25: 5,
-    }[dimension];
+    } as const)[dimension];
 
     const cellsBeforeResize = JSON.parse(JSON.stringify(this.cardsFormArray.getRawValue().filter(x => !!x.Name)))
 

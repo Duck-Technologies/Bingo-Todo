@@ -59,6 +59,10 @@ mat-stepper.no-space-on-last-step {
 }
 
 :root {
+  --yellow-primary: #f2a516;
+  --green-primary: #027333;
+  --blue-primary: #00458f;
+
   @include mat.toolbar-overrides(
     (
       container-background-color: #00458f,
@@ -72,7 +76,20 @@ mat-stepper.no-space-on-last-step {
     )
   );
 
-  --yellow-primary: #f2a516;
-  --green-primary: #027333;
-  --blue-primary: #00458f;
+  mat-card {
+    &.bg-yellow {
+      background-color: var(--yellow-primary);
+      color: black;
+    }
+
+    &.bg-green {
+      background-color: var(--green-primary);
+      color: white;
+    }
+
+    &.bg-blue {
+      background-color: var(--blue-primary);
+      color: white;
+    }
+  }
 }

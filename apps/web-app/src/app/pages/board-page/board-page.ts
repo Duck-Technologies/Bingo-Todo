@@ -5,6 +5,7 @@ import {
   inject,
   linkedSignal,
   model,
+  signal,
 } from '@angular/core';
 import { Board, BoardInfo } from '../../features/board/board';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -15,9 +16,10 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { BingoApi } from '../../features/persistence/bingo-api';
-import { BoardDetailsForm } from "../../features/board-details-form/board-details-form";
+import { BoardDetailsForm } from '../../features/board-details-form/board-details-form';
 import { boardForm } from '../../features/board-details-form/form';
 import { MatDivider } from '@angular/material/divider';
+import { BoardListView } from '../../features/board-list-view/board-list-view';
 
 @Component({
   selector: 'app-board-page',
@@ -30,8 +32,9 @@ import { MatDivider } from '@angular/material/divider';
     MatCheckboxModule,
     FormsModule,
     BoardDetailsForm,
-    MatDivider
-],
+    MatDivider,
+    BoardListView,
+  ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +45,16 @@ export class BoardPage {
   private readonly bingoApi = inject(BingoApi);
   private readonly router = inject(Router);
 
+  public readonly editMode = signal(false);
   public readonly cells = linkedSignal(() => this.board().Cells);
+  public readonly gridMode = signal<'grid' | 'list'>('grid');
+  public readonly boardPreviewMode = computed(() =>
+    this.gridMode() === 'list'
+      ? 'indicator'
+      : this.goalReached() || this.editMode()
+      ? 'preview'
+      : null
+  );
   public readonly isLocal = computed(() => this.board().Visibility === 'local');
 
   private readonly bingoReached = computed(() =>
@@ -73,12 +85,10 @@ export class BoardPage {
 
   private readonly boardForm = boardForm;
   public readonly doDelete = model(false);
-  public editMode = false;
   public goalAchieved = false;
-  public gridMode: 'grid' | 'list' = 'grid';
 
   public cancelChanges() {
-    this.editMode = false;
+    this.editMode.set(false);
     this.doDelete.set(false);
   }
 
@@ -97,15 +107,15 @@ export class BoardPage {
   }
 
   public editBoard() {
-    this.editMode = true;
+    this.editMode.set(true);
   }
 
   public saveChanges() {
-    this.editMode = false;
+    this.editMode.set(false);
     const updatedBoard = {
       ...this.boardForm.getRawValue(),
-      Cells: this.cells()
-    }
+      Cells: this.cells(),
+    };
 
     if (this.isLocal()) {
       if (this.doDelete()) {

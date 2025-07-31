@@ -13,7 +13,7 @@
     game_mode_todo: "TODO game mode. Check all cells.",
     edit_button: "Edit button for changing the board name, game mode, deadline, deleting it and such.", 
 };
-@let switchTo = gridMode === 'grid' ? 'list' : 'grid';
+@let switchTo = gridMode() === 'grid' ? 'list' : 'grid';
 @let buttonLabel = 'Switch to ' + switchTo + ' view';
 @let deadline = "none";
 @let totalCells = board().Cells.length;
@@ -31,7 +31,7 @@
     @if (pendingSelectCount() !== 0) {
     <button mat-button (click)="unselect()">Unselect</button>
     <button mat-flat-button (click)="saveSelected()">Save ({{ pendingSelectCount() }})</button>
-    } @else if (!editMode) {
+    } @else if (!editMode()) {
     <button
       matIconButton
       (click)="editBoard()"
@@ -46,8 +46,8 @@
   </div>
 </div>
 
-<div [class.edit]="editMode">
-  @if (editMode) {
+<div [class.edit]="editMode()">
+  @if (editMode()) {
   <app-board-details-form
     [isLoggedIn]="board().Visibility !== 'local'"
     [board]="board()"
@@ -133,12 +133,11 @@
 
   <div class="actions">
     <button
-      disabled
       [matTooltip]="buttonLabel"
       attr.aria-label="{{ buttonLabel }}"
       matIconButton
-      (click)="gridMode === 'grid' ? (gridMode = 'list') : (gridMode = 'grid')">
-      <mat-icon>{{ gridMode === "grid" ? "list" : "grid_on" }}</mat-icon>
+      (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid')">
+      <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
     </button>
   </div>
   }
@@ -153,6 +152,8 @@
 {{ isLocal() ? "This is a local board. You have to delete it to start a new one." : "" }}
 }
 
-<app-board
-  [(cards)]="cells"
-  [previewMode]="goalReached() || editMode ? 'preview' : null"></app-board>
+<app-board [(cards)]="cells" [previewMode]="boardPreviewMode()"></app-board>
+
+@if (gridMode() === 'list') {
+<app-board-list-view [(cards)]="cells"></app-board-list-view>
+}

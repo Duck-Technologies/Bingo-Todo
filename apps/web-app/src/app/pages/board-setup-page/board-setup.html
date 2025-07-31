@@ -61,11 +61,32 @@
 
     <ng-template matStepLabel>Done</ng-template>
     <div class="container">
-      <h3>
-        <img class="icon" alt="" src="{{ boardDetails.GameMode === 'todo' ? 'todo' : 'bingo' }}.svg" />
-        {{ boardDetails.Name || "Untitled Board" }}
-      </h3>
+      @let switchTo = gridMode() === 'grid' ? 'list' : 'grid'; @let buttonLabel = 'Switch to ' +
+      switchTo + ' view';
+
+      <div class="title">
+        <img
+          class="icon"
+          alt=""
+          src="{{ boardDetails.GameMode === 'todo' ? 'todo' : 'bingo' }}.svg" />
+        <h3>
+          {{ boardDetails.Name || "Untitled Board" }}
+        </h3>
+        <button
+          class="view-switch"
+          [matTooltip]="buttonLabel"
+          attr.aria-label="{{ buttonLabel }}"
+          matIconButton
+          (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid'); scrollTo($any({selectedIndex:2}))">
+          <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
+        </button>
+      </div>
+
+      @if (gridMode() === 'list') {
+      <app-board-list-view [cards]="$any(cardsFormArray.getRawValue())"></app-board-list-view>
+      } @else {
       <app-board [cards]="$any(cardsFormArray.getRawValue())" [previewMode]="'preview'"></app-board>
+      }
 
       <div class="action-footer">
         <button mat-stroked-button (click)="scramble()">Scramble</button>
