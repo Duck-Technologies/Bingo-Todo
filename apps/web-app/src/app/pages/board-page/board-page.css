@@ -4,10 +4,26 @@
   gap: 1rem;
   height: 100%;
   overflow: auto;
+  container: board-container / inline-size;
+
+  app-board-list-view {
+    width: min(100cqw, 35.5rem);
+    max-height: 50cqh;
+  }
 
   div {
     display: flex;
     align-items: center;
+
+    &.board-container {
+      flex-direction: column;
+      width: fit-content;
+      align-self: center;
+
+      &:not(.scroll) {
+        overflow: auto;
+      }
+    }
 
     &:not(.actions) {
       gap: 0.5rem;

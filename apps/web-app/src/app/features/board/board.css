@@ -1,97 +1,85 @@
 :host {
-  container: component / inline-size;
-  display: block;
+  /* container: board-container / inline-size; */
 
-  &.indicator > div,
-  &.indicator > div.five {
-    --box-size: 2rem;
+  --_board-max-width: 33.5rem;
+  --cell-gap: 0.5rem;
+  --box-size: min(
+    calc((100cqw / var(--box-number)) - (var(--cell-gap) - 0.1rem)),
+    calc(
+      var(--_board-max-width) / var(--box-number) + var(--cell-gap) /
+        (var(--box-number) - 1)
+    )
+  );
+  --box-number: 3;
+  --box-max-lines: 5;
+
+  display: grid;
+  grid-template-columns: repeat(var(--box-number), var(--box-size));
+  grid-template-rows: repeat(var(--box-number), var(--box-size));
+  justify-content: center;
+  gap: var(--cell-gap);
+  width: fit-content;
+
+  &.four {
+    --box-number: 4;
   }
 
-  &:not(.preview) > div mat-card:hover:not(.bg-yellow):not(.bg-green) {
-    cursor: pointer;
-    & div {
-      cursor: pointer;
+  &.five {
+    --box-number: 5;
+  }
+
+  &.indicator {
+    --box-size: 2rem;
+
+    mat-card:not(.bg-green):not(.bg-yellow):not(.bg-blue) {
+      filter: brightness(1.3);
     }
+  }
+
+  &:not(.preview):not(.indicator)
+    > mat-card:hover:not(.bg-yellow):not(.bg-green) {
+    cursor: pointer;
 
     filter: brightness(1.2);
     --mat-card-elevated-container-elevation: var(--mat-sys-level3);
   }
 
-  /* had to use an inner div to make the container query work */
-  & > div {
-    --box-size: 7.5rem;
-    --box-number: 3;
-    --box-max-lines: 5;
-
-    display: grid;
-    grid-template-columns: repeat(var(--box-number), var(--box-size));
-    grid-template-rows: repeat(var(--box-number), var(--box-size));
+  mat-card {
+    text-align: center;
     justify-content: center;
-    gap: 0.5rem;
-    margin: auto;
+    padding: 0.4rem;
 
-    &.four {
-      --box-number: 4;
+    div {
+      cursor: default;
+      display: -webkit-box;
+      -webkit-line-clamp: var(--box-max-lines);
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
 
+  /* ideally we could use css vars for controlling the breakpoints */
+  @container board-container (width < 35.5rem) {
     &.five {
-      --box-number: 5;
-      --box-size: 6.6rem;
-    }
-
-    mat-card {
-      text-align: center;
-      justify-content: center;
-      padding: 0.4rem;
-
-      div {
-        cursor: default;
-        display: -webkit-box;
-        -webkit-line-clamp: var(--box-max-lines);
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-  }
-
-  @container component (width < 632px) {
-    &:not(.indicator) > div.five {
-      --box-size: 5.65rem;
       --box-max-lines: 3;
     }
   }
 
-  @container component (width < 560px) {
-    &:not(.indicator) > div.four {
-      --box-size: 7.2rem;
+  @container board-container (width < 26.875rem) {
+    &.four {
+      --box-max-lines: 3;
     }
   }
 
-  @container component (width < 484px) {
-    &:not(.indicator) > div.four {
-      --box-size: 5.5rem;
-      --box-max-lines: 3;
-    }
-
-    &:not(.indicator) > div.five {
-      --box-size: 5.3rem;
+  @container board-container (width < 23.75rem) {
+    &.five {
+      --box-max-lines: 2;
     }
   }
 
-  @container component (width < 380px) {
-    &:not(.indicator) > div.three {
-      --box-size: 6.8rem;
-      --box-max-lines: 4;
-    }
-
-    &:not(.indicator) > div.four {
-      --box-size: 5rem;
-      --box-max-lines: 3;
-    }
-
-    &:not(.indicator) > div.five {
-      --box-size: 3.9rem;
+  @container board-container (width < 18.75rem) {
+    &.four {
       --box-max-lines: 2;
     }
   }

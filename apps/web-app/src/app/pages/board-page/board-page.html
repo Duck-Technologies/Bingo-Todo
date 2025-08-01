@@ -46,8 +46,8 @@
   </div>
 </div>
 
-<div [class.edit]="editMode()">
-  @if (editMode()) {
+@if (editMode()) {
+<div class="edit">
   <app-board-details-form
     [isLoggedIn]="board().Visibility !== 'local'"
     [board]="board()"
@@ -60,11 +60,34 @@
   <button matButton disabled>Create copy</button>
 
   <mat-divider></mat-divider>
+</div>
+} 
 
-  } @else {
+@if (goalReached()) {
+<div>
+  @if (board().GameMode === 'traditional') { BINGO!
+  <button matButton (click)="continueAfterBingo()">Continue in TODO mode</button>
+  } @else { You did it all! }
+</div>
+{{ isLocal() ? "This is a local board. You have to delete it to start a new one." : "" }}
+}
 
-  <!-- prettier-ignore -->
-  <div>
+<div class="board-container" [class.scroll]="editMode()">
+  @if (!editMode()) {
+  <ng-container *ngTemplateOutlet="boardInfo"></ng-container>
+  }
+  <app-board [(cards)]="cells" [previewMode]="boardPreviewMode()"></app-board>
+  @if (gridMode() === 'list') {
+  <app-board-list-view [(cards)]="cells" [disabled]="editMode()"></app-board-list-view>
+  }
+</div>
+
+
+
+<ng-template #boardInfo>
+  <div [style.width]="'100%'">
+    <!-- prettier-ignore -->
+    <div>
     <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['creator']"
       >person</mat-icon>
     <span class="cdk-visually-hidden">{{ tooltips["creator"] }}</span>
@@ -131,29 +154,14 @@
     </button>
   </div>
 
-  <div class="actions">
-    <button
-      [matTooltip]="buttonLabel"
-      attr.aria-label="{{ buttonLabel }}"
-      matIconButton
-      (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid')">
-      <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
-    </button>
+    <div class="actions">
+      <button
+        [matTooltip]="buttonLabel"
+        attr.aria-label="{{ buttonLabel }}"
+        matIconButton
+        (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid')">
+        <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
+      </button>
+    </div>
   </div>
-  }
-</div>
-
-@if (goalReached()) {
-<div>
-  @if (board().GameMode === 'traditional') { BINGO!
-  <button matButton (click)="continueAfterBingo()">Continue in TODO mode</button>
-  } @else { You did it all! }
-</div>
-{{ isLocal() ? "This is a local board. You have to delete it to start a new one." : "" }}
-}
-
-<app-board [(cards)]="cells" [previewMode]="boardPreviewMode()"></app-board>
-
-@if (gridMode() === 'list') {
-<app-board-list-view [(cards)]="cells"></app-board-list-view>
-}
+</ng-template>

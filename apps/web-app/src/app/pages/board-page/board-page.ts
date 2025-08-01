@@ -20,6 +20,7 @@ import { BoardDetailsForm } from '../../features/board-details-form/board-detail
 import { boardForm } from '../../features/board-details-form/form';
 import { MatDivider } from '@angular/material/divider';
 import { BoardListView } from '../../features/board-list-view/board-list-view';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-board-page',
@@ -34,6 +35,7 @@ import { BoardListView } from '../../features/board-list-view/board-list-view';
     BoardDetailsForm,
     MatDivider,
     BoardListView,
+    NgTemplateOutlet
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',

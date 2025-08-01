@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  input,
   model,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
@@ -18,8 +19,9 @@ import { MatDivider } from "@angular/material/divider";
 export class BoardListView {
   public readonly Math = Math;
   public readonly cards = model.required<BoardCell[]>();
+  public readonly disabled = input.required<boolean>();
   public checkCard(card: BoardCell) {
-    if (!!card.CheckedDateUTC) return;
+    if (!!card.CheckedDateUTC || this.disabled()) return;
 
     card.Selected = !card.Selected;
     this.cards.set([...this.cards()]);

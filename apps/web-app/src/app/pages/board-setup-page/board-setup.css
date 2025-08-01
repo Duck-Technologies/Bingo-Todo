@@ -22,13 +22,30 @@
     margin: 0 auto;
   }
 
-  .container {
+  .overview-container {
+    container: board-container / inline-size;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container,
+  .cells {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
 
+  .container {
     & > *:first-child {
       margin-top: 1rem;
+    }
+
+    app-board {
+      align-self: center;
+    }
+
+    app-board-list-view {
+      width: min(100cqw, 35.5rem);
     }
 
     & .cells {
@@ -36,6 +53,10 @@
       overflow: auto;
       scroll-snap-type: y mandatory;
       scroll-padding: 0.5rem;
+
+      mat-divider {
+        width: 100%;
+      }
 
       & mat-form-field {
         scroll-snap-align: start;

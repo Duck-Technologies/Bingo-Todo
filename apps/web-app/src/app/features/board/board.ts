@@ -6,7 +6,6 @@ import {
   inject,
   input,
   model,
-  output,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import {
@@ -48,6 +47,9 @@ export type BoardInfo = {
   host: {
     '[class.indicator]': "previewMode() === 'indicator'",
     '[class.preview]': "previewMode() === 'preview'",
+    '[class.three]': ' mode() === 3',
+    '[class.four]': ' mode() === 4',
+    '[class.five]': ' mode() === 5',
   },
 })
 export class Board {

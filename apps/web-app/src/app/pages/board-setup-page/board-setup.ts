@@ -33,6 +33,7 @@ import { boardForm } from '../../features/board-details-form/form';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { BoardListView } from "../../features/board-list-view/board-list-view";
+import { MatDivider } from '@angular/material/divider';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
@@ -56,7 +57,8 @@ type CellForm = FormGroup<{
     BoardDetailsForm,
     MatIcon,
     MatTooltip,
-    BoardListView
+    BoardListView,
+    MatDivider
 ],
   providers: [
     {
@@ -189,7 +191,7 @@ export class BoardSetup implements OnInit {
       [...document.querySelectorAll('.action-footer')]
         .at(event.selectedIndex)
         ?.scrollIntoView({ block: 'end', behavior: 'smooth' });
-    }, 200);
+    }, 250);
   }
 
   private _scramble(list: BoardCell[]) {

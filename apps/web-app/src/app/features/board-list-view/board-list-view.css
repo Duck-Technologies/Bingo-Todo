@@ -8,7 +8,7 @@
   scroll-padding: 0.5rem;
 
   & mat-card {
-    &:hover:not(.bg-yellow):not(.bg-green) {
+    &:hover:not(.bg-yellow):not(.bg-green):not(.disabled) {
         cursor: pointer;
     }
 

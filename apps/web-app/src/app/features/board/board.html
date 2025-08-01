@@ -1,11 +1,9 @@
-<div [class.three]="mode() === 3" [class.four]="mode() === 4" [class.five]="mode() === 5">
-  @for (card of cards(); track idx; let idx = $index) {
-  <mat-card
-    [class.bg-green]="card.IsBingo"
-    [class.bg-yellow]="!!card.CheckedDateUTC"
-    [class.bg-blue]="card.Selected"
-    (click)="checkCard(card)">
-    <div [matTooltip]="card.Name">{{ previewMode() === "indicator" ? "" : card.Name }}</div>
-  </mat-card>
-  }
-</div>
+@for (card of cards(); track idx; let idx = $index) {
+<mat-card
+  [class.bg-green]="card.IsBingo"
+  [class.bg-yellow]="!!card.CheckedDateUTC"
+  [class.bg-blue]="card.Selected"
+  (click)="checkCard(card)">
+  <div [matTooltip]="card.Name">{{ previewMode() === "indicator" ? "" : card.Name }}</div>
+</mat-card>
+}

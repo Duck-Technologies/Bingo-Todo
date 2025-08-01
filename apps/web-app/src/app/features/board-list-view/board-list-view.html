@@ -1,5 +1,6 @@
 @for (card of cards(); track idx; let idx = $index, last = $last) {
 <mat-card
+  [class.disabled]="disabled()"
   [class.bg-green]="card.IsBingo"
   [class.bg-yellow]="!!card.CheckedDateUTC"
   [class.bg-blue]="card.Selected"
