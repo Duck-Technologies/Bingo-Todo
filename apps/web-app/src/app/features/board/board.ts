@@ -50,6 +50,11 @@ export type BoardInfo = {
     '[class.three]': ' mode() === 3',
     '[class.four]': ' mode() === 4',
     '[class.five]': ' mode() === 5',
+    'role': 'grid',
+    'aria-multiselectable': 'true',
+    'aria-label': 'BINGO board',
+    '[attr.aria-readonly]': "previewMode() === 'preview'",
+    '[attr.aria-hidden]': "previewMode() === 'indicator'"
   },
 })
 export class Board {
@@ -73,6 +78,8 @@ export class Board {
   public readonly mode = computed(
     () => ({ '25': 5, '16': 4, '9': 3 }[this.cards().length] ?? 0)
   );
+
+  public readonly rows = computed(() => [...Array(this.mode()).keys()])
 
   public readonly bingoRows = computed(() => this.setting()?.rows ?? []);
   public readonly bingoCols = computed(() => this.setting()?.cols ?? []);

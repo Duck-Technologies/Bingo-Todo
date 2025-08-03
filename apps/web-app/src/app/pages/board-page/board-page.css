@@ -11,45 +11,60 @@
     max-height: 50cqh;
   }
 
-  div {
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cdk-visually-hidden {
+    width: 0;
+  }
+
+  div,
+  section,
+  menu {
     display: flex;
     align-items: center;
+  }
 
-    &.board-container {
+  menu {
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  section.edit {
+    flex-direction: column;
+    gap: 1rem;
+
+    h4 {
+      margin: 0;
+    }
+
+    mat-divider {
+      width: 100%;
+    }
+
+    app-board-details-form {
       flex-direction: column;
-      width: fit-content;
-      align-self: center;
-
-      &:not(.scroll) {
-        overflow: auto;
-      }
     }
+  }
 
-    &:not(.actions) {
-      gap: 0.5rem;
+  div.board-container,
+  section[aria-label="Board"] {
+    gap: 0.4rem;
+    flex-direction: column;
+    width: fit-content;
+    align-self: center;
+
+    &:not(.scroll) {
+      overflow: auto;
     }
+  }
 
-    &.actions {
-      flex-shrink: 0;
-      margin-left: auto;
-    }
-
-    &.edit {
-      flex-direction: column;
-      gap: 1rem;
-
-      h4 {
-        margin: 0;
-      }
-
-      mat-divider {
-        width: 100%;
-      }
-
-      app-board-details-form {
-        flex-direction: column;
-      }
-    }
+  div {
+    gap: 0.4rem;
   }
 
   h1 {

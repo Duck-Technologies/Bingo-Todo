@@ -40,6 +40,9 @@ import { NgTemplateOutlet } from '@angular/common';
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    'role': 'main'
+  }
 })
 export class BoardPage {
   public readonly board = model.required<BoardInfo>();
