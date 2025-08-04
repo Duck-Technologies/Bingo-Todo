@@ -6,7 +6,6 @@ import { AuthOperations } from './core/auth/auth-operations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-root',
@@ -16,8 +15,7 @@ import { MatIcon } from '@angular/material/icon';
     AsyncPipe,
     MatToolbarModule,
     MatSidenavModule,
-    MatButtonModule,
-    MatIcon
+    MatButtonModule
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

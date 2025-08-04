@@ -1,0 +1,95 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  overflow: auto;
+  container: board-container / inline-size;
+
+  app-board-list-view {
+    width: min(100cqw, 35.5rem);
+    max-height: 50cqh;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cdk-visually-hidden {
+    width: 0;
+  }
+
+  div,
+  section,
+  menu {
+    display: flex;
+    align-items: center;
+  }
+
+  menu {
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  section.edit {
+    flex-direction: column;
+    gap: 1rem;
+
+    h4 {
+      margin: 0;
+    }
+
+    mat-divider {
+      width: 100%;
+    }
+
+    app-board-details-form {
+      flex-direction: column;
+    }
+  }
+
+  div.board-container,
+  section[aria-label="Board"] {
+    gap: 0.4rem;
+    flex-direction: column;
+    width: fit-content;
+    align-self: center;
+
+    &:not(.scroll) {
+      overflow: auto;
+    }
+  }
+
+  div {
+    gap: 0.4rem;
+  }
+
+  h1 {
+    font-size: larger;
+    font-weight: 500;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .trophy {
+    --mat-icon-color: gold;
+  }
+
+  div.gradient {
+    width: 100px;
+    height: 100px;
+    background-image: conic-gradient(
+      hsl(from var(--green-primary) h s calc(l + 10)) var(--chart-green, 0deg),
+      var(--yellow-primary) 0 var(--chart-yellow, 0deg),
+      hsl(from var(--blue-primary) h s calc(l + 5)) 0 var(--chart-blue, 0deg),
+      #74777f 0 360deg
+    );
+  }
+}

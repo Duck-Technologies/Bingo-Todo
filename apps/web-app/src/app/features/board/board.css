@@ -1,0 +1,98 @@
+:host {
+  /* container: board-container / inline-size; */
+
+  --_board-max-width: 33rem;
+  --cell-gap: 0.5rem;
+  --box-size: min(
+    calc((100cqw / var(--box-number)) - (var(--cell-gap) - 0.1rem)),
+    calc(
+      var(--_board-max-width) / var(--box-number) + var(--cell-gap) /
+        (var(--box-number) - 1)
+    )
+  );
+  --box-number: 3;
+  --box-max-lines: 5;
+
+  width: fit-content;
+
+  div[role="row"] {
+    display: grid;
+    grid-template-columns: repeat(var(--box-number), var(--box-size));
+    grid-template-rows: repeat(1, var(--box-size));
+    justify-content: center;
+    gap: var(--cell-gap);
+
+    &:not(:last-of-type) {
+      margin-bottom: var(--cell-gap);
+    }
+  }
+
+  &.four {
+    --box-number: 4;
+  }
+
+  &.five {
+    --box-number: 5;
+  }
+
+  &.indicator {
+    --box-size: 2rem;
+
+    mat-card:not(.bg-green):not(.bg-yellow):not(.bg-blue) {
+      filter: brightness(1.4);
+    }
+  }
+
+  &:not(.preview):not(.indicator) {
+    mat-card:focus-within {
+      outline: -webkit-focus-ring-color auto 1px;
+    }
+
+    mat-card:hover:not(.bg-yellow):not(.bg-green) {
+      cursor: pointer;
+
+      filter: brightness(1.4);
+      --mat-card-elevated-container-elevation: var(--mat-sys-level3);
+    }
+  }
+
+  mat-card {
+    text-align: center;
+    justify-content: center;
+    padding: 0.4rem;
+
+    & > div > span {
+      cursor: default;
+      display: -webkit-box;
+      -webkit-line-clamp: var(--box-max-lines);
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  /* ideally we could use css vars for controlling the breakpoints */
+  @container board-container (width < 35rem) {
+    &.five {
+      --box-max-lines: 3;
+    }
+  }
+
+  @container board-container (width < 26.875rem) {
+    &.four {
+      --box-max-lines: 3;
+    }
+  }
+
+  @container board-container (width < 23.75rem) {
+    &.five {
+      --box-max-lines: 2;
+    }
+  }
+
+  @container board-container (width < 18.75rem) {
+    &.four {
+      --box-max-lines: 2;
+    }
+  }
+}

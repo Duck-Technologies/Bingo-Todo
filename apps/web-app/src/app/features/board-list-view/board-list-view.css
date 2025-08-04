@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  overflow: auto;
+  scroll-snap-type: y mandatory;
+  scroll-padding: 0.5rem;
+
+  & mat-card {
+    &:hover:not(.bg-yellow):not(.bg-green):not(.disabled) {
+        cursor: pointer;
+    }
+
+    mat-card-content {
+      margin-top: 0.5rem;
+    }
+
+    scroll-snap-align: start;
+    width: 98%;
+  }
+}

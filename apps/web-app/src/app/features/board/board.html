@@ -1,0 +1,34 @@
+@for (row of rows(); track row;) {
+<div role="row">
+  @for (card of cards().slice(row * mode(), (row * mode() + mode())); track idx; let idx = $index) {
+  @if (previewMode() === "indicator") {
+  <mat-card
+    [class.bg-green]="card.IsBingo"
+    [class.bg-yellow]="!!card.CheckedDateUTC"
+    [class.bg-blue]="card.Selected"></mat-card>
+  } @else { @let actualIdx = idx + (mode() * row);
+  <mat-card
+    [attr.aria-disabled]="!!card.CheckedDateUTC || previewMode()"
+    [class.bg-green]="card.IsBingo"
+    [class.bg-yellow]="!!card.CheckedDateUTC"
+    [class.bg-blue]="card.Selected"
+    (click)="checkCard(card)">
+    <div
+      role="gridcell"
+      [matTooltip]="card.Name"
+      [attr.aria-readonly]="!!card.CheckedDateUTC || previewMode()">
+      @if(!previewMode()) {
+      <input
+        class="cdk-visually-hidden"
+        type="checkbox"
+        name="task"
+        [attr.aria-labelledby]="'cell_' + actualIdx"
+        [disabled]="!!card.CheckedDateUTC"
+        [checked]="card.CheckedDateUTC || card.Selected" />
+      }
+      <span id="cell_{{actualIdx}}">{{ card.Name }}</span>
+    </div>
+  </mat-card>
+  } }
+</div>
+}

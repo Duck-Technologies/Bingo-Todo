@@ -1,0 +1,47 @@
+<ng-container [formGroup]="boardForm">
+  @if (createMode()) {
+  <mat-form-field [subscriptSizing]="'dynamic'">
+    <mat-label>Board size</mat-label>
+    <mat-select formControlName="BoardSize" (selectionChange)="resizeBoard.emit($event.value)">
+      <mat-option [value]="9">3x3</mat-option>
+      <mat-option [value]="16">4x4</mat-option>
+      <mat-option [value]="25">5x5</mat-option>
+    </mat-select>
+    @if (boardForm.controls.BoardSize.dirty) {
+    <mat-hint> If you downsize the board, only the first x cells are kept </mat-hint>
+    }
+  </mat-form-field>
+  }
+
+  <mat-form-field [subscriptSizing]="'dynamic'">
+    <mat-label>Game mode</mat-label>
+    <mat-select formControlName="GameMode">
+      <mat-option [value]="'traditional'">
+        <img class="icon" src="bingo.svg" alt="" /> Traditional (1 strike)
+      </mat-option>
+      <mat-option [value]="'todo'">
+        <img class="icon" src="todo.svg" alt="" /> To-do (check all)
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field [subscriptSizing]="'dynamic'">
+    <mat-label>Name</mat-label>
+    <input matInput placeholder="Enter board name" formControlName="Name" />
+  </mat-form-field>
+
+  <mat-form-field [subscriptSizing]="'dynamic'">
+    <mat-label>Visibility</mat-label>
+    <mat-select formControlName="Visibility">
+      @if (createMode() || !!board().Id) {
+      <mat-option [value]="'unlisted'" [disabled]="!isLoggedIn()">Unlisted</mat-option>
+      <mat-option [value]="'public'" [disabled]="!isLoggedIn()">Public</mat-option>
+      } @if (!board().Id) {
+      <mat-option [value]="'local'">Local</mat-option>
+      }
+    </mat-select>
+    @if (!isLoggedIn() && createMode()) {
+    <mat-hint> You have to log in to create a non-local board </mat-hint>
+    }
+  </mat-form-field>
+</ng-container>

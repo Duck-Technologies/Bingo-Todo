@@ -1,15 +1,15 @@
 @let user = user$ | async;
 
-<mat-toolbar>
+<mat-toolbar role="banner">
     <a class="brand" [routerLink]="''">
-      <mat-icon>pattern</mat-icon>
+      <img class="icon" src="bingo.svg">
       BINGO TODO
     </a>
     <a>
       @if (!!user) {
-        <button matButton (click)="logout()">Sign Out</button>
+        <button matButton (click)="logout()" disabled>Sign Out</button>
       } @else {
-        <button matButton (click)="login()">Sign In</button>
+        <button matButton (click)="login()" disabled>Sign In</button>
       }
     </a>
 </mat-toolbar>

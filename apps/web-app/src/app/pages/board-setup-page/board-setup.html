@@ -1,0 +1,109 @@
+@let cardsPreview = cards$ | async; @if (!!cardsPreview) {
+<mat-stepper
+  class="no-space-on-last-step"
+  [linear]="true"
+  orientation="vertical"
+  #stepper
+  (selectionChange)="scrollTo($event)">
+  <mat-step [stepControl]="boardForm">
+    <ng-template matStepLabel>Board details</ng-template>
+    <div class="container">
+      <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
+      <app-board-details-form
+        [isLoggedIn]="isLoggedIn"
+        [board]="baseBoard"
+        [createMode]="true"
+        (resizeBoard)="resizeBoard($event)"></app-board-details-form>
+
+      <div class="action-footer">
+        <button matButton matStepperNext>Next</button>
+      </div>
+    </div>
+  </mat-step>
+  <mat-step [stepControl]="cardsFormArray" label="Board cells">
+    <form class="container">
+      <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
+
+      <div class="cells">
+        @for (control of cardsFormArray.controls; track idx; let idx = $index, last = $last) {
+        <ng-container [formGroup]="control">
+          <mat-form-field [subscriptSizing]="'dynamic'">
+            <mat-label
+              >Row {{ Math.ceil((idx + 1) / boardCols) }}, Col
+              {{ (idx % boardCols) + 1 }}</mat-label
+            >
+            <input
+              matInput
+              (focus)="indicateFocused(control)"
+              (blur)="indicateFocused(control, 'out')"
+              (mouseover)="
+                !inputFocused ? indicateFocused(control, null, true) : null
+              "
+              (mouseout)="
+                !inputFocused ? indicateFocused(control, 'out', true) : null
+              "
+              placeholder="Enter something"
+              formControlName="Name" />
+          </mat-form-field>
+
+          @if(($index + 1) % boardCols === 0 && !last) {
+          <mat-divider></mat-divider>
+          }
+        </ng-container>
+        }
+      </div>
+
+      <div class="action-footer">
+        <button mat-stroked-button (click)="prefill()">Prefill</button>
+        <button matButton matStepperPrevious>Back</button>
+        <button matButton matStepperNext [disabled]="cardsFormArray.invalid">Next</button>
+      </div>
+    </form>
+  </mat-step>
+  <mat-step>
+    @let boardDetails = boardForm.getRawValue();
+
+    <ng-template matStepLabel>Done</ng-template>
+    <div class="overview-container">
+      <div class="container">
+        @let switchTo = gridMode() === 'grid' ? 'list' : 'grid'; @let buttonLabel = 'Switch to ' +
+        switchTo + ' view';
+
+        <div class="title">
+          <img
+            class="icon"
+            alt=""
+            src="{{ boardDetails.GameMode === 'todo' ? 'todo' : 'bingo' }}.svg" />
+          <h3>
+            {{ boardDetails.Name || "Untitled Board" }}
+          </h3>
+          <button
+            class="view-switch"
+            [matTooltip]="buttonLabel"
+            attr.aria-label="{{ buttonLabel }}"
+            matIconButton
+            (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid'); scrollTo($any({selectedIndex:2}))">
+            <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
+          </button>
+        </div>
+
+        @if (gridMode() === 'list') {
+        <app-board-list-view
+          [cards]="$any(cardsFormArray.getRawValue())"
+          [disabled]="true"></app-board-list-view>
+        } @else {
+        <app-board
+          [cards]="$any(cardsFormArray.getRawValue())"
+          [previewMode]="'preview'"></app-board>
+        }
+
+        <div class="action-footer">
+          <button mat-stroked-button (click)="scramble()">Scramble</button>
+          <button matButton matStepperPrevious>Back</button>
+          <button mat-flat-button (click)="createBoard()">Start</button>
+        </div>
+      </div>
+    </div>
+  </mat-step>
+</mat-stepper>
+}
