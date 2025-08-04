@@ -5,18 +5,47 @@
 
   overflow: auto;
   scroll-snap-type: y mandatory;
-  scroll-padding: 0.5rem;
+  scroll-padding: 0.8rem;
 
-  & mat-card {
-    &:hover:not(.bg-yellow):not(.bg-green):not(.disabled) {
+  ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 1rem;
+    align-items: center;
+
+    li {
+      width: 98%;
+      scroll-snap-align: start;
+
+      .cdk-visually-hidden {
+        height: 0;
+      }
+
+      &[aria-disabled="false"] mat-card:hover {
         cursor: pointer;
-    }
+      }
 
-    mat-card-content {
-      margin-top: 0.5rem;
-    }
+      mat-card {
+        mat-card-content {
+          margin-top: 0.5rem;
+        }
 
-    scroll-snap-align: start;
-    width: 98%;
+        mat-icon {
+          font-size: 1.2rem;
+          height: 1.2rem;
+        }
+
+        time, mat-icon {
+          margin-left: auto;
+        }
+      }
+    }
+  }
+
+  &:focus li.focus > mat-card {
+    outline: -webkit-focus-ring-color auto 3px;
   }
 }

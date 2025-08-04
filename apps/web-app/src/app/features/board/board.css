@@ -48,6 +48,10 @@
       outline: -webkit-focus-ring-color auto 1px;
     }
 
+    mar-card.bg-blue {
+      outline: -webkit-focus-ring-color auto 1px;
+    }
+
     mat-card:hover:not(.bg-yellow):not(.bg-green) {
       cursor: pointer;
 

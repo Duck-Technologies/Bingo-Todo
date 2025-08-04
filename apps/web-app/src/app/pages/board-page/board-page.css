@@ -57,10 +57,6 @@
     flex-direction: column;
     width: fit-content;
     align-self: center;
-
-    &:not(.scroll) {
-      overflow: auto;
-    }
   }
 
   div {
