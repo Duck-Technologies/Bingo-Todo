@@ -73,7 +73,7 @@ export class BoardPage {
   public readonly goalReached = computed(
     () =>
       this.allChecked() ||
-      (this.board().GameMode === 'traditional' && this.bingoReached())
+      (this.board().GameMode === 'traditional' && !!this.bingoReached())
   );
 
   public readonly boardStats = computed(() => ({

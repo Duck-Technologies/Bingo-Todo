@@ -77,14 +77,14 @@
 {{ isLocal() ? "This is a local board. You have to delete it to start a new one." : "" }}
 }
 
-<div class="board-container" [class.scroll]="editMode()">
+<div class="board-container">
   @if (!editMode()) {
   <ng-container *ngTemplateOutlet="boardInfo"></ng-container>
   }
   <section aria-label="Board">
     <app-board [(cards)]="cells" [previewMode]="boardPreviewMode()"></app-board>
     @if (gridMode() === 'list') {
-    <app-board-list-view [(cards)]="cells" [disabled]="editMode()"></app-board-list-view>
+    <app-board-list-view [(cards)]="cells" [disabled]="editMode() || goalReached()"></app-board-list-view>
     }
   </section>
 </div>

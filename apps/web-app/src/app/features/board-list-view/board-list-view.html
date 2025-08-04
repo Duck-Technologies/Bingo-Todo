@@ -1,17 +1,46 @@
-@for (card of cards(); track idx; let idx = $index, last = $last) {
-<mat-card
-  [class.disabled]="disabled()"
-  [class.bg-green]="card.IsBingo"
-  [class.bg-yellow]="!!card.CheckedDateUTC"
-  [class.bg-blue]="card.Selected"
-  (click)="checkCard(card)">
-  <mat-card-header
-    >Row {{ Math.ceil((idx + 1) / boardSize()) }}, Col
-    {{ (idx % boardSize()) + 1 }}</mat-card-header
-  >
-  <mat-card-content>{{card.Name}}</mat-card-content>
-</mat-card>
+@for (row of rows(); track row; let last = $last) {
+<ul role="group" [attr.aria-label]="'Row ' + (row + 1)">
+  @for (card of cards().slice(row * mode(), (row * mode() + mode())); track idx; let idx = $index) {
+  @let actualIdx = idx + (mode() * row);
+  <li
+    [class.focus]="activeCell() === actualIdx"
+    id="cell_{{actualIdx}}"
+    role="option"
+    [attr.aria-disabled]="!!card.CheckedDateUTC || disabled()"
+    [attr.aria-selected]="!!card.CheckedDateUTC || card.Selected">
+    <span class="cdk-visually-hidden"
+      >Column {{idx+1}}: {{card.Name}}. @if (!!card.CheckedDateUTC) { Marked as done
+      {{card.CheckedDateUTC | intlRelativeTime}}. }
+    </span>
 
-@if(($index + 1) % boardSize() === 0 && !last) {
-<mat-divider></mat-divider>
+    <mat-card
+      aria-hidden="true"
+      [class.bg-green]="card.IsBingo"
+      [class.bg-yellow]="!!card.CheckedDateUTC"
+      [class.bg-blue]="card.Selected"
+      (click)="checkCard(card)">
+      <mat-card-header>
+        <span>Row {{row + 1}}, Col {{ (idx % boardSize()) + 1 }}</span>
+        @if (!!card.CheckedDateUTC) {
+        <time
+          [matTooltip]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
+          [attr.datetime]="card.CheckedDateUTC"
+          [attr.title]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
+          >{{card.CheckedDateUTC | intlRelativeTime}}
+        </time>
+        } @else { @if (!disabled()) {
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          >{{card.Selected ? 'check_box' : 'check_box_outline_blank'}}</mat-icon
+        >
+        } }
+      </mat-card-header>
+      <mat-card-content>{{card.Name}}</mat-card-content>
+    </mat-card>
+  </li>
+  }
+</ul>
+
+@if(!last) {
+<mat-divider aria-hidden="true"></mat-divider>
 } }
