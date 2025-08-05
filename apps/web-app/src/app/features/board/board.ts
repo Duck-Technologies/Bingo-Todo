@@ -19,6 +19,9 @@ export type BoardCell = {
   CheckedDateUTC: Date | null;
   IsBingo: boolean;
   Selected: boolean;
+
+  Row?: number;
+  Column?: number;
 };
 
 export type BoardInfo = {
@@ -47,14 +50,14 @@ export type BoardInfo = {
   host: {
     '[class.indicator]': "previewMode() === 'indicator'",
     '[class.preview]': "previewMode() === 'preview'",
-    '[class.three]': ' mode() === 3',
-    '[class.four]': ' mode() === 4',
-    '[class.five]': ' mode() === 5',
-    'role': 'grid',
+    '[class.three]': ' boardSize() === 3',
+    '[class.four]': ' boardSize() === 4',
+    '[class.five]': ' boardSize() === 5',
+    role: 'grid',
     'aria-multiselectable': 'true',
     'aria-label': 'BINGO board',
     '[attr.aria-readonly]': "previewMode() === 'preview'",
-    '[attr.aria-hidden]': "previewMode() === 'indicator'"
+    '[attr.aria-hidden]': "previewMode() === 'indicator'",
   },
 })
 export class Board {
@@ -75,11 +78,14 @@ export class Board {
       }[this.cards().length])
   );
 
-  public readonly mode = computed(
-    () => ({ '25': 5, '16': 4, '9': 3 }[this.cards().length] ?? 0)
+  public readonly boardSize = computed(
+    () =>
+      BoardCalculations.getBoardDimensionFromCellCount(this.cards().length) ?? 0
   );
 
-  public readonly rows = computed(() => [...Array(this.mode()).keys()])
+  public readonly rowIndexes = computed(() =>
+    BoardCalculations.getRowIndexes(this.boardSize())
+  );
 
   public readonly bingoRows = computed(() => this.setting()?.rows ?? []);
   public readonly bingoCols = computed(() => this.setting()?.cols ?? []);
@@ -98,13 +104,13 @@ export class Board {
             c.IsBingo ||
             (c.CheckedDateUTC !== null &&
               c.CheckedDateUTC !== undefined &&
-              (Board.cellInBingoFormation(
+              (Board.cellInBingoPattern(
                 this.bingoDiagonal(),
                 this.cards(),
                 i
               ) ||
-                Board.cellInBingoFormation(this.bingoRows(), this.cards(), i) ||
-                Board.cellInBingoFormation(this.bingoCols(), this.cards(), i)));
+                Board.cellInBingoPattern(this.bingoRows(), this.cards(), i) ||
+                Board.cellInBingoPattern(this.bingoCols(), this.cards(), i)));
           return c;
         });
         cards = cardsCalculated;
@@ -120,7 +126,7 @@ export class Board {
     this.cards.set([...this.cards()]);
   }
 
-  private static cellInBingoFormation(
+  private static cellInBingoPattern(
     combinations: number[][],
     cards: BoardCell[],
     cellIdx: number

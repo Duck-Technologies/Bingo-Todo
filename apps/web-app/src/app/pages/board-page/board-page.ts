@@ -21,6 +21,7 @@ import { boardForm } from '../../features/board-details-form/form';
 import { MatDivider } from '@angular/material/divider';
 import { BoardListView } from '../../features/board-list-view/board-list-view';
 import { NgTemplateOutlet } from '@angular/common';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 @Component({
   selector: 'app-board-page',
@@ -35,7 +36,8 @@ import { NgTemplateOutlet } from '@angular/common';
     BoardDetailsForm,
     MatDivider,
     BoardListView,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    MatButtonToggleModule
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
@@ -88,6 +90,7 @@ export class BoardPage {
     this.cells().reduce((acc, curr) => (acc += +curr.Selected), 0)
   );
 
+  public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
   private readonly boardForm = boardForm;
   public readonly doDelete = model(false);
   public goalAchieved = false;

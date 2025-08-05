@@ -1,5 +1,6 @@
 @let cardsPreview = cards$ | async; @if (!!cardsPreview) {
 <mat-stepper
+  aria-label="Game setup"
   class="no-space-on-last-step"
   [linear]="true"
   orientation="vertical"
@@ -24,7 +25,7 @@
     <form class="container">
       <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
 
-      <div class="cells">
+      <form class="cells" aria-label="Task inputs">
         @for (control of cardsFormArray.controls; track idx; let idx = $index, last = $last) {
         <ng-container [formGroup]="control">
           <mat-form-field [subscriptSizing]="'dynamic'">
@@ -51,7 +52,7 @@
           }
         </ng-container>
         }
-      </div>
+      </form>
 
       <div class="action-footer">
         <button mat-stroked-button (click)="prefill()">Prefill</button>
@@ -100,7 +101,7 @@
         <div class="action-footer">
           <button mat-stroked-button (click)="scramble()">Scramble</button>
           <button matButton matStepperPrevious>Back</button>
-          <button mat-flat-button (click)="createBoard()">Start</button>
+          <button mat-flat-button (click)="createBoard()">Create</button>
         </div>
       </div>
     </div>

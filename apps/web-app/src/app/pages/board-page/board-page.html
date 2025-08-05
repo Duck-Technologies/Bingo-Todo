@@ -21,7 +21,7 @@
 <div>
   <h1>{{ board().Name || "Untitled Board" }}</h1>
 
-  <menu aria-label="Edit and save actions" role="region">
+  <menu aria-label="Edit and save actions">
     @if (pendingSelectCount() !== 0) {
     <button mat-button (click)="unselect()">
       Unselect
@@ -84,7 +84,18 @@
   <section aria-label="Board">
     <app-board [(cards)]="cells" [previewMode]="boardPreviewMode()"></app-board>
     @if (gridMode() === 'list') {
-    <app-board-list-view [(cards)]="cells" [disabled]="editMode() || goalReached()"></app-board-list-view>
+    <app-board-list-view
+      [(cards)]="cells"
+      [disabled]="editMode() || goalReached()"
+      [groupBy]="groupingOption"></app-board-list-view>
+    <div>
+      Group by
+      <mat-button-toggle-group aria-label="List view grouping switch" [(ngModel)]="groupingOption">
+        <mat-button-toggle value="row">Row</mat-button-toggle>
+        <mat-button-toggle value="col">Column</mat-button-toggle>
+        <mat-button-toggle value="diagonal">Diagonal</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
     }
   </section>
 </div>
@@ -138,7 +149,7 @@
           >trophy</mat-icon>
       } @else { 
         <svg
-          role="image"
+          role="img"
           [attr.aria-label]="boardStats().checkedCells + '/' + totalCells + ' tasks marked as done'"
           matTooltip="{{ boardStats().checkedCells + '/' + totalCells + ' tasks marked as done' }}"
           viewBox="0 0 100 100"

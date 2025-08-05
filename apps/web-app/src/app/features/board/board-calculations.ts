@@ -27,6 +27,60 @@ export class BoardCalculations {
     this.fiveByFive = BoardCalculations.calcProperties(5, fiveByFiveIndexes);
   }
 
+  /**
+   * @returns a list of integers from 0 to dimension - 1
+   */
+  public static getBoardDimensionFromCellCount(cellCount: number) {
+    return ({ 25: 5, 16: 4, 9: 3 } as const)[cellCount];
+  }
+
+  /**
+   * @returns a list of integers from 0 to dimension - 1
+   */
+  public static getRowIndexes(dimension: number): number[] {
+    return [...Array(dimension).keys()];
+  }
+
+  /**
+   * Transposes the board
+   * @param array the array to reorder
+   * @param dimension number of rows/columns
+   * @param range A range from 0 to (splitAt - dimension)
+   * @returns a copy of the original array transposed
+   */
+  public static rowArrayToCols<T>(
+    array: T[],
+    dimension: number,
+    range?: number[]
+  ): T[] {
+    range = range || BoardCalculations.getRowIndexes(dimension);
+    return range.reduce(
+      (acc, curr) => acc.concat(range.map((i) => array[curr + i * dimension])),
+      [] as T[]
+    );
+  }
+
+  /**
+   * Returns the diagonal values from the board in the following order: 
+   * 1. top left to bottom right
+   * 2. top right to bottom left
+   * @param array the array to extract values from
+   * @param dimension number of rows/columns
+   * @param range A range from 0 to (splitAt - dimension)
+   * @returns a new array that only contains the diagonal values
+   */
+  public static rowArrayToDiagonal<T>(
+    array: T[],
+    dimension: number,
+    range?: number[]
+  ): T[] {
+    range = range || BoardCalculations.getRowIndexes(dimension);
+    return [dimension + 1, dimension - 1].reduce(
+      (acc, curr, idx) => acc.concat(range.map((i) => array[curr * (i + idx)])),
+      [] as T[]
+    );
+  }
+
   private static calcProperties(dimension: number, cellIndexes: number[]) {
     return {
       rows: BoardCalculations.calcRows(dimension, cellIndexes),

@@ -1,15 +1,18 @@
-@for (row of rows(); track row; let last = $last) {
-<ul role="group" [attr.aria-label]="'Row ' + (row + 1)">
-  @for (card of cards().slice(row * mode(), (row * mode() + mode())); track idx; let idx = $index) {
-  @let actualIdx = idx + (mode() * row);
+@for (row of rowIndexes().slice(0, groupAriaLabels().length); track row; let last = $last) {
+<ul role="group" [attr.aria-label]="groupAriaLabels()[row]">
+  @for (card of cardsDisplayed().slice(row * boardSize(), (row * boardSize() + boardSize())); track
+  idx; let idx = $index) { @let actualIdx = idx + (boardSize() * row);
   <li
     [class.focus]="activeCell() === actualIdx"
     id="cell_{{actualIdx}}"
     role="option"
     [attr.aria-disabled]="!!card.CheckedDateUTC || disabled()"
     [attr.aria-selected]="!!card.CheckedDateUTC || card.Selected">
-    <span class="cdk-visually-hidden"
-      >Column {{idx+1}}: {{card.Name}}. @if (!!card.CheckedDateUTC) { Marked as done
+    @let ariaOption = (groupBy() !== 'row' ? 'Row ' + card.Row : '') 
+    + (groupBy() === 'diagonal' ? ', ' : '') 
+    + (groupBy() !== 'col' ? 'Column ' + card.Column : '') + ': ' + card.Name;
+    
+    <span class="cdk-visually-hidden">{{ariaOption}} @if (!!card.CheckedDateUTC) { Marked as done
       {{card.CheckedDateUTC | intlRelativeTime}}. }
     </span>
 
@@ -20,7 +23,7 @@
       [class.bg-blue]="card.Selected"
       (click)="checkCard(card)">
       <mat-card-header>
-        <span>Row {{row + 1}}, Col {{ (idx % boardSize()) + 1 }}</span>
+        <span>Row {{card.Row}}, Col {{card.Column}}</span>
         @if (!!card.CheckedDateUTC) {
         <time
           [matTooltip]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
