@@ -27,9 +27,6 @@ export class BoardCalculations {
     this.fiveByFive = BoardCalculations.calcProperties(5, fiveByFiveIndexes);
   }
 
-  /**
-   * @returns a list of integers from 0 to dimension - 1
-   */
   public static getBoardDimensionFromCellCount(cellCount: number) {
     return ({ 25: 5, 16: 4, 9: 3 } as const)[cellCount];
   }
