@@ -38,6 +38,10 @@
   &.indicator {
     --box-size: 2rem;
 
+    &.five {
+      --box-size: 1.5rem;
+    }
+
     mat-card:not(.bg-green):not(.bg-yellow):not(.bg-blue) {
       filter: brightness(1.4);
     }
@@ -47,11 +51,7 @@
     mat-card:focus-within {
       outline: -webkit-focus-ring-color auto 1px;
     }
-
-    mar-card.bg-blue {
-      outline: -webkit-focus-ring-color auto 1px;
-    }
-
+    
     mat-card:hover:not(.bg-yellow):not(.bg-green) {
       cursor: pointer;
 

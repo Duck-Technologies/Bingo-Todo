@@ -7,6 +7,11 @@
     display: none;
   }
 
+  .brand .icon {
+    height: 24px;
+    width: 24px;
+  }
+
   mat-toolbar {
     display: flex;
     justify-content: space-between;

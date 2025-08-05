@@ -29,6 +29,10 @@ import { BoardSize, boardForm } from './form';
   templateUrl: './board-details-form.html',
   styleUrl: './board-details-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    'role': 'form',
+    'aria-label': 'inputs for basic details of the board'
+  }
 })
 export class BoardDetailsForm implements OnInit {
   public readonly board = input.required<BoardInfo>();
