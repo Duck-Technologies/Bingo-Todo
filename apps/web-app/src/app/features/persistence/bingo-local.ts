@@ -85,7 +85,7 @@ export class BingoLocalStorage {
     board.FirstBingoReachedDateUtc =
       board.FirstBingoReachedDateUtc ||
       sortedCells
-        .filter((b) => b.IsBingo)
+        .filter((b) => b.IsInBingoPattern)
         .at(
           BoardCalculations.getBoardDimensionFromCellCount(
             board.Cells.length

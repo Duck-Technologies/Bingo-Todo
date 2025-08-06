@@ -39,8 +39,8 @@ export class BoardCalculations {
     }[cells.length] as Properties;
 
     cells.forEach((c, i) => {
-      c.IsBingo =
-        c.IsBingo ||
+      c.IsInBingoPattern =
+        c.IsInBingoPattern ||
         (c.CheckedDateUTC !== null &&
           c.CheckedDateUTC !== undefined &&
           (BoardCalculations.cellInBingoPattern(setting.diagonals, cells, i) ||

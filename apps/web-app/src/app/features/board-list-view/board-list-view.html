@@ -18,7 +18,7 @@
 
     <mat-card
       aria-hidden="true"
-      [class.bg-green]="card.IsBingo"
+      [class.bg-green]="card.IsInBingoPattern"
       [class.bg-yellow]="!!card.CheckedDateUTC"
       [class.bg-blue]="card.Selected"
       (click)="checkCard(card)">

@@ -36,7 +36,7 @@ describe('Board', () => {
         [...Array(mode * mode).keys()].map((num) => ({
           Name: '',
           CheckedDateUTC: (num - i) % mode === 0 ? new Date() : null,
-          IsBingo: false,
+          IsInBingoPattern: false,
           Selected: false,
         }))
       );
@@ -45,7 +45,7 @@ describe('Board', () => {
       fixture.detectChanges();
 
       expect(
-        component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+        component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
       ).toEqual(mode);
     });
   });
@@ -58,7 +58,7 @@ describe('Board', () => {
         [...Array(mode * mode).keys()].map((num) => ({
           Name: '',
           CheckedDateUTC: (num - i) % mode === 0 ? new Date() : null,
-          IsBingo: false,
+          IsInBingoPattern: false,
           Selected: false,
         }))
       );
@@ -66,7 +66,7 @@ describe('Board', () => {
       fixture.detectChanges();
 
       expect(
-        component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+        component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
       ).toEqual(mode);
     });
   });
@@ -80,13 +80,13 @@ describe('Board', () => {
           {
             Name: '',
             CheckedDateUTC: idx === 0 ? null : new Date(),
-            IsBingo: false,
+            IsInBingoPattern: false,
             Selected: false,
           },
           ...new Array(4).fill({
             Name: '',
             CheckedDateUTC: null,
-            IsBingo: false,
+            IsInBingoPattern: false,
             Selected: false,
           }),
         ],
@@ -95,7 +95,7 @@ describe('Board', () => {
     );
 
     expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
     ).toEqual(0);
   });
 
@@ -105,7 +105,7 @@ describe('Board', () => {
       [...Array(16).keys()].map((num, idx) => ({
         Name: '',
         CheckedDateUTC: num < 4 ? new Date() : null,
-        IsBingo: false,
+        IsInBingoPattern: false,
         Selected: false,
       }))
     );
@@ -113,7 +113,7 @@ describe('Board', () => {
     fixture.detectChanges();
 
     expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
     ).toEqual(4);
   });
 
@@ -123,7 +123,7 @@ describe('Board', () => {
       [...Array(16).keys()].map((num, idx) => ({
         Name: '',
         CheckedDateUTC: num >= 12 ? new Date() : null,
-        IsBingo: false,
+        IsInBingoPattern: false,
         Selected: false,
       }))
     );
@@ -131,7 +131,7 @@ describe('Board', () => {
     fixture.detectChanges();
 
     expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
     ).toEqual(4);
   });
 
@@ -141,7 +141,7 @@ describe('Board', () => {
       [...Array(16).keys()].map((num, idx) => ({
         Name: '',
         CheckedDateUTC: num > 12 ? new Date() : null,
-        IsBingo: false,
+        IsInBingoPattern: false,
         Selected: false,
       }))
     );
@@ -149,7 +149,7 @@ describe('Board', () => {
     fixture.detectChanges();
 
     expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
     ).toEqual(0);
   });
 
@@ -160,7 +160,7 @@ describe('Board', () => {
         [...Array(mode * mode).keys()].map((num, idx) => ({
           Name: '',
           CheckedDateUTC: num % (mode + 1) === 0 ? new Date() : null,
-          IsBingo: false,
+          IsInBingoPattern: false,
           Selected: false,
         }))
       );
@@ -176,7 +176,7 @@ describe('Board', () => {
       expect(
         component
           .cards()
-          .map((c, idx) => (c.IsBingo === false ? undefined : idx))
+          .map((c, idx) => (c.IsInBingoPattern === false ? undefined : idx))
           .filter((c) => c !== undefined)
       ).toEqual(expected);
     });
@@ -193,7 +193,7 @@ describe('Board', () => {
             (mode !== 3 && num % (mode - 1) === 0)
               ? new Date()
               : null,
-          IsBingo: false,
+          IsInBingoPattern: false,
           Selected: false,
         }))
       );
@@ -209,12 +209,12 @@ describe('Board', () => {
       expect(
         component
           .cards()
-          .map((c, idx) => (c.IsBingo === false ? undefined : idx))
+          .map((c, idx) => (c.IsInBingoPattern === false ? undefined : idx))
           .filter((c) => c !== undefined)
       ).toEqual(expected);
 
       expect(
-        component.cards().reduce((acc, curr) => acc + +curr.IsBingo, 0)
+        component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
       ).toEqual(mode);
     });
   });

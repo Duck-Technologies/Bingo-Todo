@@ -73,7 +73,7 @@ export class BoardPage implements OnDestroy {
   public readonly isLocal = computed(() => this.board().Visibility === 'local');
 
   public readonly allChecked = computed(() =>
-    this.cells().every((c) => c.IsBingo)
+    this.cells().every((c) => c.IsInBingoPattern)
   );
 
   public readonly endStateMessage = computed(() =>
@@ -87,7 +87,7 @@ export class BoardPage implements OnDestroy {
   );
 
   public readonly boardStats = computed(() => ({
-    bingoCells: this.cells().reduce((acc, curr) => (acc += +curr.IsBingo), 0),
+    bingoCells: this.cells().reduce((acc, curr) => (acc += +curr.IsInBingoPattern), 0),
     checkedCells: this.cells().reduce(
       (acc, curr) => (acc += +(curr.CheckedDateUTC != null)),
       0
@@ -99,7 +99,7 @@ export class BoardPage implements OnDestroy {
   );
 
   private readonly bingoReached = computed(() =>
-    this.cells().find((c) => c.IsBingo)
+    this.cells().find((c) => c.IsInBingoPattern)
   );
 
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';

@@ -12,12 +12,12 @@ import {
 } from '@angular/material/tooltip';
 import { BoardCalculations } from '../calculations/board-calculations';
 
-export type BoardCellDto = Omit<BoardCell, 'IsBingo' | 'Selected' | 'Row' | 'Column'>;
+export type BoardCellDto = Omit<BoardCell, 'IsInBingoPattern' | 'Selected' | 'Row' | 'Column'>;
 
 export class BoardCell {
   public Name: string | null;
   public CheckedDateUTC: Date | null;
-  public IsBingo: boolean;
+  public IsInBingoPattern: boolean;
   public Selected: boolean;
   public Row: number;
   public Column: number;
@@ -25,7 +25,7 @@ export class BoardCell {
   constructor(cell: Partial<BoardCell>, index: number, boardDimension: number) {
     this.Name = cell.Name ?? null;
     this.CheckedDateUTC = cell.CheckedDateUTC ? new Date(cell.CheckedDateUTC) : null;
-    this.IsBingo = false;
+    this.IsInBingoPattern = false;
     this.Selected = false;
     this.Row = Math.floor(index / boardDimension) + 1;
     this.Column = (index % boardDimension) + 1;
