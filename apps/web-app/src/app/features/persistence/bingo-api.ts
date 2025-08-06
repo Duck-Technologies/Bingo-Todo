@@ -27,7 +27,10 @@ export class BingoApi {
       Name: null,
       GameMode: 'traditional',
       CompletionDeadlineUtc: null,
+      CompletionReward: null,
+      CompletionDateUtc: null,
       Cells: [],
+      FirstBingoReachedDateUtc: null,
       Visibility: 'unlisted',
     });
   }

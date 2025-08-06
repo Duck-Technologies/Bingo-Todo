@@ -1,0 +1,38 @@
+<!-- prettier-ignore -->
+@let deadline = deadlineState$ | async;
+@let tooltips = { 
+  none: "The board doesn't have a deadline.",
+  finishedBefore: "Deadline was set to " + (deadlineDate() | date : "MMM dd, yyyy 'at' HH:mm"),
+  finishedAfter: "Deadline expired at " + (deadlineDate() | date : "MMM dd, yyyy 'at' HH:mm"),
+  failed: "Deadline expired at " + (deadlineDate() | date : "MMM dd, yyyy 'at' HH:mm"),
+  expiresInAnHour: "Deadline expires in an hour at " + (deadlineDate() | date : "HH:mm"),
+  pending: "Deadline is set to " + (deadlineDate() | date : "MMM dd, yyyy 'at' HH:mm")
+};
+@let icons = {
+  none: "hourglass_disabled",
+  finishedBefore: "hourglass_bottom",
+  finishedAfter: "hourglass_bottom",
+  failed: "hourglass_bottom",
+  expiresInAnHour: "hourglass_top",
+  pending: "hourglass_top"
+};
+
+@let colors = {
+  none: null,
+  finishedBefore: "green",
+  finishedAfter: null,
+  failed: "red",
+  expiresInAnHour: "yellow",
+  pending: "green"
+};
+
+@if (deadline) {
+<mat-icon
+  [class.green]="colors[deadline] === 'green'"
+  [class.yellow]="colors[deadline] === 'yellow'"
+  [class.red]="colors[deadline] === 'red'"
+  [matTooltip]="tooltips[deadline]"
+  >{{icons[deadline]}}</mat-icon
+>
+<span class="cdk-visually-hidden">{{ tooltips[deadline] }}</span>
+}

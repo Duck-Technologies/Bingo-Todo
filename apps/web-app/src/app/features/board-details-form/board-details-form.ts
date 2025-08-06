@@ -1,15 +1,16 @@
-import { ChangeDetectionStrategy, Component, input, OnInit, output } from '@angular/core';
 import {
-  FormsModule,
-  ReactiveFormsModule
-} from '@angular/forms';
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from '@angular/material/form-field';
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { BoardInfo } from '../board/board';
 import { BoardSize, boardForm } from './form';
-
-
 
 @Component({
   selector: 'app-board-details-form',
@@ -18,41 +19,26 @@ import { BoardSize, boardForm } from './form';
     MatFormFieldModule,
     FormsModule,
     ReactiveFormsModule,
-    MatSelectModule
-  ],
-  providers: [
-    {
-      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: { appearance: 'outline' },
-    },
+    MatSelectModule,
   ],
   templateUrl: './board-details-form.html',
   styleUrl: './board-details-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    'role': 'form',
-    'aria-label': 'inputs for basic details of the board'
-  }
+    role: 'form',
+    'aria-label': 'inputs for basic details of the board',
+  },
 })
-export class BoardDetailsForm implements OnInit {
+export class BoardDetailsForm {
   public readonly board = input.required<BoardInfo>();
   public readonly createMode = input.required<boolean>();
   public readonly isLoggedIn = input.required<boolean>();
+  public readonly gameFinished = input<boolean>(false);
   public readonly resizeBoard = output<BoardSize>();
 
   public readonly boardForm = boardForm;
 
-  ngOnInit(): void {
-    this.boardForm.reset();
-    this.boardForm.enable();
-    this.boardForm.patchValue(this.board());
-    
-    if (!this.createMode()) {
-      this.boardForm.controls.BoardSize.disable();
-
-      if (this.board().Visibility === 'local') {
-        this.boardForm.controls.Visibility.disable();
-      }
-    }
-  }
+  public readonly displayVisibilityInput = computed(
+    () => this.createMode() || this.board().Visibility !== 'local'
+  );
 }

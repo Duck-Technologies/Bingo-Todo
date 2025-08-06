@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 450px);
+  gap: 1rem;
+
+  .gray {
+    color: color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent);
+  }
+
+  div {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  button.mdc-button--outlined {
+    margin-bottom: 2rem;
+  }
+
+  & > mat-form-field {
+    margin-top: 0.3rem;
+  }
+}

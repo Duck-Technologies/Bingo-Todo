@@ -1,0 +1,94 @@
+@let minDate = minDate$ | async; @if (deadlineInputsViewMode() === 'none'){
+<div class="horizontal">
+  @if (boardForm.getRawValue().CompletionDeadlineUtc) {
+  <span
+    >Deadline:
+    <span
+      class="gray"
+      >{{boardForm.getRawValue().CompletionDeadlineUtc | date : 'MMM dd, yyyy HH:mm'}}</span
+    >
+  </span>
+  <button
+    matIconButton
+    [matTooltip]="'Remove deadline'"
+    (click)="boardForm.controls.CompletionDeadlineUtc.setValue(null)"
+    aria-label="Remove deadline">
+    <mat-icon>close_small</mat-icon>
+  </button>
+  } @else {
+  <span>No deadline</span>
+  <button
+    matIconButton
+    [disabled]="canOnlyRemove()"
+    (click)="showDeadlineInputs()"
+    aria-label="Add deadline"
+    [matTooltip]="'Add deadline'">
+    <mat-icon>add</mat-icon>
+  </button>
+
+  }
+</div>
+} @if (deadlineInputsViewMode() !== 'none') {
+<mat-form-field [subscriptSizing]="'dynamic'">
+  <mat-label>Deadline date</mat-label>
+  <input
+    matInput
+    [min]="minDate"
+    [matDatepicker]="datepicker"
+    [formControl]="boardForm.controls.CompletionDeadlineUtc" />
+  <mat-datepicker #datepicker />
+  <mat-datepicker-toggle [for]="datepicker" matSuffix />
+</mat-form-field>
+
+<mat-form-field [subscriptSizing]="'dynamic'">
+  <mat-label>Deadline time</mat-label>
+  <input
+    matInput
+    [disabled]="!boardForm.getRawValue().CompletionDeadlineUtc"
+    [matTimepicker]="timepicker"
+    name="deadlinepicker"
+    #timepickerInput="ngModel"
+    [matTimepickerMin]="minTime$ | async"
+    [ngModel]="boardForm.getRawValue().CompletionDeadlineUtc"
+    (ngModelChange)="setTime($event);" />
+  <mat-timepicker #timepicker />
+  <mat-timepicker-toggle [for]="timepicker" matSuffix />
+
+  @if (!!timepickerInput.errors?.['matTimepickerParse']) {
+  <mat-error>Please enter a valid time</mat-error>
+  } @if (timepickerInput.enabled && timepickerInput.valid) {
+  <mat-hint>Deadline must be at least 15 minutes from now</mat-hint>
+  }
+</mat-form-field>
+
+@if (!createMode()) {
+<button matButton (click)="commitDeadline(true)">Cancel deadline</button>
+<button
+  matButton="outlined"
+  [disabled]="!boardForm.getRawValue().CompletionDeadlineUtc"
+  (click)="commitDeadline()">
+  Set deadline
+</button>
+} } @if (!canOnlyRemove()) {
+<mat-form-field [subscriptSizing]="'dynamic'">
+  <mat-label>Completion reward</mat-label>
+  <input
+    matInput
+    placeholder="You've earned ..."
+    [formControl]="boardForm.controls.CompletionReward" />
+  @if (completionRewardHint$ | async; as rewardHint) {
+  <mat-hint>{{rewardHint}}</mat-hint>
+  }
+</mat-form-field>
+} @let reward = boardForm.getRawValue().CompletionReward; @if (canOnlyRemove() && reward) {
+<div class="horizontal">
+  <span>Completion reward: {{ reward }}</span>
+  <button
+    matIconButton
+    [matTooltip]="'Remove reward'"
+    (click)="boardForm.controls.CompletionReward.setValue(null)"
+    aria-label="Remove reward">
+    <mat-icon>close_small</mat-icon>
+  </button>
+</div>
+}

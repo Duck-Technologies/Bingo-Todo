@@ -30,8 +30,8 @@
         <ng-container [formGroup]="control">
           <mat-form-field [subscriptSizing]="'dynamic'">
             <mat-label
-              >Row {{ Math.ceil((idx + 1) / boardCols) }}, Col
-              {{ (idx % boardCols) + 1 }}</mat-label
+              >Row {{ Math.ceil((idx + 1) / boardSize) }}, Col
+              {{ (idx % boardSize) + 1 }}</mat-label
             >
             <input
               matInput
@@ -47,7 +47,7 @@
               formControlName="Name" />
           </mat-form-field>
 
-          @if(($index + 1) % boardCols === 0 && !last) {
+          @if(($index + 1) % boardSize === 0 && !last) {
           <mat-divider></mat-divider>
           }
         </ng-container>
@@ -60,6 +60,16 @@
         <button matButton matStepperNext [disabled]="cardsFormArray.invalid">Next</button>
       </div>
     </form>
+  </mat-step>
+  <mat-step [stepControl]="boardForm" label="Deadline and rewards">
+    <div class="container">
+      <app-deadline-reward-form [createMode]="true"></app-deadline-reward-form>
+
+      <div class="action-footer">
+        <button matButton matStepperPrevious>Back</button>
+        <button matButton matStepperNext>Next</button>
+      </div>
+    </div>
   </mat-step>
   <mat-step>
     @let boardDetails = boardForm.getRawValue();
@@ -83,7 +93,7 @@
             [matTooltip]="buttonLabel"
             attr.aria-label="{{ buttonLabel }}"
             matIconButton
-            (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid'); scrollTo($any({selectedIndex:2}))">
+            (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid'); scrollTo($any({selectedIndex:3}))">
             <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
           </button>
         </div>

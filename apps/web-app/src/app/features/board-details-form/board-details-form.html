@@ -12,7 +12,8 @@
     }
   </mat-form-field>
   }
-
+  
+  @if (!gameFinished()) {
   <mat-form-field [subscriptSizing]="'dynamic'">
     <mat-label>Game mode</mat-label>
     <mat-select formControlName="GameMode">
@@ -24,12 +25,16 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  } @else { Game mode:
+  {{boardForm.getRawValue().GameMode === 'todo' ? 'To-do (check all)' : 'Traditional (1 strike)'}}
+  }
 
   <mat-form-field [subscriptSizing]="'dynamic'">
     <mat-label>Name</mat-label>
     <input matInput placeholder="Enter board name" formControlName="Name" />
   </mat-form-field>
 
+  @if (displayVisibilityInput()) {
   <mat-form-field [subscriptSizing]="'dynamic'">
     <mat-label>Visibility</mat-label>
     <mat-select formControlName="Visibility">
@@ -44,4 +49,7 @@
     <mat-hint> You have to log in to create a non-local board </mat-hint>
     }
   </mat-form-field>
+  } @else {
+  <span [class.gray]="boardForm.controls.Visibility.disabled"> Visibility: local </span>
+  }
 </ng-container>

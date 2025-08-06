@@ -30,7 +30,6 @@ describe('BoardDetailsForm', () => {
   });
 
   // TODO tests:
-  // - form prefilled with input
   // - Check disabled options and warnings related to Visibility
   // - Check the presence of board size, and the local Visibility option in create mode based on inputs
 });

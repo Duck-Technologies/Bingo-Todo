@@ -5,6 +5,7 @@ import {
   inject,
   linkedSignal,
   model,
+  OnDestroy,
   signal,
 } from '@angular/core';
 import { Board, BoardInfo } from '../../features/board/board';
@@ -22,6 +23,10 @@ import { MatDivider } from '@angular/material/divider';
 import { BoardListView } from '../../features/board-list-view/board-list-view';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
+import { BoardCalculations } from '../../features/calculations/board-calculations';
+import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-hourglass';
+import { Subscription, tap } from 'rxjs';
 
 @Component({
   selector: 'app-board-page',
@@ -37,19 +42,22 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
     MatDivider,
     BoardListView,
     NgTemplateOutlet,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    DeadlineRewardForm,
+    DeadlineHourglass,
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    'role': 'main'
-  }
+    role: 'main',
+  },
 })
-export class BoardPage {
+export class BoardPage implements OnDestroy {
   public readonly board = model.required<BoardInfo>();
-
+  private readonly calculationService = inject(BoardCalculations);
   private readonly bingoApi = inject(BingoApi);
+
   private readonly router = inject(Router);
 
   public readonly editMode = signal(false);
@@ -64,12 +72,12 @@ export class BoardPage {
   );
   public readonly isLocal = computed(() => this.board().Visibility === 'local');
 
-  private readonly bingoReached = computed(() =>
-    this.cells().find((c) => c.IsBingo)
+  public readonly allChecked = computed(() =>
+    this.cells().every((c) => c.IsBingo)
   );
 
-  private readonly allChecked = computed(() =>
-    this.cells().every((c) => c.IsBingo)
+  public readonly endStateMessage = computed(() =>
+    BoardPage.generateEndStateMessage(this.board())
   );
 
   public readonly goalReached = computed(
@@ -90,10 +98,28 @@ export class BoardPage {
     this.cells().reduce((acc, curr) => (acc += +curr.Selected), 0)
   );
 
+  private readonly bingoReached = computed(() =>
+    this.cells().find((c) => c.IsBingo)
+  );
+
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
-  private readonly boardForm = boardForm;
+  public readonly boardForm = boardForm;
   public readonly doDelete = model(false);
-  public goalAchieved = false;
+  private revertSubscription: Subscription | undefined;
+
+  constructor() {
+    this.revertSubscription = this.boardForm.controls.GameMode.valueChanges
+      .pipe(
+        tap((gameMode) =>
+          this.revertDeadlineAndRewardIfModifiedWithoutGameModeChange(gameMode)
+        )
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy() {
+    this.revertSubscription?.unsubscribe();
+  }
 
   public cancelChanges() {
     this.editMode.set(false);
@@ -108,21 +134,25 @@ export class BoardPage {
 
     if (this.isLocal()) {
       this.board.set(updatedBoard);
-      BingoLocalStorage.updateBoard(this.board());
+      BingoLocalStorage.updateBoard(this.board(), this.calculationService);
     } else {
       // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
     }
   }
 
   public editBoard() {
+    this.boardForm.reset();
+    this.boardForm.enable();
+    this.boardForm.patchValue(this.board());
     this.editMode.set(true);
   }
 
   public saveChanges() {
-    this.editMode.set(false);
     const updatedBoard = {
       ...this.boardForm.getRawValue(),
       Cells: this.cells(),
+      CompletionDateUtc: null,
+      FirstBingoReachedDateUtc: null,
     };
 
     if (this.isLocal()) {
@@ -130,8 +160,8 @@ export class BoardPage {
         BingoLocalStorage.resetBoard();
         this.router.navigate(['board/create']);
       } else {
+        BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
         this.board.set(updatedBoard);
-        BingoLocalStorage.updateBoard(this.board());
       }
     } else {
       if (this.doDelete()) {
@@ -140,6 +170,7 @@ export class BoardPage {
         // this.bingoApi.updateBoard(this.board().Id, formData).subscribe();
       }
     }
+    this.editMode.set(false);
   }
 
   public saveSelected() {
@@ -156,9 +187,8 @@ export class BoardPage {
     };
 
     if (this.isLocal()) {
+      BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
       this.board.set(updatedBoard);
-      this.cells.set(updatedBoard.Cells);
-      BingoLocalStorage.updateBoard(this.board());
     } else {
       // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
     }
@@ -174,5 +204,64 @@ export class BoardPage {
         return c;
       })
     );
+  }
+
+  private static generateEndStateMessage(board: BoardInfo, isOwnBoard = true) {
+    if (!board.CompletionDateUtc || !isOwnBoard) {
+      return '';
+    }
+
+    let message = 'You did it';
+
+    if (
+      !!board.CompletionDeadlineUtc &&
+      new Date(board.CompletionDateUtc) <= new Date(board.CompletionDeadlineUtc)
+    ) {
+      message += ' before the deadline!';
+    } else {
+      message += '!';
+    }
+
+    if (board.CompletionReward) {
+      message += ` You've earned ${board.CompletionReward}!`;
+    }
+
+    return message;
+  }
+
+  /**
+   * in edit mode if the game mode is finished we prevent the user from
+   * changing the deadline or the reward (they can remove them though)
+   * however they can switch game modes until not all cells are checked
+   * then switch back to a finished game mode after modifying the reward and deadline
+   * in this case we silently patch back the original values
+   */
+  private revertDeadlineAndRewardIfModifiedWithoutGameModeChange(
+    gameMode: 'todo' | 'traditional'
+  ) {
+    const formValue = this.boardForm.getRawValue();
+
+    if (!(this.goalReached() && gameMode === this.board().GameMode)) {
+      return;
+    }
+
+    if (
+      !!formValue.CompletionDeadlineUtc &&
+      formValue.CompletionDeadlineUtc.toString() !==
+        this.board().CompletionDeadlineUtc?.toString()
+    ) {
+      this.boardForm.controls.CompletionDeadlineUtc.setValue(
+        this.board().CompletionDeadlineUtc
+      );
+    }
+
+    if (
+      !!formValue.CompletionReward &&
+      formValue.CompletionReward !== this.board().CompletionReward
+    ) {
+      this.boardForm.controls.CompletionReward.setValue(
+        this.board().CompletionReward
+      );
+    }
   }
 }

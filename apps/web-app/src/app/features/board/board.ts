@@ -2,8 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
-  inject,
   input,
   model,
 } from '@angular/core';
@@ -12,24 +10,38 @@ import {
   MAT_TOOLTIP_DEFAULT_OPTIONS,
   MatTooltipModule,
 } from '@angular/material/tooltip';
-import { BoardCalculations } from './board-calculations';
+import { BoardCalculations } from '../calculations/board-calculations';
 
-export type BoardCell = {
-  Name: string;
-  CheckedDateUTC: Date | null;
-  IsBingo: boolean;
-  Selected: boolean;
+export type BoardCellDto = Omit<BoardCell, 'IsBingo' | 'Selected' | 'Row' | 'Column'>;
 
-  Row?: number;
-  Column?: number;
+export class BoardCell {
+  public Name: string | null;
+  public CheckedDateUTC: Date | null;
+  public IsBingo: boolean;
+  public Selected: boolean;
+  public Row: number;
+  public Column: number;
+
+  constructor(cell: Partial<BoardCell>, index: number, boardDimension: number) {
+    this.Name = cell.Name ?? null;
+    this.CheckedDateUTC = cell.CheckedDateUTC ? new Date(cell.CheckedDateUTC) : null;
+    this.IsBingo = false;
+    this.Selected = false;
+    this.Row = Math.floor(index / boardDimension) + 1;
+    this.Column = (index % boardDimension) + 1;
+
+  }
 };
 
-export type BoardInfo = {
+export type BoardInfo<T = BoardCell> = {
   Id?: string;
   Name: string | null;
   GameMode: 'traditional' | 'todo';
+  CompletionDateUtc: Date | null;
+  FirstBingoReachedDateUtc: Date | null;
   CompletionDeadlineUtc: Date | null;
-  Cells: BoardCell[];
+  CompletionReward: string | null;
+  Cells: T[];
   Visibility: 'local' | 'unlisted' | 'public';
 };
 
@@ -61,22 +73,11 @@ export type BoardInfo = {
   },
 })
 export class Board {
-  private readonly calculationService = inject(BoardCalculations);
-
   public readonly cards = model.required<BoardCell[]>();
   public readonly previewMode = input.required<
     null | 'indicator' | 'preview'
   >();
   public readonly isPreview = computed(() => this.previewMode() !== null);
-
-  private readonly setting = computed(
-    () =>
-      ({
-        '25': this.calculationService.fiveByFive,
-        '16': this.calculationService.fourByFour,
-        '9': this.calculationService.threeByThree,
-      }[this.cards().length])
-  );
 
   public readonly boardSize = computed(
     () =>
@@ -87,54 +88,10 @@ export class Board {
     BoardCalculations.getRowIndexes(this.boardSize())
   );
 
-  public readonly bingoRows = computed(() => this.setting()?.rows ?? []);
-  public readonly bingoCols = computed(() => this.setting()?.cols ?? []);
-  public readonly bingoDiagonal = computed(
-    () => this.setting()?.diagonals ?? []
-  );
-
-  constructor() {
-    let cards = [] as BoardCell[];
-
-    // TODO: rethink this effect approach
-    effect(() => {
-      if (cards !== this.cards()) {
-        const cardsCalculated = this.cards().map((c, i) => {
-          c.IsBingo =
-            c.IsBingo ||
-            (c.CheckedDateUTC !== null &&
-              c.CheckedDateUTC !== undefined &&
-              (Board.cellInBingoPattern(
-                this.bingoDiagonal(),
-                this.cards(),
-                i
-              ) ||
-                Board.cellInBingoPattern(this.bingoRows(), this.cards(), i) ||
-                Board.cellInBingoPattern(this.bingoCols(), this.cards(), i)));
-          return c;
-        });
-        cards = cardsCalculated;
-        this.cards.set(cards);
-      }
-    });
-  }
-
   public checkCard(card: BoardCell) {
     if (!!card.CheckedDateUTC || this.isPreview()) return;
 
     card.Selected = !card.Selected;
     this.cards.set([...this.cards()]);
-  }
-
-  private static cellInBingoPattern(
-    combinations: number[][],
-    cards: BoardCell[],
-    cellIdx: number
-  ) {
-    return !!combinations
-      .filter((c) => c.includes(cellIdx))
-      .find((combination) =>
-        combination?.every((x) => cards[x].CheckedDateUTC !== null)
-      );
   }
 }
