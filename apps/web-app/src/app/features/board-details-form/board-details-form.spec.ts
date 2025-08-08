@@ -31,5 +31,7 @@ describe('BoardDetailsForm', () => {
 
   // TODO tests:
   // - Check disabled options and warnings related to Visibility
-  // - Check the presence of board size, and the local Visibility option in create mode based on inputs
+  // - Check the presence of board size, 
+  // - Visibility should only be changeable if the board is not local (but not to local)
+  // - Game mode can't be changed once the game is finished in TODO mode
 });

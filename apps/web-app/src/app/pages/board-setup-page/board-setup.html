@@ -21,6 +21,7 @@
       </div>
     </div>
   </mat-step>
+
   <mat-step [stepControl]="cardsFormArray" label="Board cells">
     <form class="container">
       <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
@@ -61,6 +62,7 @@
       </div>
     </form>
   </mat-step>
+
   <mat-step [stepControl]="boardForm" label="Deadline and rewards">
     <div class="container">
       <app-deadline-reward-form [createMode]="true"></app-deadline-reward-form>
@@ -71,6 +73,7 @@
       </div>
     </div>
   </mat-step>
+
   <mat-step>
     @let boardDetails = boardForm.getRawValue();
 

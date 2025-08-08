@@ -43,7 +43,6 @@ import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
   Selected: FormControl<boolean>;
-  IsInBingoPattern: FormControl<boolean>;
 }>;
 
 @Component({
@@ -97,7 +96,6 @@ export class BoardSetup implements OnInit {
       return new FormGroup({
         Name: new FormControl<string | null>(null, [Validators.required]),
         Selected: new FormControl<boolean>(false, { nonNullable: true }),
-        IsInBingoPattern: new FormControl<boolean>(false, { nonNullable: true }),
       });
     })
   );
@@ -106,10 +104,10 @@ export class BoardSetup implements OnInit {
     startWith(this.cardsFormArray.getRawValue()),
     map(
       () =>
-        this.cardsFormArray.getRawValue().map((c) => {
-          c.IsInBingoPattern = !!c.Name?.length;
-          return c;
-        }) as BoardCell[]
+        this.cardsFormArray.getRawValue().map((c, idx) => ({
+          IsInBingoPattern: !!c.Name?.length && this.cardsFormArray.at(idx).valid,
+          ...c,
+        })) as BoardCell[]
     )
   );
 
@@ -185,7 +183,6 @@ export class BoardSetup implements OnInit {
             [Validators.required, Validators.pattern(NotOnlyWhiteSpacePattern)]
           ),
           Selected: new FormControl<boolean>(false, { nonNullable: true }),
-          IsInBingoPattern: new FormControl<boolean>(false, { nonNullable: true }),
         })
       );
     });

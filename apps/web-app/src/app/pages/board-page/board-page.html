@@ -141,7 +141,8 @@
       ></app-deadline-hourglass>
 
       @if (goalReached()) {
-        <mat-icon fontSet="material-symbols-outlined" class="trophy" matTooltip="Goal reached"
+        <mat-icon fontSet="material-symbols-outlined" class="trophy"
+          [matTooltip]="'Goal reached on ' + (board().CompletionDateUtc | date : 'MMM dd, yyyy')"
           >trophy</mat-icon>
       } @else { 
         <svg

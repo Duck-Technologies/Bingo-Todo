@@ -1,22 +1,15 @@
 import {
   ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  linkedSignal,
-  OnChanges,
-  OnInit,
+  Component, input,
+  linkedSignal
 } from '@angular/core';
 import {
-  catchError,
   combineLatest,
   interval,
-  map,
-  Observable,
-  of,
+  map, of,
   startWith,
   switchMap,
-  tap,
+  tap
 } from 'rxjs';
 import { calculateDateFromNow } from '../calculations/date-calculations';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -54,11 +47,11 @@ export class DeadlineHourglass {
 
       // don't start the interval if the deadline expired or the board was completed
       // or the deadline isn't within 80 minutes
-      if (data.finished || new Date(data.deadlineDate) > calculateDateFromNow(80)) {
+      if (data.finished || new Date(data.deadlineDate) > calculateDateFromNow(60)) {
         return of(this.calculateState());
       }
 
-      return interval(1 * 60000).pipe(
+      return interval(1 * 80000).pipe(
         startWith(this.calculateState()),
         map((_) => this.calculateState()),
         tap((state) => {

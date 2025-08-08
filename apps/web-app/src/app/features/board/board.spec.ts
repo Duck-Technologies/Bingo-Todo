@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Board } from './board';
+import { Board, BoardCell } from './board';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { BoardCalculations } from '../calculations/board-calculations';
+import { By } from '@angular/platform-browser';
 
 describe('Board', () => {
   let component: Board;
@@ -17,205 +19,166 @@ describe('Board', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('cards', []);
     fixture.componentRef.setInput('previewMode', null);
-    fixture.detectChanges();
+    fixture.autoDetectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  // TODO tests:
-  // - disabled state based on previewMode
-  // - cells should be empty in indicator mode
+  describe('when previewMode is null', () => {
+    it('should be able to select a cell with space', async () => {
+      const cards = BoardCalculations.getRowIndexes(9).map(
+        (idx) =>
+          new BoardCell(
+            {
+              Selected: false,
+            },
+            idx,
+            3
+          )
+      );
+      fixture.componentRef.setInput('cards', cards);
+      await fixture.whenStable();
 
-  it('should color bingo cols as expected 5', () => {
-    const mode = 5;
-    [4, 3, 2, 1, 0].forEach((i) => {
-      fixture.componentRef.setInput(
-        'cards',
-        [...Array(mode * mode).keys()].map((num) => ({
-          Name: '',
-          CheckedDateUTC: (num - i) % mode === 0 ? new Date() : null,
-          IsInBingoPattern: false,
-          Selected: false,
-        }))
+      const firstInput = fixture.debugElement.query(By.css('input'));
+      firstInput.triggerEventHandler('keyup.space', {
+        code: 'Space',
+        preventDefault: () => {},
+      });
+
+      expect(component.cards().find((c) => c.Selected)).not.toBeUndefined();
+    });
+
+    it('should be able to only select cells without CheckedDateUTC', async () => {
+      const cards = BoardCalculations.getRowIndexes(9).map(
+        (idx) =>
+          new BoardCell(
+            {
+              CheckedDateUTC: new Date(),
+            },
+            idx,
+            3
+          )
+      );
+      fixture.componentRef.setInput('cards', cards);
+      await fixture.whenStable();
+
+      const disabledInputs = fixture.debugElement.queryAll(
+        By.css('input:disabled')
       );
 
-      // needed because of the effect()
-      fixture.detectChanges();
+      expect(disabledInputs.length).toBe(9);
+    });
 
-      expect(
-        component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-      ).toEqual(mode);
+    it('should be able to toggle Selected state with clicks', async () => {
+      const cards = BoardCalculations.getRowIndexes(9).map(
+        (idx) =>
+          new BoardCell(
+            {
+              CheckedDateUTC: null,
+            },
+            idx,
+            3
+          )
+      );
+      fixture.componentRef.setInput('cards', cards);
+      await fixture.whenStable();
+
+      const card = fixture.debugElement.query(By.css('mat-card'));
+      card.triggerEventHandler('click');
+
+      expect(component.cards().find((c) => c.Selected)).not.toBeUndefined();
+
+      card.triggerEventHandler('click');
+
+      expect(component.cards().find((c) => c.Selected)).toBeUndefined();
+    });
+
+    it('should be able to only click cells without CheckedDateUTC', async () => {
+      const cards = BoardCalculations.getRowIndexes(9).map(
+        (idx) =>
+          new BoardCell(
+            {
+              CheckedDateUTC: new Date(),
+            },
+            idx,
+            3
+          )
+      );
+      fixture.componentRef.setInput('cards', cards);
+      await fixture.whenStable();
+
+      const card = fixture.debugElement.query(By.css('mat-card'));
+      card.triggerEventHandler('click');
+      expect(component.cards().find((c) => c.Selected)).toBeUndefined();
+    });
+
+    it('colors should be applied as expected', async () => {
+      const cards = BoardCalculations.getRowIndexes(9).map(
+        (idx) =>
+          new BoardCell(
+            {
+              CheckedDateUTC: idx === 1 || idx === 0 ? new Date() : null,
+            },
+            idx,
+            3
+          )
+      );
+      cards[0].IsInBingoPattern = true;
+      cards[2].Selected = true;
+
+      fixture.componentRef.setInput('cards', cards);
+      await fixture.whenStable();
+
+      const card = fixture.debugElement.queryAll(By.css('mat-card'));
+      expect(card[0].classes['bg-green']).toBeTrue();
+      expect(card[1].classes['bg-yellow']).toBeTrue();
+      expect(card[2].classes['bg-blue']).toBeTrue();
     });
   });
 
-  it('should color bingo cols as expected 4', () => {
-    const mode = 4;
-    [3, 2, 1, 0].forEach((i) => {
-      fixture.componentRef.setInput(
-        'cards',
-        [...Array(mode * mode).keys()].map((num) => ({
-          Name: '',
-          CheckedDateUTC: (num - i) % mode === 0 ? new Date() : null,
-          IsInBingoPattern: false,
-          Selected: false,
-        }))
-      );
-
-      fixture.detectChanges();
-
-      expect(
-        component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-      ).toEqual(mode);
-    });
-  });
-
-  it("shouldn't color bingo cols when not applicable", () => {
-    fixture.componentRef.setInput(
-      'cards',
-      [...new Array(5)].reduce(
-        (acc, curr, idx) => [
-          ...acc,
+  it("in indicator mode there shouldn't be text or inputs", async () => {
+    const cards = BoardCalculations.getRowIndexes(9).map(
+      (idx) =>
+        new BoardCell(
           {
-            Name: '',
-            CheckedDateUTC: idx === 0 ? null : new Date(),
-            IsInBingoPattern: false,
-            Selected: false,
+            Name: 'lorem ipsum',
           },
-          ...new Array(4).fill({
-            Name: '',
-            CheckedDateUTC: null,
-            IsInBingoPattern: false,
-            Selected: false,
-          }),
-        ],
-        []
-      )
+          idx,
+          3
+        )
     );
 
-    expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-    ).toEqual(0);
+    fixture.componentRef.setInput('previewMode', 'indicator');
+    fixture.componentRef.setInput('cards', cards);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.outerHTML).not.toContain('lorem ipsum');
+    expect(fixture.debugElement.queryAll(By.css('input')).length).toBe(0);
   });
 
-  it('should color bingo rows as expected', () => {
-    fixture.componentRef.setInput(
-      'cards',
-      [...Array(16).keys()].map((num, idx) => ({
-        Name: '',
-        CheckedDateUTC: num < 4 ? new Date() : null,
-        IsInBingoPattern: false,
-        Selected: false,
-      }))
+  it("in preview mode there shouldn't be inputs and click shouldn't do anything", async () => {
+    const cards = BoardCalculations.getRowIndexes(9).map(
+      (idx) =>
+        new BoardCell(
+          {
+            Name: 'lorem ipsum',
+          },
+          idx,
+          3
+        )
     );
 
-    fixture.detectChanges();
+    fixture.componentRef.setInput('previewMode', 'preview');
+    fixture.componentRef.setInput('cards', cards);
+    await fixture.whenStable();
 
-    expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-    ).toEqual(4);
-  });
+    const inputs = fixture.debugElement.queryAll(By.css('input'));
+    expect(inputs.length).toBe(0);
 
-  it('should color bingo rows as expected v2', () => {
-    fixture.componentRef.setInput(
-      'cards',
-      [...Array(16).keys()].map((num, idx) => ({
-        Name: '',
-        CheckedDateUTC: num >= 12 ? new Date() : null,
-        IsInBingoPattern: false,
-        Selected: false,
-      }))
-    );
-
-    fixture.detectChanges();
-
-    expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-    ).toEqual(4);
-  });
-
-  it("shouldn' color bingo rows when not applicable", () => {
-    fixture.componentRef.setInput(
-      'cards',
-      [...Array(16).keys()].map((num, idx) => ({
-        Name: '',
-        CheckedDateUTC: num > 12 ? new Date() : null,
-        IsInBingoPattern: false,
-        Selected: false,
-      }))
-    );
-
-    fixture.detectChanges();
-
-    expect(
-      component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-    ).toEqual(0);
-  });
-
-  it('should color diagonal bingo as expected', () => {
-    [3, 4, 5].forEach((mode) => {
-      fixture.componentRef.setInput(
-        'cards',
-        [...Array(mode * mode).keys()].map((num, idx) => ({
-          Name: '',
-          CheckedDateUTC: num % (mode + 1) === 0 ? new Date() : null,
-          IsInBingoPattern: false,
-          Selected: false,
-        }))
-      );
-
-      const expected = {
-        '3': [0, 4, 8],
-        '4': [0, 5, 10, 15],
-        '5': [0, 6, 12, 18, 24],
-      }[mode.toString()] as number[];
-
-      fixture.detectChanges();
-
-      expect(
-        component
-          .cards()
-          .map((c, idx) => (c.IsInBingoPattern === false ? undefined : idx))
-          .filter((c) => c !== undefined)
-      ).toEqual(expected);
-    });
-  });
-
-  it('should color diagonal bingo as expected v2', () => {
-    [3, 4, 5].forEach((mode) => {
-      fixture.componentRef.setInput(
-        'cards',
-        [...Array(mode * mode).keys()].map((num, idx) => ({
-          Name: '',
-          CheckedDateUTC:
-            (mode === 3 && [2, 4, 6].includes(idx)) ||
-            (mode !== 3 && num % (mode - 1) === 0)
-              ? new Date()
-              : null,
-          IsInBingoPattern: false,
-          Selected: false,
-        }))
-      );
-
-      const expected = {
-        '3': [2, 4, 6],
-        '4': [3, 6, 9, 12],
-        '5': [4, 8, 12, 16, 20],
-      }[mode.toString()] as number[];
-
-      fixture.detectChanges();
-
-      expect(
-        component
-          .cards()
-          .map((c, idx) => (c.IsInBingoPattern === false ? undefined : idx))
-          .filter((c) => c !== undefined)
-      ).toEqual(expected);
-
-      expect(
-        component.cards().reduce((acc, curr) => acc + +curr.IsInBingoPattern, 0)
-      ).toEqual(mode);
-    });
+    const card = fixture.debugElement.query(By.css('mat-card'));
+    card.triggerEventHandler('click');
+    expect(component.cards().find((c) => c.Selected)).toBeUndefined();
   });
 });

@@ -1,29 +1,35 @@
 @for (row of rowIndexes().slice(0, groupAriaLabels().length); track row; let last = $last) {
 <ul role="group" [attr.aria-label]="groupAriaLabels()[row]">
   @for (card of cardsDisplayed().slice(row * boardSize(), (row * boardSize() + boardSize())); track
-  idx; let idx = $index) { @let actualIdx = idx + (boardSize() * row);
+  idx; let idx = $index) {
+  <!-- prettier-ignore -->
+  @let actualIdx = idx + (boardSize() * row);
+
   <li
     [class.focus]="activeCell() === actualIdx"
     id="cell_{{actualIdx}}"
     role="option"
     [attr.aria-disabled]="!!card.CheckedDateUTC || disabled()"
     [attr.aria-selected]="!!card.CheckedDateUTC || card.Selected">
-    @let ariaOption = (groupBy() !== 'row' ? 'Row ' + card.Row : '') 
-    + (groupBy() === 'diagonal' ? ', ' : '') 
-    + (groupBy() !== 'col' ? 'Column ' + card.Column : '') + ': ' + card.Name;
-    
-    <span class="cdk-visually-hidden">{{ariaOption}} @if (!!card.CheckedDateUTC) { Marked as done
-      {{card.CheckedDateUTC | intlRelativeTime}}. }
+    @let ariaOption = (groupBy() !== 'row' ? 'Row ' + card.Row : '') + (groupBy() === 'diagonal' ?
+    ', ' : '') + (groupBy() !== 'col' ? 'Column ' + card.Column : '') + ': ' + card.Name;
+
+    <span class="cdk-visually-hidden"
+      >{{ariaOption}}
+      <!-- prettier-ignore -->
+      @if (!!card.CheckedDateUTC) { 
+        Marked as done {{card.CheckedDateUTC | intlRelativeTime}}. }
     </span>
 
     <mat-card
       aria-hidden="true"
       [class.bg-green]="card.IsInBingoPattern"
-      [class.bg-yellow]="!!card.CheckedDateUTC"
+      [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
       [class.bg-blue]="card.Selected"
       (click)="checkCard(card)">
       <mat-card-header>
         <span>Row {{card.Row}}, Col {{card.Column}}</span>
+
         @if (!!card.CheckedDateUTC) {
         <time
           [matTooltip]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
@@ -31,13 +37,16 @@
           [attr.title]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
           >{{card.CheckedDateUTC | intlRelativeTime}}
         </time>
-        } @else { @if (!disabled()) {
+        } @else {
+        <!-- prettier-ignore -->
+        @if (!disabled()) {
         <mat-icon
           fontSet="material-symbols-outlined"
           >{{card.Selected ? 'check_box' : 'check_box_outline_blank'}}</mat-icon
         >
         } }
       </mat-card-header>
+
       <mat-card-content>{{card.Name}}</mat-card-content>
     </mat-card>
   </li>

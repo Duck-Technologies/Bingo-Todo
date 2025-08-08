@@ -3,6 +3,7 @@ import {
   Component,
   input,
   OnDestroy,
+  OnInit,
   signal,
 } from '@angular/core';
 import {
@@ -28,6 +29,8 @@ import { MatIcon } from '@angular/material/icon';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { calculateDateFromNow } from '../calculations/date-calculations';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { DATE_FORMATS } from '../../app.config';
 
 @Component({
   selector: 'app-deadline-reward-form',
@@ -45,6 +48,9 @@ import { calculateDateFromNow } from '../calculations/date-calculations';
     MatButton,
     MatTooltip,
   ],
+  providers: [
+    provideNativeDateAdapter(DATE_FORMATS),
+  ],
   templateUrl: './deadline-reward-form.html',
   styleUrl: './deadline-reward-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,7 +59,7 @@ import { calculateDateFromNow } from '../calculations/date-calculations';
     'aria-label': 'Inputs for setting the deadline and rewards',
   },
 })
-export class DeadlineRewardForm implements OnDestroy {
+export class DeadlineRewardForm implements OnInit, OnDestroy {
   // in edit mode if the game mode is finished we prevent the user from
   // changing the deadline or the reward (they can remove them though)
   public readonly canOnlyRemove = input<boolean>(false);
@@ -62,7 +68,7 @@ export class DeadlineRewardForm implements OnDestroy {
   private static readonly minDateMinutesFromNow = 15;
 
   public readonly boardForm = boardForm;
-  public readonly deadlineInputsViewMode = signal<'none' | 'display'>('none');
+  public readonly deadlineInputsDisplay = signal<'none' | 'display'>('none');
   public readonly completionRewardHint$ =
     this.boardForm.controls.CompletionReward.valueChanges.pipe(
       map((reward) =>
@@ -108,7 +114,7 @@ export class DeadlineRewardForm implements OnDestroy {
       this.boardForm.controls.CompletionDeadlineUtc.setValue(null);
     }
 
-    this.deadlineInputsViewMode.set('none');
+    this.deadlineInputsDisplay.set('none');
     this.boardForm.enable();
   }
 
@@ -142,7 +148,7 @@ export class DeadlineRewardForm implements OnDestroy {
       )
       .subscribe();
 
-    this.deadlineInputsViewMode.set('display');
+    this.deadlineInputsDisplay.set('display');
   }
 
   public setTime(date: Date | null) {
@@ -166,8 +172,6 @@ export class DeadlineRewardForm implements OnDestroy {
   }
 
   private static calculateMinDate() {
-    return calculateDateFromNow(
-      DeadlineRewardForm.minDateMinutesFromNow
-    );
+    return calculateDateFromNow(DeadlineRewardForm.minDateMinutesFromNow);
   }
 }

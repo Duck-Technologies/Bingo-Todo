@@ -12,7 +12,10 @@ import {
 } from '@angular/material/tooltip';
 import { BoardCalculations } from '../calculations/board-calculations';
 
-export type BoardCellDto = Omit<BoardCell, 'IsInBingoPattern' | 'Selected' | 'Row' | 'Column'>;
+export type BoardCellDto = Omit<
+  BoardCell,
+  'IsInBingoPattern' | 'Selected' | 'Row' | 'Column'
+>;
 
 export class BoardCell {
   public Name: string | null;
@@ -24,14 +27,15 @@ export class BoardCell {
 
   constructor(cell: Partial<BoardCell>, index: number, boardDimension: number) {
     this.Name = cell.Name ?? null;
-    this.CheckedDateUTC = cell.CheckedDateUTC ? new Date(cell.CheckedDateUTC) : null;
+    this.CheckedDateUTC = cell.CheckedDateUTC
+      ? new Date(cell.CheckedDateUTC)
+      : null;
     this.IsInBingoPattern = false;
     this.Selected = false;
     this.Row = Math.floor(index / boardDimension) + 1;
     this.Column = (index % boardDimension) + 1;
-
   }
-};
+}
 
 export type BoardInfo<T = BoardCell> = {
   Id?: string;
@@ -93,5 +97,15 @@ export class Board {
 
     card.Selected = !card.Selected;
     this.cards.set([...this.cards()]);
+  }
+
+  public handleCheckboxKeydown(event: KeyboardEvent, card: BoardCell) {
+    if (event.code === 'Space') {
+      // for some reason when pressing space on the checkbox, the card click
+      // event also fires even with stopPropagation, but
+      // that's implicit behavior I would rather not have
+      event.preventDefault();
+      this.checkCard(card);
+    }
   }
 }

@@ -102,7 +102,7 @@ export class BingoLocalStorage {
   private static cellsToCheckedDateSorted(cells: BoardCell[]) {
     return [...cells].sort(
       (a, b) =>
-        (b.CheckedDateUTC?.getTime() ?? 0) - (a.CheckedDateUTC?.getTime() ?? 0)
+        (a.CheckedDateUTC?.getTime() ?? 0) - (b.CheckedDateUTC?.getTime() ?? 0)
     );
   }
 }

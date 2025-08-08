@@ -21,7 +21,7 @@ import { BoardDetailsForm } from '../../features/board-details-form/board-detail
 import { boardForm } from '../../features/board-details-form/form';
 import { MatDivider } from '@angular/material/divider';
 import { BoardListView } from '../../features/board-list-view/board-list-view';
-import { NgTemplateOutlet } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
@@ -45,6 +45,7 @@ import { Subscription, tap } from 'rxjs';
     MatButtonToggleModule,
     DeadlineRewardForm,
     DeadlineHourglass,
+    DatePipe
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',

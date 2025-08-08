@@ -1,4 +1,7 @@
-@let minDate = minDate$ | async; @if (deadlineInputsViewMode() === 'none'){
+@let minDate = minDate$ | async;
+
+<!-- prettier-ignore -->
+@if (deadlineInputsDisplay() === 'none'){
 <div class="horizontal">
   @if (boardForm.getRawValue().CompletionDeadlineUtc) {
   <span
@@ -25,10 +28,9 @@
     [matTooltip]="'Add deadline'">
     <mat-icon>add</mat-icon>
   </button>
-
   }
 </div>
-} @if (deadlineInputsViewMode() !== 'none') {
+} @else {
 <mat-form-field [subscriptSizing]="'dynamic'">
   <mat-label>Deadline date</mat-label>
   <input
@@ -69,7 +71,10 @@
   (click)="commitDeadline()">
   Set deadline
 </button>
-} } @if (!canOnlyRemove()) {
+} }
+
+<!-- prettier-ignore -->
+@if (!canOnlyRemove()) {
 <mat-form-field [subscriptSizing]="'dynamic'">
   <mat-label>Completion reward</mat-label>
   <input
@@ -80,7 +85,12 @@
   <mat-hint>{{rewardHint}}</mat-hint>
   }
 </mat-form-field>
-} @let reward = boardForm.getRawValue().CompletionReward; @if (canOnlyRemove() && reward) {
+}
+
+<!-- prettier-ignore -->
+@let reward = boardForm.getRawValue().CompletionReward;
+@if (canOnlyRemove()) {
+@if (reward) {
 <div class="horizontal">
   <span>Completion reward: {{ reward }}</span>
   <button
@@ -91,4 +101,6 @@
     <mat-icon>close_small</mat-icon>
   </button>
 </div>
-}
+} @else {
+<div>No reward set for the board</div>
+} }
