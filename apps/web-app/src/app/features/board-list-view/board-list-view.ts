@@ -15,7 +15,7 @@ import { debounceTime, tap } from 'rxjs';
 import { IntlRelativeTimePipe, IntlDatePipe } from 'angular-ecmascript-intl';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
-import { BoardCalculations } from '../board/board-calculations';
+import { BoardCalculations } from '../calculations/board-calculations';
 
 @Component({
   selector: 'app-board-list-view',
@@ -59,29 +59,21 @@ export class BoardListView implements OnDestroy {
   public readonly cardsDisplayed = computed(() => {
     switch (this.groupBy()) {
       case 'row':
-        return this.cardsWithPlacement();
+        return this.cards();
       case 'col':
         return BoardCalculations.rowArrayToCols<BoardCell>(
-          this.cardsWithPlacement(),
+          this.cards(),
           this.boardSize(),
           this.rowIndexes()
         );
       case 'diagonal':
         return BoardCalculations.rowArrayToDiagonal<BoardCell>(
-          this.cardsWithPlacement(),
+          this.cards(),
           this.boardSize(),
           this.rowIndexes()
         );
     }
   });
-
-  private readonly cardsWithPlacement = computed(() =>
-    this.cards().map((card, idx) => ({
-      Row: Math.floor(idx / this.boardSize()) + 1,
-      Column: (idx % this.boardSize()) + 1,
-      ...card,
-    }))
-  );
 
   public readonly groupAriaLabels = computed(() => {
     if (this.groupBy() === 'diagonal') {
@@ -115,7 +107,7 @@ export class BoardListView implements OnDestroy {
     if (!card || !!card.CheckedDateUTC || this.disabled()) return;
 
     card.Selected = !card.Selected;
-    this.cards.set([...this.cardsWithPlacement()]);
+    this.cards.set([...this.cards()]);
   }
 
   public reactToKeypress(event: KeyboardEvent) {

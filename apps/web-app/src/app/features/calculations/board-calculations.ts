@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { BoardCell } from '../board/board';
 
 type Properties = {
   rows: number[][];
@@ -25,6 +26,30 @@ export class BoardCalculations {
     );
     this.fourByFour = BoardCalculations.calcProperties(4, fourByFourIndexes);
     this.fiveByFive = BoardCalculations.calcProperties(5, fiveByFiveIndexes);
+  }
+
+  public static calculateCellBingoState(
+    cells: BoardCell[],
+    calculationService: BoardCalculations
+  ) {
+    const setting = {
+      25: calculationService.fiveByFive,
+      16: calculationService.fourByFour,
+      9: calculationService.threeByThree,
+    }[cells.length] as Properties;
+
+    cells.forEach((c, i) => {
+      c.IsInBingoPattern =
+        c.IsInBingoPattern ||
+        (c.CheckedDateUTC !== null &&
+          c.CheckedDateUTC !== undefined &&
+          (BoardCalculations.cellInBingoPattern(setting.diagonals, cells, i) ||
+            BoardCalculations.cellInBingoPattern(setting.rows, cells, i) ||
+            BoardCalculations.cellInBingoPattern(setting.cols, cells, i)));
+      return c;
+    });
+
+    return cells;
   }
 
   public static getBoardDimensionFromCellCount(cellCount: number) {
@@ -58,7 +83,7 @@ export class BoardCalculations {
   }
 
   /**
-   * Returns the diagonal values from the board in the following order: 
+   * Returns the diagonal values from the board in the following order:
    * 1. top left to bottom right
    * 2. top right to bottom left
    * @param array the array to extract values from
@@ -120,5 +145,17 @@ export class BoardCalculations {
         return acc;
       }, []),
     ] as number[][];
+  }
+
+  private static cellInBingoPattern(
+    combinations: number[][],
+    cards: BoardCell[],
+    cellIdx: number
+  ) {
+    return !!combinations
+      .filter((c) => c.includes(cellIdx))
+      .find((combination) =>
+        combination?.every((x) => cards[x].CheckedDateUTC !== null)
+      );
   }
 }

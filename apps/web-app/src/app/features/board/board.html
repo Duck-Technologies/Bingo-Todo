@@ -3,14 +3,13 @@
   @for (card of cards().slice(row * boardSize(), (row * boardSize() + boardSize())); track idx; let idx = $index) {
   @if (previewMode() === "indicator") {
   <mat-card
-    [class.bg-green]="card.IsBingo"
-    [class.bg-yellow]="!!card.CheckedDateUTC"
+    [class.bg-green]="card.IsInBingoPattern"
+    [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
     [class.bg-blue]="card.Selected"></mat-card>
   } @else { @let actualIdx = idx + (boardSize() * row);
   <mat-card
-    [attr.aria-disabled]="!!card.CheckedDateUTC || previewMode()"
-    [class.bg-green]="card.IsBingo"
-    [class.bg-yellow]="!!card.CheckedDateUTC"
+    [class.bg-green]="card.IsInBingoPattern"
+    [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
     [class.bg-blue]="card.Selected"
     (click)="checkCard(card)">
     <div
@@ -24,7 +23,8 @@
         name="task"
         [attr.aria-labelledby]="'cell_' + actualIdx"
         [disabled]="!!card.CheckedDateUTC"
-        [checked]="card.CheckedDateUTC || card.Selected" />
+        [checked]="card.CheckedDateUTC || card.Selected"
+        (keyup.space)="handleCheckboxKeydown($any($event), card);"/>
       }
       <span id="cell_{{actualIdx}}">{{ card.Name }}</span>
     </div>

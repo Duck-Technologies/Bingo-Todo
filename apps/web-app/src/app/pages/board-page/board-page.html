@@ -4,9 +4,6 @@
     visible_local: "Local board, not visible or available for others and on other devices.",
     visible_unlisted: "Unlisted board, only visible to you and whoever you share the link with.",
     visible_public: "Public board, visible to those who visit your profile.",
-    deadline_going: "The board has a deadline of",
-    deadline_expired: "The board wasn't completed by",
-    deadline_none: "The board doesn't have a deadline.",
     grid_mode_grid: "Switch to list view",
     grid_mode_list: "Switch to grid view",
     game_mode_bingo: "Bingo game mode with the goal of reaching a vertical, horizontal or diagonal pattern from marked tasks.",
@@ -15,7 +12,6 @@
 };
 @let switchTo = gridMode() === 'grid' ? 'list' : 'grid';
 @let buttonLabel = 'Switch to ' + switchTo + ' view';
-@let deadline = "none";
 @let totalCells = board().Cells.length;
 
 <div>
@@ -43,7 +39,7 @@
     <button mat-button (click)="cancelChanges()">
       Cancel<span class="cdk-visually-hidden"> changes</span>
     </button>
-    <button mat-flat-button (click)="saveChanges()">
+    <button mat-flat-button (click)="saveChanges()" [disabled]="boardForm.controls.Name.disabled">
       {{doDelete() ? 'Delete' : 'Save'}}
       @if(doDelete()) {
       <span class="cdk-visually-hidden"> board</span>
@@ -57,22 +53,33 @@
 <section class="edit" aria-label="Game actions and game edit form">
   <app-board-details-form
     [isLoggedIn]="board().Visibility !== 'local'"
+    [gameFinished]="allChecked()"
     [board]="board()"
     [createMode]="false"></app-board-details-form>
+
+  <app-deadline-reward-form
+    [createMode]="false"
+    [canOnlyRemove]="allChecked() || (
+      !!board().FirstBingoReachedDateUtc 
+      && boardForm.getRawValue().GameMode === 'traditional'
+  )">
+  </app-deadline-reward-form>
 
   <mat-divider></mat-divider>
 
   <h4>Actions</h4>
-  <mat-checkbox [(ngModel)]="doDelete">Delete board</mat-checkbox>
+  <mat-checkbox [(ngModel)]="doDelete" [disabled]="boardForm.controls.Name.disabled"
+    >Delete board</mat-checkbox
+  >
   <button matButton disabled>Create copy</button>
 
   <mat-divider></mat-divider>
 </section>
 } @if (goalReached()) {
 <div>
-  @if (board().GameMode === 'traditional') { BINGO!
+  @if (board().GameMode === 'traditional') { {{endStateMessage()}}
   <button matButton (click)="continueAfterBingo()">Continue in TODO mode</button>
-  } @else { You did it all! }
+  } @else { {{endStateMessage()}} }
 </div>
 {{ isLocal() ? "This is a local board. You have to delete it to start a new one." : "" }}
 }
@@ -127,25 +134,15 @@
           <span class="cdk-visually-hidden">{{ tooltips["visible_public"] }}</span>
         }
       }
-      
-      @switch ($any(deadline)) { 
-          @case ('pending') {
-            <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['deadline_going']"
-              >hourglass_top</mat-icon>
-            <span class="cdk-visually-hidden">{{ tooltips["deadline_going"] }}</span>
-            } @case ('expired') {
-            <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['deadline_expired']"
-              >hourglass_bottom</mat-icon>
-            <span class="cdk-visually-hidden">{{ tooltips["deadline_expired"] }}</span>
-            } @case ('none') {
-            <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['deadline_none']"
-              >hourglass_disabled</mat-icon>
-            <span class="cdk-visually-hidden">{{ tooltips["deadline_none"] }}</span>
-          }
-      }
+
+      <app-deadline-hourglass
+        [completionDate]="board().CompletionDateUtc"
+        [deadlineDate]="board().CompletionDeadlineUtc"
+      ></app-deadline-hourglass>
 
       @if (goalReached()) {
-        <mat-icon fontSet="material-symbols-outlined" class="trophy" matTooltip="Goal reached"
+        <mat-icon fontSet="material-symbols-outlined" class="trophy"
+          [matTooltip]="'Goal reached on ' + (board().CompletionDateUtc | date : 'MMM dd, yyyy')"
           >trophy</mat-icon>
       } @else { 
         <svg

@@ -35,4 +35,11 @@ describe('BoardPage', () => {
   // check computed values and methods
   // local visibility should store to localstorage, otherwise check that BingoApi is called
   // check buttons in template, especially when switching to edit mode or selecting a cell
+  // revertDeadlineAndRewardIfModifiedWithoutGameModeChange
+  // generateEndStateMessage
+  // unselect
+  // saveSelected
+  // delete
+  // update
+  // continueAfterBingo
 });

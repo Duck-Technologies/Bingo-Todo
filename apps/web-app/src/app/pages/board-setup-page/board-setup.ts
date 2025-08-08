@@ -22,23 +22,27 @@ import {
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
-import { Board, BoardCell } from '../../features/board/board';
+import { Board, BoardCell, BoardCellDto } from '../../features/board/board';
 import { startWith, map } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 import { Router } from '@angular/router';
 import { BingoApi } from '../../features/persistence/bingo-api';
-import { BoardDetailsForm } from "../../features/board-details-form/board-details-form";
-import { boardForm } from '../../features/board-details-form/form';
+import { BoardDetailsForm } from '../../features/board-details-form/board-details-form';
+import {
+  boardForm,
+  NotOnlyWhiteSpacePattern,
+} from '../../features/board-details-form/form';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { BoardListView } from "../../features/board-list-view/board-list-view";
+import { BoardListView } from '../../features/board-list-view/board-list-view';
 import { MatDivider } from '@angular/material/divider';
+import { BoardCalculations } from '../../features/calculations/board-calculations';
+import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
   Selected: FormControl<boolean>;
-  IsBingo: FormControl<boolean>;
 }>;
 
 @Component({
@@ -58,8 +62,9 @@ type CellForm = FormGroup<{
     MatIcon,
     MatTooltip,
     BoardListView,
-    MatDivider
-],
+    MatDivider,
+    DeadlineRewardForm,
+  ],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -69,27 +74,28 @@ type CellForm = FormGroup<{
   templateUrl: './board-setup.html',
   styleUrl: './board-setup.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    role: 'main',
+  },
 })
 export class BoardSetup implements OnInit {
   private readonly router = inject(Router);
   private readonly bingoApi = inject(BingoApi);
 
   public readonly baseBoard = { ...BingoLocalStorage.DefaultBoard, Cells: [] }; // once copying boards is implemented, this should be dynamic
+  public readonly boardForm = boardForm;
   public readonly Math = Math;
   public readonly defaultBoardSize = 9;
-  public boardCols: 3 | 4 | 5 = 3;
+  public boardSize: 3 | 4 | 5 = 3;
   public readonly gridMode = signal<'grid' | 'list'>('grid');
   public inputFocused = false;
   public isLoggedIn = false;
-
-  public boardForm = boardForm;
 
   public readonly cardsFormArray = new FormArray<CellForm>(
     [...Array(this.defaultBoardSize).keys()].map((_) => {
       return new FormGroup({
         Name: new FormControl<string | null>(null, [Validators.required]),
         Selected: new FormControl<boolean>(false, { nonNullable: true }),
-        IsBingo: new FormControl<boolean>(false, { nonNullable: true }),
       });
     })
   );
@@ -98,14 +104,18 @@ export class BoardSetup implements OnInit {
     startWith(this.cardsFormArray.getRawValue()),
     map(
       () =>
-        this.cardsFormArray.getRawValue().map((c) => {
-          c.IsBingo = !!c.Name?.length;
-          return c;
-        }) as BoardCell[]
+        this.cardsFormArray.getRawValue().map((c, idx) => ({
+          IsInBingoPattern: !!c.Name?.length && this.cardsFormArray.at(idx).valid,
+          ...c,
+        })) as BoardCell[]
     )
   );
 
   ngOnInit(): void {
+    this.boardForm.reset();
+    this.boardForm.enable();
+    this.boardForm.patchValue(this.baseBoard);
+
     this.resizeBoard(
       (this.baseBoard.Cells.length as any) || this.defaultBoardSize
     );
@@ -118,14 +128,14 @@ export class BoardSetup implements OnInit {
     if (board.Visibility === 'local') {
       BingoLocalStorage.createBoard({
         ...board,
+        CompletionDateUtc: null,
+        FirstBingoReachedDateUtc: null,
         Cells: this.cardsFormArray.getRawValue().map(
           (c) =>
             ({
               Name: c.Name,
-              CheckedDateUTC: null,
-              Selected: false,
-              IsBingo: false,
-            } as BoardCell)
+              CheckedDateUTC: null
+            } as BoardCellDto) 
         ),
       });
       this.router.navigate(['board/local']);
@@ -149,32 +159,30 @@ export class BoardSetup implements OnInit {
   public prefill() {
     this.cardsFormArray.patchValue(
       this._scramble(
-        movieTitles.map((title) => ({
-          Name: title,
-          CheckedDateUTC: null,
-          Selected: false,
-          IsBingo: false,
-        }))
+        movieTitles.map((title, idx) => (new BoardCell({Name: title}, idx, this.boardSize)))
       )
     );
   }
 
   public resizeBoard(dimension: 9 | 16 | 25) {
-    this.boardCols = ({
-      9: 3,
-      16: 4,
-      25: 5,
-    } as const)[dimension];
+    const boardSize =
+      BoardCalculations.getBoardDimensionFromCellCount(dimension);
+    if (!boardSize) return;
+    this.boardSize = boardSize;
 
-    const cellsBeforeResize = JSON.parse(JSON.stringify(this.cardsFormArray.getRawValue().filter(x => !!x.Name)))
+    const cellsBeforeResize = JSON.parse(
+      JSON.stringify(this.cardsFormArray.getRawValue().filter((x) => !!x.Name))
+    );
 
     this.cardsFormArray.clear();
     [...Array(dimension).keys()].forEach((_, idx) => {
       this.cardsFormArray.push(
         new FormGroup({
-          Name: new FormControl<string | null>(cellsBeforeResize.at(idx)?.Name, [Validators.required]),
+          Name: new FormControl<string | null>(
+            cellsBeforeResize.at(idx)?.Name,
+            [Validators.required, Validators.pattern(NotOnlyWhiteSpacePattern)]
+          ),
           Selected: new FormControl<boolean>(false, { nonNullable: true }),
-          IsBingo: new FormControl<boolean>(false, { nonNullable: true }),
         })
       );
     });
@@ -198,7 +206,14 @@ export class BoardSetup implements OnInit {
     return list
       .map((value) => ({ value, sort: Math.random() }))
       .sort((a, b) => a.sort - b.sort)
-      .map(({ value }) => value);
+      .map(
+        ({ value }, index) =>
+          new BoardCell(
+            value,
+            index,
+            BoardCalculations.getBoardDimensionFromCellCount(list.length) as any
+          )
+      );
   }
 }
 

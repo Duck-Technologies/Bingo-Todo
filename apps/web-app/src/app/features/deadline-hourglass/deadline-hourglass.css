@@ -1,0 +1,21 @@
+:host {
+  display: contents;
+
+  mat-icon {
+    font-family: "Material Symbols Outlined";
+
+    --mat-icon-color: gray;
+
+    &.red {
+      --mat-icon-color: #ac1103;
+    }
+
+    &.green {
+      --mat-icon-color: hsl(from var(--green-primary) h s calc(l + 10));
+    }
+
+    &.yellow {
+      --mat-icon-color: gold;
+    }
+  }
+}
