@@ -28,6 +28,7 @@ describe('DeadlineRewardForm', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(DeadlineRewardForm);
+    fixture.componentRef.setInput('gameMode', 'traditional');
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
   });
@@ -126,14 +127,18 @@ describe('DeadlineRewardForm', () => {
 
     it('the timepicker should not modify the date', async () => {
       await setDateToFuture(datepicker);
-      const fullDate = boardForm.getRawValue().CompletionDeadlineUtc;
+      const fullDate = component
+        .gameModeForm()
+        .getRawValue().CompletionDeadlineUtc;
       await timepicker.setValue('12:10');
       await timepicker.blur();
       expect(await datepicker.getValue()).toEqual(
         fullDate?.toLocaleDateString() as string
       );
 
-      const fullTime = boardForm.getRawValue().CompletionDeadlineUtc;
+      const fullTime = component
+        .gameModeForm()
+        .getRawValue().CompletionDeadlineUtc;
 
       expect(fullTime?.toTimeString().substring(0, 5)).toEqual('12:10');
     });
@@ -147,7 +152,9 @@ describe('DeadlineRewardForm', () => {
 
       await datepicker.setValue('');
       await datepicker.blur();
-      expect(boardForm.getRawValue().CompletionDeadlineUtc).toEqual(null);
+      expect(
+        component.gameModeForm().getRawValue().CompletionDeadlineUtc
+      ).toBeNull();
     });
   });
 
@@ -238,14 +245,18 @@ describe('DeadlineRewardForm', () => {
 
       await removeButton.click();
 
-      expect(boardForm.getRawValue().CompletionDeadlineUtc).toBeNull();
+      expect(
+        component.gameModeForm().getRawValue().CompletionDeadlineUtc
+      ).toBeNull();
     });
 
-    it('if canOnlyRemove true, the user should only be able to remove the deadline', async () => {
-      boardForm.controls.CompletionDeadlineUtc.setValue(
-        calculateDateFromNow(16)
-      );
-      fixture.componentRef.setInput('canOnlyRemove', true);
+    it("if there's a completion date for the game mode, the user should only be able to remove the deadline", async () => {
+      component
+        .gameModeForm()
+        .controls.CompletionDateUtc.setValue(calculateDateFromNow(-1));
+      component
+        .gameModeForm()
+        .controls.CompletionDeadlineUtc.setValue(calculateDateFromNow(16));
       await fixture.whenStable();
 
       const removeButton = await loader.getHarness(
@@ -258,12 +269,17 @@ describe('DeadlineRewardForm', () => {
         MatButtonHarness.with({ text: 'add' })
       );
 
+      expect(fixture.nativeElement.outerHTML).toContain('No deadline');
       expect(await button.isDisabled()).toBeTrue();
     });
 
-    it('if canOnlyRemove true, the user should only be able to remove the reward', async () => {
-      boardForm.controls.CompletionReward.setValue('a day at the zoo');
-      fixture.componentRef.setInput('canOnlyRemove', true);
+    it("if there's a completion date for the game mode, the user should only be able to remove the reward", async () => {
+      component
+        .gameModeForm()
+        .controls.CompletionDateUtc.setValue(calculateDateFromNow(-1));
+      component
+        .gameModeForm()
+        .controls.CompletionReward.setValue('a day at the zoo');
       await fixture.whenStable();
 
       const removeButton = await loader.getHarness(
@@ -273,7 +289,9 @@ describe('DeadlineRewardForm', () => {
       expect(fixture.nativeElement.outerHTML).toContain('Completion reward');
       await removeButton.click();
 
-      expect(boardForm.getRawValue().CompletionReward).toBeNull();
+      expect(
+        component.gameModeForm().getRawValue().CompletionDeadlineUtc
+      ).toBeNull();
       expect(fixture.nativeElement.outerHTML).not.toContain(
         'Completion reward'
       );
@@ -282,6 +300,8 @@ describe('DeadlineRewardForm', () => {
           MatInputHarness.with({ placeholder: "You've earned ..." })
         )
       ).toBeNull();
+
+      expect(fixture.nativeElement.outerHTML).toContain('No reward');
     });
   });
 });

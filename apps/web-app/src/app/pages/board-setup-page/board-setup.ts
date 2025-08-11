@@ -22,7 +22,12 @@ import {
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
-import { Board, BoardCell, BoardCellDto } from '../../features/board/board';
+import {
+  Board,
+  BoardCell,
+  BoardCellDto,
+  BoardInfo,
+} from '../../features/board/board';
 import { startWith, map } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
@@ -82,7 +87,7 @@ export class BoardSetup implements OnInit {
   private readonly router = inject(Router);
   private readonly bingoApi = inject(BingoApi);
 
-  public readonly baseBoard = { ...BingoLocalStorage.DefaultBoard, Cells: [] }; // once copying boards is implemented, this should be dynamic
+  public readonly baseBoard = new BoardInfo(BingoLocalStorage.DefaultBoard); // once copying boards is implemented, this should be dynamic
   public readonly boardForm = boardForm;
   public readonly Math = Math;
   public readonly defaultBoardSize = 9;
@@ -105,7 +110,8 @@ export class BoardSetup implements OnInit {
     map(
       () =>
         this.cardsFormArray.getRawValue().map((c, idx) => ({
-          IsInBingoPattern: !!c.Name?.length && this.cardsFormArray.at(idx).valid,
+          IsInBingoPattern:
+            !!c.Name?.length && this.cardsFormArray.at(idx).valid,
           ...c,
         })) as BoardCell[]
     )
@@ -123,21 +129,21 @@ export class BoardSetup implements OnInit {
   }
 
   public createBoard() {
-    const board = this.boardForm.getRawValue();
+    const formValue = this.boardForm.getRawValue();
+
+    const board = new BoardInfo<BoardCellDto>({
+      ...formValue,
+      Cells: this.cardsFormArray.getRawValue().map(
+        (c) =>
+          ({
+            Name: c.Name,
+            CheckedDateUTC: null,
+          } as BoardCellDto)
+      ),
+    });
 
     if (board.Visibility === 'local') {
-      BingoLocalStorage.createBoard({
-        ...board,
-        CompletionDateUtc: null,
-        FirstBingoReachedDateUtc: null,
-        Cells: this.cardsFormArray.getRawValue().map(
-          (c) =>
-            ({
-              Name: c.Name,
-              CheckedDateUTC: null
-            } as BoardCellDto) 
-        ),
-      });
+      BingoLocalStorage.createBoard(board);
       this.router.navigate(['board/local']);
     } else {
       // this.bingoApi.createBoard(board).subscribe();
@@ -159,7 +165,9 @@ export class BoardSetup implements OnInit {
   public prefill() {
     this.cardsFormArray.patchValue(
       this._scramble(
-        movieTitles.map((title, idx) => (new BoardCell({Name: title}, idx, this.boardSize)))
+        movieTitles.map(
+          (title, idx) => new BoardCell({ Name: title }, idx, this.boardSize)
+        )
       )
     );
   }

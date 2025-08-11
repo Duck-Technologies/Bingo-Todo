@@ -4,16 +4,22 @@ import { BoardCalculations } from '../calculations/board-calculations';
 
 export class BingoLocalStorage {
   private static readonly LocalStorageBoardKey = 'LocalBoardInfo';
-  public static readonly DefaultBoard: BoardInfo = {
+  public static readonly DefaultBoard = new BoardInfo({
     Name: null,
     GameMode: 'todo',
-    CompletionDateUtc: null,
-    CompletionDeadlineUtc: null,
-    CompletionReward: null,
     Cells: [],
-    FirstBingoReachedDateUtc: null,
+    TraditionalGame: {
+      CompletionDateUtc: null,
+      CompletionReward: null,
+      CompletionDeadlineUtc: null,
+    },
+    TodoGame: {
+      CompletionDateUtc: null,
+      CompletionReward: null,
+      CompletionDeadlineUtc: null,
+    },
     Visibility: 'local',
-  };
+  });
 
   public static createBoard(
     board: BoardInfo<BoardCellDto>
@@ -38,25 +44,27 @@ export class BingoLocalStorage {
   ): Observable<BoardInfo> {
     const board = localStorage.getItem(BingoLocalStorage.LocalStorageBoardKey);
     if (!board) {
-      return of({ ...BingoLocalStorage.DefaultBoard, Cells: [] });
+      return of(new BoardInfo(BingoLocalStorage.DefaultBoard));
     } else {
       const parsedBoard = JSON.parse(board) as BoardInfo;
-      return of({
-        ...parsedBoard,
-        Cells: BoardCalculations.calculateCellBingoState(
-          parsedBoard.Cells.map(
-            (c, idx) =>
-              new BoardCell(
-                c,
-                idx,
-                BoardCalculations.getBoardDimensionFromCellCount(
-                  parsedBoard.Cells.length
-                ) as number
-              )
+      return of(
+        new BoardInfo({
+          ...parsedBoard,
+          Cells: BoardCalculations.calculateCellBingoState(
+            parsedBoard.Cells.map(
+              (c, idx) =>
+                new BoardCell(
+                  c,
+                  idx,
+                  BoardCalculations.getBoardDimensionFromCellCount(
+                    parsedBoard.Cells.length
+                  ) as number
+                )
+            ),
+            calculationService
           ),
-          calculationService
-        ),
-      });
+        })
+      );
     }
   }
 
@@ -82,21 +90,28 @@ export class BingoLocalStorage {
   private static calculateCompletionAndFirstBingoDates(board: BoardInfo) {
     const sortedCells = BingoLocalStorage.cellsToCheckedDateSorted(board.Cells);
 
-    board.FirstBingoReachedDateUtc =
-      board.FirstBingoReachedDateUtc ||
-      sortedCells
-        .filter((b) => b.IsInBingoPattern)
-        .at(
-          BoardCalculations.getBoardDimensionFromCellCount(
-            board.Cells.length
-          ) as number - 1 
-        )?.CheckedDateUTC ||
-      null;
+    if (
+      board.GameMode === 'traditional' &&
+      !board.TraditionalGame.CompletionDateUtc
+    ) {
+      board.TraditionalGame.CompletionDateUtc =
+        sortedCells
+          .filter((b) => b.IsInBingoPattern)
+          .at(
+            (BoardCalculations.getBoardDimensionFromCellCount(
+              board.Cells.length
+            ) as number) - 1
+          )?.CheckedDateUTC || null;
+    }
 
-    board.CompletionDateUtc =
-      board.GameMode === 'traditional'
-        ? board.FirstBingoReachedDateUtc
-        : sortedCells.at(board.Cells.length - 1)?.CheckedDateUTC || null;
+    if (
+      board.GameMode === 'todo' &&
+      !board.TodoGame.CompletionDateUtc &&
+      !board.Cells.find((c) => !c.CheckedDateUTC)
+    ) {
+      board.TodoGame.CompletionDateUtc =
+        sortedCells.at(board.Cells.length - 1)?.CheckedDateUTC || null;
+    }
   }
 
   private static cellsToCheckedDateSorted(cells: BoardCell[]) {

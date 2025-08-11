@@ -57,13 +57,11 @@
     [board]="board()"
     [createMode]="false"></app-board-details-form>
 
-  <app-deadline-reward-form
-    [createMode]="false"
-    [canOnlyRemove]="allChecked() || (
-      !!board().FirstBingoReachedDateUtc 
-      && boardForm.getRawValue().GameMode === 'traditional'
-  )">
+  @if (boardForm.getRawValue().GameMode === 'todo' ? !board().TodoGame.CompletionDateUtc :
+  !board().TraditionalGame.CompletionDateUtc) {
+  <app-deadline-reward-form [createMode]="false" [gameMode]="boardForm.getRawValue().GameMode">
   </app-deadline-reward-form>
+  }
 
   <mat-divider></mat-divider>
 
@@ -72,6 +70,20 @@
     >Delete board</mat-checkbox
   >
   <button matButton disabled>Create copy</button>
+
+  @if(!!board().TraditionalGame.CompletionDateUtc && (!!board().TraditionalGame.CompletionReward ||
+  !!board().TraditionalGame.CompletionDeadlineUtc)) {
+  <h5>Remove reward/deadline for completed traditional game</h5>
+  <app-deadline-reward-form [createMode]="false" [gameMode]="'traditional'">
+  </app-deadline-reward-form>
+  }
+
+  <!-- prettier-ignore -->
+  @if(!!board().TodoGame.CompletionDateUtc && (!!board().TodoGame.CompletionReward ||
+  !!board().TodoGame.CompletionDeadlineUtc)) {
+  <h5>Remove reward/deadline for completed todo game</h5>
+  <app-deadline-reward-form [createMode]="false" [gameMode]="'todo'"> </app-deadline-reward-form>
+  }
 
   <mat-divider></mat-divider>
 </section>

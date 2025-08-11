@@ -37,16 +37,80 @@ export class BoardCell {
   }
 }
 
-export type BoardInfo<T = BoardCell> = {
+export class BoardInfo<T = BoardCell> {
   Id?: string;
-  Name: string | null;
-  GameMode: 'traditional' | 'todo';
+  Name: string | null = null;
+  GameMode: 'traditional' | 'todo' = 'traditional';
+  Cells: T[] = [];
+  Visibility: 'local' | 'unlisted' | 'public' = 'local';
+  TraditionalGame: GameModeSettings = {
+    CompletionDateUtc: null,
+    CompletionReward: null,
+    CompletionDeadlineUtc: null,
+  };
+  TodoGame: GameModeSettings = {
+    CompletionDateUtc: null,
+    CompletionReward: null,
+    CompletionDeadlineUtc: null,
+  };
+
+  private getGameModeSetting() {
+    return this.GameMode === 'traditional'
+      ? this.TraditionalGame
+      : this.TodoGame;
+  }
+
+  set CompletionDateUtc(x) {}
+  get CompletionDateUtc() {
+    return this.getGameModeSetting().CompletionDateUtc;
+  }
+
+  set CompletionReward(x) {}
+  get CompletionReward() {
+    return this.getGameModeSetting().CompletionReward;
+  }
+
+  set CompletionDeadlineUtc(x) {}
+  get CompletionDeadlineUtc() {
+    return this.getGameModeSetting().CompletionDeadlineUtc;
+  }
+
+  constructor(init?: Partial<BoardInfo<T>>) {
+    if (!init) return;
+
+    Object.assign(this, init);
+    this.Cells = Array.isArray(init.Cells) ? this.Cells : [];
+
+    // clear fields that shouldn't be persisted in case the user switched game modes
+    // for example if they switch from traditional to to do mode but never completed the game in traditional mode,
+    // there's no point in keeping the reward and deadline associated to traditional mode
+    // however if they switch to todo and they've completed it in traditional, we leave whatever's passed in alone
+    if (
+      this.GameMode === 'traditional' &&
+      this.TodoGame.CompletionDateUtc === null
+    ) {
+      this.TodoGame.CompletionDateUtc =
+        this.TodoGame.CompletionReward =
+        this.TodoGame.CompletionDeadlineUtc =
+          null;
+    }
+
+    if (
+      this.GameMode === 'todo' &&
+      this.TraditionalGame.CompletionDateUtc === null
+    ) {
+      this.TraditionalGame.CompletionDateUtc =
+        this.TraditionalGame.CompletionReward =
+        this.TraditionalGame.CompletionDeadlineUtc =
+          null;
+    }
+  }
+}
+
+export type GameModeSettings = {
   CompletionDateUtc: Date | null;
-  FirstBingoReachedDateUtc: Date | null;
-  CompletionDeadlineUtc: Date | null;
   CompletionReward: string | null;
-  Cells: T[];
-  Visibility: 'local' | 'unlisted' | 'public';
+  CompletionDeadlineUtc: Date | null;
 };
 
 @Component({
