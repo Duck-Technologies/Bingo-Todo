@@ -65,7 +65,9 @@
 
   <mat-step [stepControl]="boardForm" label="Deadline and rewards">
     <div class="container">
-      <app-deadline-reward-form [createMode]="true"></app-deadline-reward-form>
+      <app-deadline-reward-form
+        [createMode]="true"
+        [gameMode]="boardForm.getRawValue().GameMode"></app-deadline-reward-form>
 
       <div class="action-footer">
         <button matButton matStepperPrevious>Back</button>

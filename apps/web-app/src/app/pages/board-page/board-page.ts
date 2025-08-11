@@ -5,7 +5,6 @@ import {
   inject,
   linkedSignal,
   model,
-  OnDestroy,
   signal,
 } from '@angular/core';
 import { Board, BoardInfo } from '../../features/board/board';
@@ -26,7 +25,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-hourglass';
-import { Subscription, tap } from 'rxjs';
 
 @Component({
   selector: 'app-board-page',
@@ -45,7 +43,7 @@ import { Subscription, tap } from 'rxjs';
     MatButtonToggleModule,
     DeadlineRewardForm,
     DeadlineHourglass,
-    DatePipe
+    DatePipe,
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
@@ -54,7 +52,7 @@ import { Subscription, tap } from 'rxjs';
     role: 'main',
   },
 })
-export class BoardPage implements OnDestroy {
+export class BoardPage {
   public readonly board = model.required<BoardInfo>();
   private readonly calculationService = inject(BoardCalculations);
   private readonly bingoApi = inject(BingoApi);
@@ -82,13 +80,14 @@ export class BoardPage implements OnDestroy {
   );
 
   public readonly goalReached = computed(
-    () =>
-      this.allChecked() ||
-      (this.board().GameMode === 'traditional' && !!this.bingoReached())
+    () => !!this.board().CompletionDateUtc
   );
 
   public readonly boardStats = computed(() => ({
-    bingoCells: this.cells().reduce((acc, curr) => (acc += +curr.IsInBingoPattern), 0),
+    bingoCells: this.cells().reduce(
+      (acc, curr) => (acc += +curr.IsInBingoPattern),
+      0
+    ),
     checkedCells: this.cells().reduce(
       (acc, curr) => (acc += +(curr.CheckedDateUTC != null)),
       0
@@ -106,21 +105,6 @@ export class BoardPage implements OnDestroy {
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
   public readonly boardForm = boardForm;
   public readonly doDelete = model(false);
-  private revertSubscription: Subscription | undefined;
-
-  constructor() {
-    this.revertSubscription = this.boardForm.controls.GameMode.valueChanges
-      .pipe(
-        tap((gameMode) =>
-          this.revertDeadlineAndRewardIfModifiedWithoutGameModeChange(gameMode)
-        )
-      )
-      .subscribe();
-  }
-
-  ngOnDestroy() {
-    this.revertSubscription?.unsubscribe();
-  }
 
   public cancelChanges() {
     this.editMode.set(false);
@@ -128,10 +112,10 @@ export class BoardPage implements OnDestroy {
   }
 
   public continueAfterBingo() {
-    const updatedBoard = {
+    const updatedBoard = new BoardInfo({
       ...this.board(),
       GameMode: 'todo' as const,
-    };
+    });
 
     if (this.isLocal()) {
       this.board.set(updatedBoard);
@@ -149,12 +133,12 @@ export class BoardPage implements OnDestroy {
   }
 
   public saveChanges() {
-    const updatedBoard = {
+    // see the constructor of BoardInfo about setting fields to null in case of game mode switch
+    // not allowing to change certain fields is the responsibility of the components displaying the inputs
+    const updatedBoard = new BoardInfo({
       ...this.boardForm.getRawValue(),
       Cells: this.cells(),
-      CompletionDateUtc: null,
-      FirstBingoReachedDateUtc: null,
-    };
+    });
 
     if (this.isLocal()) {
       if (this.doDelete()) {
@@ -175,7 +159,7 @@ export class BoardPage implements OnDestroy {
   }
 
   public saveSelected() {
-    const updatedBoard = {
+    const updatedBoard = new BoardInfo({
       ...this.board(),
       Cells: this.cells().map((c) => {
         if (c.Selected) {
@@ -185,7 +169,7 @@ export class BoardPage implements OnDestroy {
 
         return c;
       }),
-    };
+    });
 
     if (this.isLocal()) {
       BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
@@ -228,41 +212,5 @@ export class BoardPage implements OnDestroy {
     }
 
     return message;
-  }
-
-  /**
-   * in edit mode if the game mode is finished we prevent the user from
-   * changing the deadline or the reward (they can remove them though)
-   * however they can switch game modes until not all cells are checked
-   * then switch back to a finished game mode after modifying the reward and deadline
-   * in this case we silently patch back the original values
-   */
-  private revertDeadlineAndRewardIfModifiedWithoutGameModeChange(
-    gameMode: 'todo' | 'traditional'
-  ) {
-    const formValue = this.boardForm.getRawValue();
-
-    if (!(this.goalReached() && gameMode === this.board().GameMode)) {
-      return;
-    }
-
-    if (
-      !!formValue.CompletionDeadlineUtc &&
-      formValue.CompletionDeadlineUtc.toString() !==
-        this.board().CompletionDeadlineUtc?.toString()
-    ) {
-      this.boardForm.controls.CompletionDeadlineUtc.setValue(
-        this.board().CompletionDeadlineUtc
-      );
-    }
-
-    if (
-      !!formValue.CompletionReward &&
-      formValue.CompletionReward !== this.board().CompletionReward
-    ) {
-      this.boardForm.controls.CompletionReward.setValue(
-        this.board().CompletionReward
-      );
-    }
   }
 }

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   input,
   OnDestroy,
   OnInit,
@@ -14,6 +15,9 @@ import {
   tap,
   Subscription,
   Observable,
+  of,
+  switchMap,
+  filter,
 } from 'rxjs';
 import {
   boardForm,
@@ -31,6 +35,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { calculateDateFromNow } from '../calculations/date-calculations';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { DATE_FORMATS } from '../../app.config';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-deadline-reward-form',
@@ -48,9 +53,7 @@ import { DATE_FORMATS } from '../../app.config';
     MatButton,
     MatTooltip,
   ],
-  providers: [
-    provideNativeDateAdapter(DATE_FORMATS),
-  ],
+  providers: [provideNativeDateAdapter(DATE_FORMATS)],
   templateUrl: './deadline-reward-form.html',
   styleUrl: './deadline-reward-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,27 +63,77 @@ import { DATE_FORMATS } from '../../app.config';
   },
 })
 export class DeadlineRewardForm implements OnInit, OnDestroy {
-  // in edit mode if the game mode is finished we prevent the user from
-  // changing the deadline or the reward (they can remove them though)
-  public readonly canOnlyRemove = input<boolean>(false);
   public readonly createMode = input.required<boolean>();
+  public readonly gameMode = input.required<'todo' | 'traditional'>();
 
   private static readonly minDateMinutesFromNow = 15;
 
-  public readonly boardForm = boardForm;
-  public readonly deadlineInputsDisplay = signal<'none' | 'display'>('none');
-  public readonly completionRewardHint$ =
-    this.boardForm.controls.CompletionReward.valueChanges.pipe(
+  private readonly boardForm = boardForm;
+
+  public readonly canOnlyRemove$ = computed(() =>
+    this.createMode()
+      ? of(false)
+      : this.gameModeForm().controls.CompletionDateUtc.valueChanges.pipe(
+          startWith(this.gameModeForm().getRawValue().CompletionDateUtc),
+          map((d) => !!d)
+        )
+  );
+
+  public readonly completionRewardHint$ = computed(() =>
+    this.gameModeForm().controls.CompletionReward.valueChanges.pipe(
       map((reward) =>
         reward?.length && reward?.match(NotOnlyWhiteSpacePattern)?.length
           ? `You've earned ${reward}`
           : null
       )
-    );
+    )
+  );
+
+  public readonly deadlineInputsDisplay = signal<'none' | 'display'>('none');
+
+  public readonly gameModeForm = computed(() =>
+    this.gameMode() === 'traditional'
+      ? this.boardForm.controls.TraditionalGame
+      : this.boardForm.controls.TodoGame
+  );
+
+  private readonly gameModeForm$ = toObservable(this.gameModeForm);
+
+  // when the user sets deadline or reward, also patch the other
+  // game mode's values' in case they switch to that
+  // in edit mode only patch if the game wasn't completed yet
+  private readonly gameModeChangesSubscription = this.gameModeForm$
+    .pipe(
+      filter(
+        (form) =>
+          !!form &&
+          // as long as the completion date can't change while this component is rendered
+          // this is fine. If it can change, this subscription should subscribe to their
+          // valuechanges
+          !this.boardForm.getRawValue().TodoGame.CompletionDateUtc &&
+          !this.boardForm.getRawValue().TraditionalGame.CompletionDateUtc
+      ),
+      switchMap((form) => {
+        return form.valueChanges.pipe(
+          startWith(form.getRawValue()),
+          map((value) => ({
+            CompletionDeadlineUtc: value.CompletionDeadlineUtc,
+            CompletionReward: value.CompletionReward,
+          })),
+          tap((value) => {
+            (this.gameMode() === 'traditional'
+              ? this.boardForm.controls.TodoGame
+              : this.boardForm.controls.TraditionalGame
+            ).patchValue(value);
+          })
+        );
+      })
+    )
+    .subscribe();
 
   // min date's time if today, else no min time
-  public readonly minTime$ =
-    boardForm.controls.CompletionDeadlineUtc.valueChanges.pipe(
+  public readonly minTime$ = computed(() =>
+    this.gameModeForm().controls.CompletionDeadlineUtc.valueChanges.pipe(
       map((deadline) => {
         if (deadline) {
           deadline = new Date(deadline);
@@ -92,7 +145,8 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
 
         return null;
       })
-    );
+    )
+  );
 
   public minDate$: Observable<Date> | undefined;
   private minDateSubscription: Subscription | undefined;
@@ -105,13 +159,14 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.minDateSubscription?.unsubscribe();
+    this.gameModeChangesSubscription.unsubscribe();
   }
 
   public commitDeadline(cancel: boolean = false) {
     this.minDateSubscription?.unsubscribe();
 
     if (cancel) {
-      this.boardForm.controls.CompletionDeadlineUtc.setValue(null);
+      this.gameModeForm().controls.CompletionDeadlineUtc.setValue(null);
     }
 
     this.deadlineInputsDisplay.set('none');
@@ -121,7 +176,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
   public showDeadlineInputs() {
     if (!this.createMode()) {
       this.boardForm.disable();
-      this.boardForm.controls.CompletionDeadlineUtc.enable();
+      this.gameModeForm().controls.CompletionDeadlineUtc.enable();
     }
 
     this.minDate$ = interval(5 * 60000).pipe(
@@ -131,7 +186,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
 
     this.minDateSubscription = combineLatest([
       this.minDate$,
-      boardForm.controls.CompletionDeadlineUtc.valueChanges,
+      this.gameModeForm().controls.CompletionDeadlineUtc.valueChanges,
     ])
       .pipe(
         tap(([_, currentDate]) => {
@@ -141,7 +196,9 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
 
             // set the deadline to minDate if it's less than it
             if (date < minDate) {
-              boardForm.controls.CompletionDeadlineUtc.setValue(minDate);
+              this.gameModeForm().controls.CompletionDeadlineUtc.setValue(
+                minDate
+              );
             }
           }
         })
@@ -157,17 +214,17 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
     }
 
     if (date) {
-      this.boardForm.controls.CompletionDeadlineUtc.setValue(date);
+      this.gameModeForm().controls.CompletionDeadlineUtc.setValue(date);
       return;
     }
 
     // if the user erased the time, fall back to midnight of the selected date
-    let currentDate = this.boardForm.getRawValue().CompletionDeadlineUtc;
+    let currentDate = this.gameModeForm().getRawValue().CompletionDeadlineUtc;
 
     if (!!currentDate) {
       currentDate = new Date(currentDate);
       currentDate.setHours(0, 0, 0, 0);
-      this.boardForm.controls.CompletionDeadlineUtc.setValue(currentDate);
+      this.gameModeForm().controls.CompletionDeadlineUtc.setValue(currentDate);
     }
   }
 

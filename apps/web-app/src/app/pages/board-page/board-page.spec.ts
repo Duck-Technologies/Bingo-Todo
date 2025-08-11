@@ -9,7 +9,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { By } from '@angular/platform-browser';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
-import { BoardCell } from '../../features/board/board';
+import { BoardCell, BoardInfo } from '../../features/board/board';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
@@ -34,7 +34,7 @@ describe('BoardPage', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
 
-    const board = BingoLocalStorage.DefaultBoard;
+    const board = new BoardInfo<BoardCell>(BingoLocalStorage.DefaultBoard);
     board.Cells = BoardCalculations.getRowIndexes(9).map(
       (i) => new BoardCell({ Name: i.toString() }, i, 3)
     );

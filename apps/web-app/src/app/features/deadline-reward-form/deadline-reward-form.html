@@ -1,28 +1,31 @@
 @let minDate = minDate$ | async;
+@let canOnlyRemove = canOnlyRemove$() | async;
 
 <!-- prettier-ignore -->
 @if (deadlineInputsDisplay() === 'none'){
 <div class="horizontal">
-  @if (boardForm.getRawValue().CompletionDeadlineUtc) {
+  @if (!!gameModeForm().getRawValue().CompletionDeadlineUtc) {
   <span
     >Deadline:
     <span
       class="gray"
-      >{{boardForm.getRawValue().CompletionDeadlineUtc | date : 'MMM dd, yyyy HH:mm'}}</span
+      >{{gameModeForm().getRawValue().CompletionDeadlineUtc | date : 'MMM dd, yyyy HH:mm'}}</span
     >
   </span>
+
+  @let tooltip = 'Remove deadline (' + (gameMode() === 'todo' ? 'To-do' : 'Traditional') + ' game mode)';
   <button
     matIconButton
-    [matTooltip]="'Remove deadline'"
-    (click)="boardForm.controls.CompletionDeadlineUtc.setValue(null)"
-    aria-label="Remove deadline">
+    [matTooltip]="tooltip"
+    (click)="gameModeForm().controls.CompletionDeadlineUtc.setValue(null)"
+    [attr.aria-label]="tooltip">
     <mat-icon>close_small</mat-icon>
   </button>
   } @else {
-  <span>No deadline</span>
+  <span>No deadline set</span>
   <button
     matIconButton
-    [disabled]="canOnlyRemove()"
+    [disabled]="canOnlyRemove"
     (click)="showDeadlineInputs()"
     aria-label="Add deadline"
     [matTooltip]="'Add deadline'">
@@ -37,7 +40,7 @@
     matInput
     [min]="minDate"
     [matDatepicker]="datepicker"
-    [formControl]="boardForm.controls.CompletionDeadlineUtc" />
+    [formControl]="gameModeForm().controls.CompletionDeadlineUtc" />
   <mat-datepicker #datepicker />
   <mat-datepicker-toggle [for]="datepicker" matSuffix />
 </mat-form-field>
@@ -46,12 +49,12 @@
   <mat-label>Deadline time</mat-label>
   <input
     matInput
-    [disabled]="!boardForm.getRawValue().CompletionDeadlineUtc"
+    [disabled]="!gameModeForm().getRawValue().CompletionDeadlineUtc"
     [matTimepicker]="timepicker"
     name="deadlinepicker"
     #timepickerInput="ngModel"
-    [matTimepickerMin]="minTime$ | async"
-    [ngModel]="boardForm.getRawValue().CompletionDeadlineUtc"
+    [matTimepickerMin]="minTime$() | async"
+    [ngModel]="gameModeForm().getRawValue().CompletionDeadlineUtc"
     (ngModelChange)="setTime($event);" />
   <mat-timepicker #timepicker />
   <mat-timepicker-toggle [for]="timepicker" matSuffix />
@@ -67,40 +70,41 @@
 <button matButton (click)="commitDeadline(true)">Cancel deadline</button>
 <button
   matButton="outlined"
-  [disabled]="!boardForm.getRawValue().CompletionDeadlineUtc"
+  [disabled]="!gameModeForm().getRawValue().CompletionDeadlineUtc"
   (click)="commitDeadline()">
   Set deadline
 </button>
 } }
 
 <!-- prettier-ignore -->
-@if (!canOnlyRemove()) {
+@if (!canOnlyRemove) {
 <mat-form-field [subscriptSizing]="'dynamic'">
   <mat-label>Completion reward</mat-label>
   <input
     matInput
     placeholder="You've earned ..."
-    [formControl]="boardForm.controls.CompletionReward" />
-  @if (completionRewardHint$ | async; as rewardHint) {
+    [formControl]="gameModeForm().controls.CompletionReward" />
+  @if (completionRewardHint$() | async; as rewardHint) {
   <mat-hint>{{rewardHint}}</mat-hint>
   }
 </mat-form-field>
 }
 
 <!-- prettier-ignore -->
-@let reward = boardForm.getRawValue().CompletionReward;
-@if (canOnlyRemove()) {
+@let reward = gameModeForm().getRawValue().CompletionReward;
+@if (canOnlyRemove) {
 @if (reward) {
+@let tooltip = 'Remove reward (' + (gameMode() === 'todo' ? 'To-do' : 'Traditional') + ' game mode)';
 <div class="horizontal">
   <span>Completion reward: {{ reward }}</span>
   <button
     matIconButton
-    [matTooltip]="'Remove reward'"
-    (click)="boardForm.controls.CompletionReward.setValue(null)"
-    aria-label="Remove reward">
+    [matTooltip]="tooltip"
+    (click)="gameModeForm().controls.CompletionReward.setValue(null)"
+    [attr.aria-label]="tooltip">
     <mat-icon>close_small</mat-icon>
   </button>
 </div>
 } @else {
-<div>No reward set for the board</div>
+<div>No reward set</div>
 } }

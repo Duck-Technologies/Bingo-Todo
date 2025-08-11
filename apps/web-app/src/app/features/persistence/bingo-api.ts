@@ -23,16 +23,7 @@ export class BingoApi {
   }
 
   public loadBoard(boardId: string): Observable<BoardInfo> {
-    return of({
-      Name: null,
-      GameMode: 'traditional',
-      CompletionDeadlineUtc: null,
-      CompletionReward: null,
-      CompletionDateUtc: null,
-      Cells: [],
-      FirstBingoReachedDateUtc: null,
-      Visibility: 'unlisted',
-    });
+    return of(new BoardInfo());
   }
 
   public loadBoards(userId: string | null = null): Observable<BoardInfo[]> {
