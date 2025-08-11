@@ -16,6 +16,8 @@ import {
   Subscription,
   Observable,
   of,
+  switchMap,
+  filter,
 } from 'rxjs';
 import {
   boardForm,
@@ -33,6 +35,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { calculateDateFromNow } from '../calculations/date-calculations';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { DATE_FORMATS } from '../../app.config';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-deadline-reward-form',
@@ -85,7 +88,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
       )
     )
   );
-  
+
   public readonly deadlineInputsDisplay = signal<'none' | 'display'>('none');
 
   public readonly gameModeForm = computed(() =>
@@ -93,6 +96,40 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
       ? this.boardForm.controls.TraditionalGame
       : this.boardForm.controls.TodoGame
   );
+
+  private readonly gameModeForm$ = toObservable(this.gameModeForm);
+
+  // when the user sets deadline or reward, also patch the other
+  // game mode's values' in case they switch to that
+  // in edit mode only patch if the game wasn't completed yet
+  private readonly gameModeChangesSubscription = this.gameModeForm$
+    .pipe(
+      filter(
+        (form) =>
+          !!form &&
+          // as long as the completion date can't change while this component is rendered
+          // this is fine. If it can change, this subscription should subscribe to their
+          // valuechanges
+          !this.boardForm.getRawValue().TodoGame.CompletionDateUtc &&
+          !this.boardForm.getRawValue().TraditionalGame.CompletionDateUtc
+      ),
+      switchMap((form) => {
+        return form.valueChanges.pipe(
+          startWith(form.getRawValue()),
+          map((value) => ({
+            CompletionDeadlineUtc: value.CompletionDeadlineUtc,
+            CompletionReward: value.CompletionReward,
+          })),
+          tap((value) => {
+            (this.gameMode() === 'traditional'
+              ? this.boardForm.controls.TodoGame
+              : this.boardForm.controls.TraditionalGame
+            ).patchValue(value);
+          })
+        );
+      })
+    )
+    .subscribe();
 
   // min date's time if today, else no min time
   public readonly minTime$ = computed(() =>
@@ -122,6 +159,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.minDateSubscription?.unsubscribe();
+    this.gameModeChangesSubscription.unsubscribe();
   }
 
   public commitDeadline(cancel: boolean = false) {

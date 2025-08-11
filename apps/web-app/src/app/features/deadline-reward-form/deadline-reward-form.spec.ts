@@ -156,6 +156,11 @@ describe('DeadlineRewardForm', () => {
         component.gameModeForm().getRawValue().CompletionDeadlineUtc
       ).toBeNull();
     });
+
+    it("Deadline and reward shouldn't change between game mode switches in create mode", async () => {
+      await setDateToFuture(datepicker);
+      await testDeadlineRewardSwitch(loader, component, fixture);
+    });
   });
 
   describe('edit mode', () => {
@@ -192,7 +197,7 @@ describe('DeadlineRewardForm', () => {
         MatButtonHarness.with({ text: 'add' })
       );
       const input = await loader.getHarness(
-        MatInputHarness.with({ placeholder: "You've earned ..." })
+        MatInputHarness.with({ label: 'Completion reward' })
       );
 
       expect(await input.isDisabled()).toBeFalse();
@@ -297,11 +302,90 @@ describe('DeadlineRewardForm', () => {
       );
       expect(
         await loader.getHarnessOrNull(
-          MatInputHarness.with({ placeholder: "You've earned ..." })
+          MatInputHarness.with({ label: 'Completion reward' })
         )
       ).toBeNull();
 
       expect(fixture.nativeElement.outerHTML).toContain('No reward');
+    });
+
+    it("Deadline and reward shouldn't change between game mode switches in create mode", async () => {
+      // set a deadline
+      const button = await loader.getHarness(
+        MatButtonHarness.with({ text: 'add' })
+      );
+
+      await button.click();
+
+      const datepicker = await loader.getHarness(MatDatepickerInputHarness);
+      await setDateToFuture(datepicker);
+
+      const saveButton = await loader.getHarness(
+        MatButtonHarness.with({ text: 'Set deadline' })
+      );
+
+      await saveButton.click();
+
+      // test the switches
+      await testDeadlineRewardSwitch(loader, component, fixture);
+    });
+
+    it('Deadline and reward should change between game mode switches if completed traditional mode', async () => {
+      // I'm not really sure why, but in this test not only do I not need the whenStable calls,
+      // I actually get 'Uncaught RangeError: Maximum call stack size exceeded thrown' if I include them
+      boardForm.patchValue({
+        TraditionalGame: {
+          CompletionReward: 'Traditional reward',
+          CompletionDeadlineUtc: null,
+          CompletionDateUtc: new Date(),
+        },
+      });
+
+      // runtime change of gameMode
+      fixture.componentRef.setInput('gameMode', 'todo');
+      // await fixture.whenStable();
+
+      // set Todo's reward and deadline
+      const input = await loader.getHarness(
+        MatInputHarness.with({ label: 'Completion reward' })
+      );
+
+      await input.setValue('a day at the zoo');
+
+      const button = await loader.getHarness(
+        MatButtonHarness.with({ text: 'add' })
+      );
+      await button.click();
+
+      const datepicker = await loader.getHarness(MatDatepickerInputHarness);
+      await setDateToFuture(datepicker);
+
+      const saveButton = await loader.getHarness(
+        MatButtonHarness.with({ text: 'Set deadline' })
+      );
+
+      await saveButton.click();
+
+      expect(
+        component.gameModeForm().getRawValue().CompletionDeadlineUtc
+      ).not.toBeNull();
+
+      expect(component.gameModeForm().getRawValue().CompletionReward).toBe(
+        'a day at the zoo'
+      );
+
+      // switch back to traditional game mode
+      fixture.componentRef.setInput('gameMode', 'traditional');
+      // await fixture.whenStable();
+
+      // traditional reward and input shouldn't have been altered
+      expect(component.gameModeForm().getRawValue().CompletionReward).toBe(
+        'Traditional reward'
+      );
+
+      expect(
+        component.gameModeForm().getRawValue().CompletionDeadlineUtc
+      ).toBeNull();
     });
   });
 });
@@ -322,4 +406,46 @@ async function setDateToFuture(
   const dateCell = (await calendar.getCells())[0];
   await dateCell.select();
   return await datepicker.getValue();
+}
+
+async function testDeadlineRewardSwitch(
+  loader: HarnessLoader,
+  component: DeadlineRewardForm,
+  fixture: ComponentFixture<DeadlineRewardForm>
+) {
+  const input = await loader.getHarness(
+    MatInputHarness.with({ label: 'Completion reward' })
+  );
+
+  await input.setValue('a day at the zoo');
+
+  expect(component.gameModeForm().getRawValue().CompletionReward).toBe(
+    'a day at the zoo'
+  );
+
+  const deadlineDate = component
+    .gameModeForm()
+    .getRawValue().CompletionDeadlineUtc;
+
+  // switch game mode and expect the control values to be the same as set before switch
+  fixture.componentRef.setInput('gameMode', 'todo');
+  await fixture.whenStable();
+
+  expect(component.gameModeForm().getRawValue().CompletionReward).toBe(
+    'a day at the zoo'
+  );
+
+  expect(component.gameModeForm().getRawValue().CompletionDeadlineUtc).toEqual(
+    deadlineDate
+  );
+
+  // modify reward and switch again to test the same
+  await input.setValue('another day at the zoo');
+
+  fixture.componentRef.setInput('gameMode', 'todo');
+  await fixture.whenStable();
+
+  expect(component.gameModeForm().getRawValue().CompletionReward).toBe(
+    'another day at the zoo'
+  );
 }
