@@ -75,7 +75,10 @@
 
   <mat-divider></mat-divider>
 </section>
-} @if (goalReached()) {
+}
+
+<!-- prettier-ignore -->
+@if (goalReached()) {
 <div>
   @if (board().GameMode === 'traditional') { {{endStateMessage()}}
   <button matButton (click)="continueAfterBingo()">Continue in TODO mode</button>
