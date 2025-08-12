@@ -44,6 +44,13 @@ body {
   // &.dark-mode {
   //   color-scheme: dark;
   // }
+
+  @include mat.dialog-overrides(
+    (
+      container-color:
+        light-dark(var(--mat-sys-surface), var(--mat-sys-surface-container-low)),
+    )
+  );
 }
 
 mat-stepper.no-space-on-last-step {

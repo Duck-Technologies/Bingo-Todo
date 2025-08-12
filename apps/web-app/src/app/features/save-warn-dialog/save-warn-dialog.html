@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Have you checked your cells?</h2>
+<mat-dialog-content>
+  <app-message [title]="'Beware'" [type]="'warning'">
+    <ul>
+      <li>Resizing the board</li>
+      <li>Reordering or changing the cells</li>
+      <li>Changing visibility from and to local</li>
+    </ul>
+    <p>is not possible once the game starts, so consider reviewing these before pressing Start</p>
+  </app-message>
+  <app-message [title]="'Editing'" [type]="'info'">
+    <p>You will be able to change anything else later.</p>
+  </app-message>
+
+  @if (data.overridesLocal) {
+  <app-message [title]="'Local board'" [type]="'warning'">
+    <p>
+      You are about to override your previous
+      <a href="./board/local" target="_blank">local board</a>.
+    </p></app-message
+  >
+  }
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button matButton (click)="dialogRef.close()">Cancel</button>
+  <button mat-flat-button [mat-dialog-close]="''" cdkFocusInitial>Start game</button>
+</mat-dialog-actions>

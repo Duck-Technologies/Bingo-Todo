@@ -15,7 +15,17 @@
 @let totalCells = board().Cells.length;
 
 <div>
-  <h1>{{ board().Name || "Untitled Board" }}</h1>
+  <h1>
+    @if (goalReached()) {
+    <mat-icon
+      fontSet="material-symbols-outlined"
+      class="trophy"
+      [matTooltip]="'Goal reached on ' + (board().CompletionDateUtc | date : 'MMM dd, yyyy')"
+      >trophy</mat-icon
+    >
+    }
+    {{ board().Name || "Untitled Board" }}
+  </h1>
 
   <menu aria-label="Edit and save actions">
     @if (pendingSelectCount() !== 0) {
@@ -65,7 +75,7 @@
 
   <mat-divider></mat-divider>
 
-  <h4>Actions</h4>
+  <h3>Actions</h3>
   <mat-checkbox [(ngModel)]="doDelete" [disabled]="boardForm.controls.Name.disabled"
     >Delete board</mat-checkbox
   >
@@ -73,7 +83,7 @@
 
   @if(!!board().TraditionalGame.CompletionDateUtc && (!!board().TraditionalGame.CompletionReward ||
   !!board().TraditionalGame.CompletionDeadlineUtc)) {
-  <h5>Remove reward/deadline for completed traditional game</h5>
+  <h4>Remove reward/deadline for completed traditional game</h4>
   <app-deadline-reward-form [createMode]="false" [gameMode]="'traditional'">
   </app-deadline-reward-form>
   }
@@ -81,22 +91,12 @@
   <!-- prettier-ignore -->
   @if(!!board().TodoGame.CompletionDateUtc && (!!board().TodoGame.CompletionReward ||
   !!board().TodoGame.CompletionDeadlineUtc)) {
-  <h5>Remove reward/deadline for completed todo game</h5>
+  <h4>Remove reward/deadline for completed todo game</h4>
   <app-deadline-reward-form [createMode]="false" [gameMode]="'todo'"> </app-deadline-reward-form>
   }
 
   <mat-divider></mat-divider>
 </section>
-}
-
-<!-- prettier-ignore -->
-@if (goalReached()) {
-<div>
-  @if (board().GameMode === 'traditional') { {{endStateMessage()}}
-  <button matButton (click)="continueAfterBingo()">Continue in TODO mode</button>
-  } @else { {{endStateMessage()}} }
-</div>
-{{ isLocal() ? "This is a local board. You have to delete it to start a new one." : "" }}
 }
 
 <div class="board-container">
