@@ -21,6 +21,7 @@ export class Message {
     'success' | 'info' | 'warning' | 'error'
   >();
   public readonly title = input.required<string>();
+
   public readonly icon = computed(
     () =>
       ((

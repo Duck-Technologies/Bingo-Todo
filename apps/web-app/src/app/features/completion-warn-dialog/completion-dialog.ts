@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  model,
 } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
@@ -15,6 +16,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { Message } from '../message/message';
 import { DeadlineRewardForm } from '../deadline-reward-form/deadline-reward-form';
 import { BoardInfo } from '../board/board';
+import { MatCheckbox } from "@angular/material/checkbox";
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-completion-dialog',
@@ -26,7 +29,9 @@ import { BoardInfo } from '../board/board';
     MatDialogClose,
     Message,
     DeadlineRewardForm,
-  ],
+    MatCheckbox,
+    FormsModule
+],
   templateUrl: './completion-dialog.html',
   styleUrl: './completion-dialog.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,13 +39,14 @@ import { BoardInfo } from '../board/board';
 export class CompletionDialog {
   readonly dialogRef = inject(MatDialogRef<CompletionDialog>);
   readonly data = inject<{ board: BoardInfo }>(MAT_DIALOG_DATA);
+  public readonly deleteBoard = model(false);
 
   public readonly endStateMessage = CompletionDialog.generateEndStateMessage(
     this.data.board
   );
 
-  private static generateEndStateMessage(board: BoardInfo, isOwnBoard = true) {
-    if (!board.CompletionDateUtc || !isOwnBoard) {
+  private static generateEndStateMessage(board: BoardInfo) {
+    if (!board.CompletionDateUtc) {
       return '';
     }
 

@@ -125,7 +125,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
             (this.gameMode() === 'traditional'
               ? this.boardForm.controls.TodoGame
               : this.boardForm.controls.TraditionalGame
-            ).patchValue(value);
+            ).patchValue(value, {emitEvent: false});
           })
         );
       })

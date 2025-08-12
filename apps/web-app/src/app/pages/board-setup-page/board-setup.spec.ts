@@ -215,25 +215,28 @@ describe('BoardSetup', () => {
     });
   });
 
-  it('scramble should reorder the given values', async () => {
+  it('shuffle should reorder the given values', async () => {
     const originalOrder = BoardCalculations.getRowIndexes(9).map((i) => ({
       Name: i.toString(),
       Selected: false,
+      Row: 0,
+      Column: 0
     }));
     component.cardsFormArray.patchValue(originalOrder);
 
     expect(component.cardsFormArray.getRawValue()).toEqual(originalOrder);
 
-    const scrambleButton = await loader.getHarness(
-      MatButtonHarness.with({ text: 'Scramble' })
+    const shuffleButton = await loader.getHarness(
+      MatButtonHarness.with({ text: 'Shuffle' })
     );
 
-    await scrambleButton.click();
+    await shuffleButton.click();
 
     expect(component.cardsFormArray.getRawValue()).not.toEqual(originalOrder);
     expect(
       component.cardsFormArray
         .getRawValue()
+        .map(c => {c.Row = c.Column = 0; return c})
         .sort((a, b) => (a?.Name ?? '').localeCompare(b?.Name ?? ''))
     ).toEqual(originalOrder);
   });

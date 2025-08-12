@@ -26,16 +26,22 @@
   @if (data.board.Visibility === 'local') {
   <app-message [title]="'Local board'" [type]="'info'">
     <p>This is a local board. You have to delete it if you want to start a new one.</p>
+    <mat-checkbox [(ngModel)]="deleteBoard">Delete board</mat-checkbox>
   </app-message>
   }
 </mat-dialog-content>
 <mat-dialog-actions>
   <button matButton (click)="dialogRef.close()" cdkFocusInitial>Close</button>
-  @if (data.board.Visibility === 'local') {
-  <button mat-stroked-button [mat-dialog-close]="'delete'">Delete board</button>
-  } @if (data.board.GameMode === 'traditional') {
-  <button mat-flat-button [mat-dialog-close]="'continue'" cdkFocusInitial>Continue in TO-DO mode</button>
 
+  @if (data.board.Visibility === 'local' && deleteBoard()) {
+  <button mat-flat-button [mat-dialog-close]="'delete'">Delete board</button>
+  }
+
+  <!-- prettier-ignore -->
+  @if (data.board.GameMode === 'traditional' && !deleteBoard()) {
+  <button mat-flat-button [mat-dialog-close]="'continue'" cdkFocusInitial>
+    Continue in TO-DO mode
+  </button>
   }
 </mat-dialog-actions>
 }

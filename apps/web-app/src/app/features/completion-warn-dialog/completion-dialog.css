@@ -19,3 +19,9 @@ app-message p {
     margin-block-end: 0;
   }
 }
+
+mat-checkbox {
+  display: block;
+  margin-left: auto;
+  width: fit-content;
+}

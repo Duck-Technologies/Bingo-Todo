@@ -11,7 +11,6 @@ import { By } from '@angular/platform-browser';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { BoardCell, BoardInfo } from '../../features/board/board';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 
 describe('BoardPage', () => {
   let component: BoardPage;
@@ -273,8 +272,6 @@ describe('BoardPage', () => {
   // TODO tests:
   // check computed values and methods
   // local visibility should store to localstorage, otherwise check that BingoApi is called
-  // revertDeadlineAndRewardIfModifiedWithoutGameModeChange
-  // generateEndStateMessage
   // delete
   // update
   // continueAfterBingo
