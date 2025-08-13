@@ -15,11 +15,15 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { of } from 'rxjs';
+import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 
 describe('BoardSetup', () => {
   let component: BoardSetup;
   let fixture: ComponentFixture<BoardSetup>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -34,6 +38,7 @@ describe('BoardSetup', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(BoardSetup);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     fixture.autoDetectChanges();
@@ -215,26 +220,90 @@ describe('BoardSetup', () => {
     });
   });
 
-  it('scramble should reorder the given values', async () => {
+  it('shuffle should reorder the given values', async () => {
     const originalOrder = BoardCalculations.getRowIndexes(9).map((i) => ({
       Name: i.toString(),
       Selected: false,
+      Row: 0,
+      Column: 0,
     }));
     component.cardsFormArray.patchValue(originalOrder);
 
     expect(component.cardsFormArray.getRawValue()).toEqual(originalOrder);
 
-    const scrambleButton = await loader.getHarness(
-      MatButtonHarness.with({ text: 'Scramble' })
+    const shuffleButton = await loader.getHarness(
+      MatButtonHarness.with({ text: 'Shuffle' })
     );
 
-    await scrambleButton.click();
+    await shuffleButton.click();
 
     expect(component.cardsFormArray.getRawValue()).not.toEqual(originalOrder);
     expect(
       component.cardsFormArray
         .getRawValue()
+        .map((c) => {
+          c.Row = c.Column = 0;
+          return c;
+        })
         .sort((a, b) => (a?.Name ?? '').localeCompare(b?.Name ?? ''))
     ).toEqual(originalOrder);
+  });
+
+  it('should show the create warning dialog once create is clicked', async () => {
+    component.cardsFormArray.patchValue(
+      BoardCalculations.getRowIndexes(9).map((i) => ({
+        Name: i.toString(),
+        Selected: false,
+        Row: 0,
+        Column: 0,
+      }))
+    );
+
+    expect(await rootLoader.getHarnessOrNull(MatDialogHarness)).toBeNull();
+
+    const createButton = await loader.getHarness(
+      MatButtonHarness.with({ text: 'Create' })
+    );
+
+    await createButton.click();
+
+    const warnDialog = await rootLoader.getHarnessOrNull(MatDialogHarness);
+    expect(warnDialog).not.toBeNull();
+    expect(await warnDialog!.getTitleText()).toEqual(
+      'Have you reviewed your cells?'
+    );
+
+    const cancelButton = await warnDialog!.getHarness(
+      MatButtonHarness.with({ text: 'Cancel' })
+    );
+
+    await cancelButton.click();
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    expect(await rootLoader.getHarnessOrNull(MatDialogHarness)).toBeNull();
+  });
+
+  it('once the board is created, it should navigate to local if visibility is local', async () => {
+    component.cardsFormArray.patchValue(
+      BoardCalculations.getRowIndexes(9).map((i) => ({
+        Name: i.toString(),
+        Selected: false,
+        Row: 0,
+        Column: 0,
+      }))
+    );
+    component.boardForm.controls.Visibility.setValue('local');
+
+    spyOn(BingoLocalStorage, 'createBoard');
+    spyOn((component as any).dialog, "open").and.returnValue({
+      afterClosed: () => of(''),
+    });
+
+    const navigateSpy = spyOn((component as any).router, 'navigate');
+
+    component.createBoard();
+
+    expect(navigateSpy).toHaveBeenCalledOnceWith(['board/local']);
   });
 });

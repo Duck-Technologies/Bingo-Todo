@@ -65,6 +65,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 export class DeadlineRewardForm implements OnInit, OnDestroy {
   public readonly createMode = input.required<boolean>();
   public readonly gameMode = input.required<'todo' | 'traditional'>();
+  public readonly displayDeadline = input<boolean>(true);
 
   private static readonly minDateMinutesFromNow = 15;
 
@@ -124,7 +125,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
             (this.gameMode() === 'traditional'
               ? this.boardForm.controls.TodoGame
               : this.boardForm.controls.TraditionalGame
-            ).patchValue(value);
+            ).patchValue(value, {emitEvent: false});
           })
         );
       })

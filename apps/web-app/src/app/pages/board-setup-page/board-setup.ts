@@ -44,10 +44,14 @@ import { BoardListView } from '../../features/board-list-view/board-list-view';
 import { MatDivider } from '@angular/material/divider';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
+import { CreateWarnDialog } from '../../features/create-warn-dialog/create-warn-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
   Selected: FormControl<boolean>;
+  Row: FormControl<number>;
+  Column: FormControl<number>;
 }>;
 
 @Component({
@@ -84,6 +88,7 @@ type CellForm = FormGroup<{
   },
 })
 export class BoardSetup implements OnInit {
+  private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly bingoApi = inject(BingoApi);
 
@@ -97,10 +102,16 @@ export class BoardSetup implements OnInit {
   public isLoggedIn = false;
 
   public readonly cardsFormArray = new FormArray<CellForm>(
-    [...Array(this.defaultBoardSize).keys()].map((_) => {
+    [...Array(this.defaultBoardSize).keys()].map((_, index) => {
       return new FormGroup({
         Name: new FormControl<string | null>(null, [Validators.required]),
         Selected: new FormControl<boolean>(false, { nonNullable: true }),
+        Row: new FormControl<number>(Math.floor(index / this.boardSize) + 1, {
+          nonNullable: true,
+        }),
+        Column: new FormControl<number>((index % this.boardSize) + 1, {
+          nonNullable: true,
+        }),
       });
     })
   );
@@ -142,12 +153,23 @@ export class BoardSetup implements OnInit {
       ),
     });
 
-    if (board.Visibility === 'local') {
-      BingoLocalStorage.createBoard(board);
-      this.router.navigate(['board/local']);
-    } else {
-      // this.bingoApi.createBoard(board).subscribe();
-    }
+    const dialogRef = this.dialog.open(CreateWarnDialog, {
+      data: {
+        board: board,
+        overridesLocal: BingoLocalStorage.boardInLocalStorage(),
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result !== undefined) {
+        if (board.Visibility === 'local') {
+          BingoLocalStorage.createBoard(board);
+          this.router.navigate(['board/local']);
+        } else {
+          // this.bingoApi.createBoard(board).subscribe();
+        }
+      }
+    });
   }
 
   public indicateFocused(
@@ -191,6 +213,12 @@ export class BoardSetup implements OnInit {
             [Validators.required, Validators.pattern(NotOnlyWhiteSpacePattern)]
           ),
           Selected: new FormControl<boolean>(false, { nonNullable: true }),
+          Row: new FormControl<number>(Math.floor(idx / dimension) + 1, {
+            nonNullable: true,
+          }),
+          Column: new FormControl<number>((idx % dimension) + 1, {
+            nonNullable: true,
+          }),
         })
       );
     });

@@ -1,0 +1,47 @@
+@if (!data.board.CompletionDateUtc) {
+<h2 mat-dialog-title>Finishing the game</h2>
+<mat-dialog-content>
+  <app-message [title]="'Reward'" [type]="'warning'">
+    <p>This is your last chance to change the reward.</p>
+  </app-message>
+
+  <app-deadline-reward-form
+    [createMode]="false"
+    [displayDeadline]="false"
+    [gameMode]="data.board.GameMode"></app-deadline-reward-form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button matButton (click)="dialogRef.close()">Cancel</button>
+  <button mat-flat-button [mat-dialog-close]="'save'" cdkFocusInitial>Save</button>
+</mat-dialog-actions>
+} @else {
+<h2 mat-dialog-title>{{data.board.GameMode === 'traditional' ? 'BINGO!' : 'Well done!'}}</h2>
+<mat-dialog-content>
+  <app-message [title]="endStateMessage" [type]="'success'">
+    @if (data.board.GameMode === 'traditional') {
+    <p>Consider continuing the board in TO-DO mode to mark all cells as done</p>
+    }
+  </app-message>
+
+  @if (data.board.Visibility === 'local') {
+  <app-message [title]="'Local board'" [type]="'info'">
+    <p>This is a local board. You have to delete it if you want to start a new one.</p>
+    <mat-checkbox [(ngModel)]="deleteBoard">Delete board</mat-checkbox>
+  </app-message>
+  }
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button matButton (click)="dialogRef.close()" cdkFocusInitial>Close</button>
+
+  @if (data.board.Visibility === 'local' && deleteBoard()) {
+  <button mat-flat-button [mat-dialog-close]="'delete'">Delete board</button>
+  }
+
+  <!-- prettier-ignore -->
+  @if (data.board.GameMode === 'traditional' && !deleteBoard()) {
+  <button mat-flat-button [mat-dialog-close]="'continue'" cdkFocusInitial>
+    Continue in TO-DO mode
+  </button>
+  }
+</mat-dialog-actions>
+}

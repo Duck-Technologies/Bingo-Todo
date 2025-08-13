@@ -7,7 +7,7 @@ import {
   model,
   signal,
 } from '@angular/core';
-import { Board, BoardInfo } from '../../features/board/board';
+import { Board, BoardCell, BoardInfo } from '../../features/board/board';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 import { Router } from '@angular/router';
@@ -25,6 +25,9 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-hourglass';
+import { MatDialog } from '@angular/material/dialog';
+import { CompletionDialog } from '../../features/completion-warn-dialog/completion-dialog';
+import { EMPTY, map, Observable, of, pipe, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-board-page',
@@ -54,9 +57,10 @@ import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-ho
 })
 export class BoardPage {
   public readonly board = model.required<BoardInfo>();
-  private readonly calculationService = inject(BoardCalculations);
-  private readonly bingoApi = inject(BingoApi);
 
+  private readonly bingoApi = inject(BingoApi);
+  private readonly calculationService = inject(BoardCalculations);
+  private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
   public readonly editMode = signal(false);
@@ -73,10 +77,6 @@ export class BoardPage {
 
   public readonly allChecked = computed(() =>
     this.cells().every((c) => c.IsInBingoPattern)
-  );
-
-  public readonly endStateMessage = computed(() =>
-    BoardPage.generateEndStateMessage(this.board())
   );
 
   public readonly goalReached = computed(
@@ -98,10 +98,6 @@ export class BoardPage {
     this.cells().reduce((acc, curr) => (acc += +curr.Selected), 0)
   );
 
-  private readonly bingoReached = computed(() =>
-    this.cells().find((c) => c.IsInBingoPattern)
-  );
-
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
   public readonly boardForm = boardForm;
   public readonly doDelete = model(false);
@@ -109,20 +105,6 @@ export class BoardPage {
   public cancelChanges() {
     this.editMode.set(false);
     this.doDelete.set(false);
-  }
-
-  public continueAfterBingo() {
-    const updatedBoard = new BoardInfo({
-      ...this.board(),
-      GameMode: 'todo' as const,
-    });
-
-    if (this.isLocal()) {
-      this.board.set(updatedBoard);
-      BingoLocalStorage.updateBoard(this.board(), this.calculationService);
-    } else {
-      // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
-    }
   }
 
   public editBoard() {
@@ -133,6 +115,11 @@ export class BoardPage {
   }
 
   public saveChanges() {
+    if (this.doDelete()) {
+      this.deleteBoard();
+      return;
+    }
+
     // see the constructor of BoardInfo about setting fields to null in case of game mode switch
     // not allowing to change certain fields is the responsibility of the components displaying the inputs
     const updatedBoard = new BoardInfo({
@@ -140,42 +127,60 @@ export class BoardPage {
       Cells: this.cells(),
     });
 
-    if (this.isLocal()) {
-      if (this.doDelete()) {
-        BingoLocalStorage.resetBoard();
-        this.router.navigate(['board/create']);
-      } else {
+    const isCompleting = BoardPage.isCompleteAfterSave(
+      updatedBoard,
+      updatedBoard.Cells,
+      this.calculationService
+    );
+
+    if (isCompleting) {
+      // when changing game mode from todo to traditional this can happen
+      this.saveCompletion(updatedBoard).pipe(this.afterCompletion).subscribe();
+    } else {
+      if (this.isLocal()) {
         BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
         this.board.set(updatedBoard);
-      }
-    } else {
-      if (this.doDelete()) {
-        // this.bingoApi.deleteBoard(this.board().Id).subscribe();
       } else {
         // this.bingoApi.updateBoard(this.board().Id, formData).subscribe();
       }
+      this.editMode.set(false);
     }
-    this.editMode.set(false);
   }
 
   public saveSelected() {
     const updatedBoard = new BoardInfo({
       ...this.board(),
-      Cells: this.cells().map((c) => {
+      Cells: this.cells().map((c, idx) => {
+        const cell = new BoardCell(
+          c,
+          idx,
+          BoardCalculations.getBoardDimensionFromCellCount(
+            this.cells().length
+          ) as number
+        );
         if (c.Selected) {
-          c.CheckedDateUTC = new Date();
-          c.Selected = false;
+          cell.CheckedDateUTC = new Date();
         }
 
-        return c;
+        return cell;
       }),
     });
 
-    if (this.isLocal()) {
-      BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
-      this.board.set(updatedBoard);
+    const isCompleting = BoardPage.isCompleteAfterSave(
+      this.board(),
+      updatedBoard.Cells,
+      this.calculationService
+    );
+
+    if (isCompleting) {
+      this.saveCompletion(updatedBoard).pipe(this.afterCompletion).subscribe();
     } else {
-      // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+      if (this.isLocal()) {
+        BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
+        this.board.set(updatedBoard);
+      } else {
+        // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+      }
     }
   }
 
@@ -191,26 +196,123 @@ export class BoardPage {
     );
   }
 
-  private static generateEndStateMessage(board: BoardInfo, isOwnBoard = true) {
-    if (!board.CompletionDateUtc || !isOwnBoard) {
-      return '';
-    }
+  private readonly afterCompletion = pipe(
+    switchMap((board: null | BoardInfo) => {
+      if (board === null) {
+        return EMPTY;
+      } else {
+        this.board.set(board);
 
-    let message = 'You did it';
+        const dialogRef = this.dialog.open(CompletionDialog, {
+          disableClose: true,
+          data: { board: board },
+        });
+
+        return dialogRef.afterClosed() as Observable<
+          undefined | 'continue' | 'delete'
+        >;
+      }
+    }),
+    switchMap((action) => {
+      switch (action) {
+        case 'continue':
+          return this.continueAfterBingo();
+        case 'delete':
+          return this.deleteBoard();
+        default:
+          return 'Closed completion dialog';
+      }
+    })
+  );
+
+  private continueAfterBingo() {
+    const updatedBoard = new BoardInfo({
+      ...this.board(),
+      GameMode: 'todo' as const,
+    });
+
+    if (this.isLocal()) {
+      this.board.set(updatedBoard);
+      BingoLocalStorage.updateBoard(this.board(), this.calculationService);
+      return of('Successful continue after bingo update');
+    } else {
+      return of('Successful continue after bingo update');
+      // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+    }
+  }
+
+  private deleteBoard() {
+    if (this.isLocal()) {
+      BingoLocalStorage.resetBoard();
+      this.router.navigate(['board/create']);
+      return of('Successful deletion');
+    } else {
+      return of('Successful deletion');
+      // this.bingoApi.deleteBoard(this.board().Id).subscribe();
+    }
+  }
+
+  private saveCompletion(board: BoardInfo) {
+    this.boardForm.reset();
+    this.boardForm.enable();
+    this.boardForm.patchValue(board);
+
+    const dialogRef = this.dialog.open(CompletionDialog, {
+      data: { board: board },
+    });
+
+    return dialogRef.afterClosed().pipe(
+      switchMap((result: undefined | string) => {
+        if (result !== undefined) {
+          const formValue = this.boardForm.getRawValue();
+          board.TodoGame.CompletionReward = formValue.TodoGame.CompletionReward;
+          board.TraditionalGame.CompletionReward =
+            formValue.TraditionalGame.CompletionReward;
+          board = new BoardInfo(board);
+
+          if (this.isLocal()) {
+            return BingoLocalStorage.updateBoard(
+              board,
+              this.calculationService
+            ).pipe(
+              tap((_) => {
+                this.boardForm.reset();
+                this.editMode.set(false);
+              }),
+              map((_) => board)
+            );
+          } else {
+            // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+            return of(null); // should return board as well
+          }
+        }
+        return of(null);
+      })
+    );
+  }
+
+  private static isCompleteAfterSave(
+    board: BoardInfo,
+    cells: BoardCell[],
+    calculationService: BoardCalculations
+  ) {
+    const calculatedCells = BoardCalculations.calculateCellBingoState(
+      JSON.parse(JSON.stringify(cells)),
+      calculationService
+    );
 
     if (
-      !!board.CompletionDeadlineUtc &&
-      new Date(board.CompletionDateUtc) <= new Date(board.CompletionDeadlineUtc)
+      !!board.TodoGame.CompletionDateUtc ||
+      (board.GameMode === 'traditional' &&
+        !!board.TraditionalGame.CompletionDateUtc)
     ) {
-      message += ' before the deadline!';
-    } else {
-      message += '!';
+      return false;
     }
 
-    if (board.CompletionReward) {
-      message += ` You've earned ${board.CompletionReward}!`;
-    }
-
-    return message;
+    return (
+      (board.GameMode === 'traditional' &&
+        !!calculatedCells.find((c) => c.IsInBingoPattern)) ||
+      calculatedCells.every((c) => c.IsInBingoPattern)
+    );
   }
 }

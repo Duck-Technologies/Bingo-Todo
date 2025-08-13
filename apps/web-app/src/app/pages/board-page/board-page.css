@@ -38,11 +38,8 @@
     flex-direction: column;
     gap: 1rem;
 
+    h3,
     h4 {
-      margin: 0;
-    }
-
-    h5 {
       margin: 0;
     }
 
@@ -76,6 +73,12 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    .trophy {
+      height: 1rem;
+      width: 1rem;
+      font-size: 1rem;
+    }
   }
 
   .trophy {

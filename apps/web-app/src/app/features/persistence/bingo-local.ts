@@ -21,6 +21,15 @@ export class BingoLocalStorage {
     Visibility: 'local',
   });
 
+  public static boardInLocalStorage() {
+    const board = localStorage.getItem(BingoLocalStorage.LocalStorageBoardKey);
+    if (!board) {
+      return false;
+    } else {
+      return !!new BoardInfo(JSON.parse(board)).Cells.length;
+    }
+  }
+
   public static createBoard(
     board: BoardInfo<BoardCellDto>
   ): Observable<string> {
@@ -43,7 +52,7 @@ export class BingoLocalStorage {
     calculationService: BoardCalculations
   ): Observable<BoardInfo> {
     const board = localStorage.getItem(BingoLocalStorage.LocalStorageBoardKey);
-    if (!board) {
+    if (!BingoLocalStorage.boardInLocalStorage() || !board) {
       return of(new BoardInfo(BingoLocalStorage.DefaultBoard));
     } else {
       const parsedBoard = JSON.parse(board) as BoardInfo;
@@ -71,7 +80,7 @@ export class BingoLocalStorage {
   public static updateBoard(
     updatedBoard: BoardInfo,
     calculationService: BoardCalculations
-  ): Observable<void> {
+  ): Observable<boolean> {
     BoardCalculations.calculateCellBingoState(
       updatedBoard.Cells,
       calculationService
@@ -84,7 +93,7 @@ export class BingoLocalStorage {
       JSON.stringify(updatedBoard)
     );
 
-    return of();
+    return of(true);
   }
 
   private static calculateCompletionAndFirstBingoDates(board: BoardInfo) {

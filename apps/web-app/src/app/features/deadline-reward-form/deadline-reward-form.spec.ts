@@ -331,8 +331,7 @@ describe('DeadlineRewardForm', () => {
     });
 
     it('Deadline and reward should change between game mode switches if completed traditional mode', async () => {
-      // I'm not really sure why, but in this test not only do I not need the whenStable calls,
-      // I actually get 'Uncaught RangeError: Maximum call stack size exceeded thrown' if I include them
+      // I'm not really sure why, but in this test I don't need the whenStable calls after setInput
       boardForm.patchValue({
         TraditionalGame: {
           CompletionReward: 'Traditional reward',

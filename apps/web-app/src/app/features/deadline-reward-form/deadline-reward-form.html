@@ -1,8 +1,11 @@
-@let minDate = minDate$ | async;
-@let canOnlyRemove = canOnlyRemove$() | async;
+@let minDate = minDate$ | async; @let canOnlyRemove = canOnlyRemove$() | async;
+
+<!-- DEADLINE -->
 
 <!-- prettier-ignore -->
-@if (deadlineInputsDisplay() === 'none'){
+@if (!displayDeadline()) {
+
+} @else if (deadlineInputsDisplay() === 'none'){
 <div class="horizontal">
   @if (!!gameModeForm().getRawValue().CompletionDeadlineUtc) {
   <span
@@ -13,6 +16,7 @@
     >
   </span>
 
+  <!-- prettier-ignore -->
   @let tooltip = 'Remove deadline (' + (gameMode() === 'todo' ? 'To-do' : 'Traditional') + ' game mode)';
   <button
     matIconButton
@@ -76,6 +80,8 @@
 </button>
 } }
 
+<!-- REWARD -->
+
 <!-- prettier-ignore -->
 @if (!canOnlyRemove) {
 <mat-form-field [subscriptSizing]="'dynamic'">
@@ -88,11 +94,9 @@
   <mat-hint>{{rewardHint}}</mat-hint>
   }
 </mat-form-field>
-}
-
+} @else {
 <!-- prettier-ignore -->
 @let reward = gameModeForm().getRawValue().CompletionReward;
-@if (canOnlyRemove) {
 @if (reward) {
 @let tooltip = 'Remove reward (' + (gameMode() === 'todo' ? 'To-do' : 'Traditional') + ' game mode)';
 <div class="horizontal">
