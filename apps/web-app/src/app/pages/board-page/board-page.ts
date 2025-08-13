@@ -98,10 +98,6 @@ export class BoardPage {
     this.cells().reduce((acc, curr) => (acc += +curr.Selected), 0)
   );
 
-  private readonly bingoReached = computed(() =>
-    this.cells().find((c) => c.IsInBingoPattern)
-  );
-
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
   public readonly boardForm = boardForm;
   public readonly doDelete = model(false);
@@ -123,7 +119,7 @@ export class BoardPage {
       this.deleteBoard();
       return;
     }
-    
+
     // see the constructor of BoardInfo about setting fields to null in case of game mode switch
     // not allowing to change certain fields is the responsibility of the components displaying the inputs
     const updatedBoard = new BoardInfo({
@@ -224,7 +220,7 @@ export class BoardPage {
         case 'delete':
           return this.deleteBoard();
         default:
-          return "Closed completion dialog";
+          return 'Closed completion dialog';
       }
     })
   );
@@ -238,9 +234,9 @@ export class BoardPage {
     if (this.isLocal()) {
       this.board.set(updatedBoard);
       BingoLocalStorage.updateBoard(this.board(), this.calculationService);
-      return of("Successful continue after bingo update");
+      return of('Successful continue after bingo update');
     } else {
-      return of("Successful continue after bingo update");
+      return of('Successful continue after bingo update');
       // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
     }
   }
@@ -249,9 +245,9 @@ export class BoardPage {
     if (this.isLocal()) {
       BingoLocalStorage.resetBoard();
       this.router.navigate(['board/create']);
-      return of("Successful deletion");
+      return of('Successful deletion');
     } else {
-      return of("Successful deletion");
+      return of('Successful deletion');
       // this.bingoApi.deleteBoard(this.board().Id).subscribe();
     }
   }
@@ -316,7 +312,7 @@ export class BoardPage {
     return (
       (board.GameMode === 'traditional' &&
         !!calculatedCells.find((c) => c.IsInBingoPattern)) ||
-      !calculatedCells.find((c) => !c.IsInBingoPattern)
+      calculatedCells.every((c) => c.IsInBingoPattern)
     );
   }
 }

@@ -44,7 +44,7 @@ import { BoardListView } from '../../features/board-list-view/board-list-view';
 import { MatDivider } from '@angular/material/divider';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
-import { SaveWarnDialog } from '../../features/save-warn-dialog/save-warn-dialog';
+import { CreateWarnDialog } from '../../features/create-warn-dialog/create-warn-dialog';
 import { MatDialog } from '@angular/material/dialog';
 
 type CellForm = FormGroup<{
@@ -153,7 +153,7 @@ export class BoardSetup implements OnInit {
       ),
     });
 
-    const dialogRef = this.dialog.open(SaveWarnDialog, {
+    const dialogRef = this.dialog.open(CreateWarnDialog, {
       data: {
         board: board,
         overridesLocal: BingoLocalStorage.boardInLocalStorage(),

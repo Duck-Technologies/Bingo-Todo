@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BoardPage } from './board-page';
-import { provideZonelessChangeDetection } from '@angular/core';
+import { Component, provideZonelessChangeDetection } from '@angular/core';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 import { BingoApi } from '../../features/persistence/bingo-api';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -11,11 +11,17 @@ import { By } from '@angular/platform-browser';
 import { BoardCalculations } from '../../features/calculations/board-calculations';
 import { BoardCell, BoardInfo } from '../../features/board/board';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { of } from 'rxjs';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 describe('BoardPage', () => {
   let component: BoardPage;
   let fixture: ComponentFixture<BoardPage>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
+  let helper: Helper;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,7 +36,9 @@ describe('BoardPage', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(BoardPage);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    helper = new Helper(fixture, loader);
     component = fixture.componentInstance;
 
     const board = new BoardInfo<BoardCell>(BingoLocalStorage.DefaultBoard);
@@ -39,7 +47,7 @@ describe('BoardPage', () => {
     );
 
     fixture.componentRef.setInput('board', board);
-    fixture.detectChanges();
+    fixture.autoDetectChanges();
   });
 
   it('should create', () => {
@@ -47,9 +55,7 @@ describe('BoardPage', () => {
   });
 
   it('Edit button should be visible by default', async () => {
-    expect(
-      await loader.getHarnessOrNull(MatButtonHarness.with({ text: 'edit' }))
-    ).not.toBeNull();
+    expect(await helper.getButtonOrNull('edit')).not.toBeNull();
   });
 
   it('Edit button should be toggled to save/unselect if a board cell is selected', async () => {
@@ -58,38 +64,18 @@ describe('BoardPage', () => {
       .query(By.css('app-board mat-card'))
       .triggerEventHandler('click');
 
-    await fixture.whenStable();
-
     expect(component.pendingSelectCount()).toBe(1);
-
-    expect(
-      await loader.getHarnessOrNull(MatButtonHarness.with({ text: 'edit' }))
-    ).toBeNull();
-
-    expect(
-      await loader.getHarnessOrNull(
-        MatButtonHarness.with({ text: /Save \(1\)*/ })
-      )
-    ).not.toBeNull();
-
-    expect(
-      await loader.getHarnessOrNull(
-        MatButtonHarness.with({ text: /Unselect*/ })
-      )
-    ).not.toBeNull();
+    expect(await helper.getButtonOrNull('edit')).toBeNull();
+    expect(await helper.getButtonOrNull(/Save \(1\)*/)).not.toBeNull();
+    expect(await helper.getButtonOrNull(/Unselect*/)).not.toBeNull();
 
     // unselect the same cell
     fixture.debugElement
       .query(By.css('app-board mat-card'))
       .triggerEventHandler('click');
 
-    await fixture.whenStable();
-
     expect(component.pendingSelectCount()).toBe(0);
-
-    expect(
-      await loader.getHarnessOrNull(MatButtonHarness.with({ text: 'edit' }))
-    ).not.toBeNull();
+    expect(await helper.getButtonOrNull('edit')).not.toBeNull();
   });
 
   it('Unselect should work', async () => {
@@ -97,15 +83,9 @@ describe('BoardPage', () => {
       .query(By.css('app-board mat-card'))
       .triggerEventHandler('click');
 
-    await fixture.whenStable();
-
     expect(component.pendingSelectCount()).toBe(1);
 
-    await (
-      await loader.getHarnessOrNull(
-        MatButtonHarness.with({ text: /Unselect*/ })
-      )
-    )?.click();
+    await helper.clickButton(/Unselect*/);
 
     expect(component.pendingSelectCount()).toBe(0);
   });
@@ -116,13 +96,7 @@ describe('BoardPage', () => {
       .slice(0, 3)
       .forEach((c) => c.triggerEventHandler('click'));
 
-    await fixture.whenStable();
-
-    expect(
-      await loader.getHarnessOrNull(
-        MatButtonHarness.with({ text: /Save \(3\)*/ })
-      )
-    ).not.toBeNull();
+    expect(await helper.getButtonOrNull(/Save \(3\)*/)).not.toBeNull();
   });
 
   describe('Color of board cell should change after save to', () => {
@@ -147,31 +121,25 @@ describe('BoardPage', () => {
 
       expect(
         fixture.debugElement.queryAll(By.css(boardSelector + ' .bg-blue'))
-          .length
-      ).toBe(clickFirstX);
+      ).toHaveSize(clickFirstX);
 
       expect(
         fixture.debugElement.queryAll(
           By.css(`${boardSelector} ${endColorClass}`)
-        ).length
-      ).toBe(0);
+        )
+      ).toHaveSize(0);
 
-      await (
-        await loader.getHarnessOrNull(MatButtonHarness.with({ text: /Save */ }))
-      )?.click();
-
-      await fixture.whenStable();
+      await helper.saveSelected();
 
       expect(
         fixture.debugElement.queryAll(By.css(boardSelector + ' .bg-blue'))
-          .length
-      ).toBe(0);
+      ).toHaveSize(0);
 
       expect(
         fixture.debugElement.queryAll(
           By.css(`${boardSelector} ${endColorClass}`)
-        ).length
-      ).toBe(clickFirstX);
+        )
+      ).toHaveSize(clickFirstX);
     }
 
     it('yellow if cell is not in bingo pattern in grid view', async () => {
@@ -193,29 +161,17 @@ describe('BoardPage', () => {
 
   describe('During editing', () => {
     beforeEach(async () => {
-      await (
-        await loader.getHarness(MatButtonHarness.with({ text: 'edit' }))
-      ).click();
+      await helper.editBoard();
     });
 
     it('edit button should toggle to save and cancel', async () => {
-      expect(
-        await loader.getHarnessOrNull(
-          MatButtonHarness.with({ text: /Cancel */ })
-        )
-      ).not.toBeNull();
+      expect(await helper.getButtonOrNull('edit')).toBeNull();
+      expect(await helper.getButtonOrNull(/Cancel */)).not.toBeNull();
+      expect(await helper.getButtonOrNull(/Save */)).not.toBeNull();
 
-      expect(
-        await loader.getHarnessOrNull(MatButtonHarness.with({ text: /Save */ }))
-      ).not.toBeNull();
+      await helper.clickButton(/Cancel */);
 
-      await (
-        await loader.getHarness(MatButtonHarness.with({ text: /Cancel */ }))
-      ).click();
-
-      expect(
-        await loader.getHarnessOrNull(MatButtonHarness.with({ text: 'edit' }))
-      ).not.toBeNull();
+      expect(await helper.getButtonOrNull('edit')).not.toBeNull();
     });
 
     it("selecting delete should switch the save label to 'delete'", async () => {
@@ -225,15 +181,20 @@ describe('BoardPage', () => {
         )
       ).check();
 
-      expect(
-        await loader.getHarnessOrNull(MatButtonHarness.with({ text: /Save */ }))
-      ).toBeNull();
+      expect(await helper.getButtonOrNull(/Save */)).toBeNull();
+      expect(await helper.getButtonOrNull(/Delete */)).not.toBeNull();
+    });
 
-      expect(
-        await loader.getHarnessOrNull(
-          MatButtonHarness.with({ text: /Delete */ })
+    it('clicking delete should delete the board and navigate the user away from the page', async () => {
+      await (
+        await loader.getHarness(
+          MatCheckboxHarness.with({ label: 'Delete board' })
         )
-      ).not.toBeNull();
+      ).check();
+      const navigateSpy = spyOn((component as any).router, 'navigate');
+
+      await helper.clickButton(/Delete */);
+      expect(navigateSpy).toHaveBeenCalledOnceWith(['board/create']);
     });
 
     it("clicking 'add deadline' should disable all inputs and buttons except cancel", async () => {
@@ -269,10 +230,389 @@ describe('BoardPage', () => {
     });
   });
 
+  describe('Completion tests', () => {
+    class DialogHelper {
+      dialog: MatDialogHarness | undefined;
+
+      async setActiveDialog() {
+        this.dialog = await rootLoader.getHarness(MatDialogHarness);
+      }
+
+      async getButton(text: string) {
+        return await this.dialog?.getHarness(
+          MatButtonHarness.with({ text: text })
+        );
+      }
+
+      async clickButton(text: string) {
+        await (await this.getButton(text))?.click();
+      }
+    }
+
+    let dialogHelper: DialogHelper;
+
+    beforeEach(() => {
+      dialogHelper = new DialogHelper();
+    });
+
+    it("Switching game mode to traditional when a bingo was reached should trigger the completion dialog if traditional mode wasn't completed yet", async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'todo',
+        Cells: BoardCalculations.getRowIndexes(9).map((i) => {
+          return new BoardCell(
+            {
+              Name: i.toString(),
+              CheckedDateUTC: i < 3 ? new Date() : null,
+            },
+            i,
+            3
+          );
+        }),
+      });
+
+      await helper.setBoard(board);
+      await helper.editBoard();
+      component.boardForm.controls.GameMode.setValue('traditional');
+
+      await helper.saveEdit();
+      await dialogHelper.setActiveDialog();
+
+      expect(dialogHelper.dialog).not.toBeNull();
+      expect(await dialogHelper.dialog!.getTitleText()).toEqual(
+        'Finishing the game'
+      );
+    });
+
+    it("Switching game mode to traditional when a bingo was reached shouldn't trigger the completion dialog if traditional mode was completed before", async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'todo',
+        TraditionalGame: {
+          CompletionDateUtc: new Date(),
+          CompletionDeadlineUtc: null,
+          CompletionReward: null,
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map((i) => {
+          return new BoardCell(
+            {
+              Name: i.toString(),
+              CheckedDateUTC: i < 3 ? new Date() : null,
+            },
+            i,
+            3
+          );
+        }),
+      });
+      await helper.setBoard(board);
+      await helper.editBoard();
+
+      component.boardForm.controls.GameMode.setValue('traditional');
+
+      await helper.saveEdit();
+
+      const warnDialog = await rootLoader.getHarnessOrNull(MatDialogHarness);
+      expect(warnDialog).toBeNull();
+    });
+
+    for (const testParam of [
+      { gameMode: 'traditional', selectIfLessThan: 3 } as const,
+      { gameMode: 'todo', selectIfLessThan: 10 } as const,
+    ]) {
+      it(`If a ${testParam.gameMode} game is about to complete after save, show the completion dialog`, async () => {
+        const board = new BoardInfo({
+          Visibility: 'local',
+          GameMode: testParam.gameMode,
+          Cells: BoardCalculations.getRowIndexes(9).map((i) => {
+            const c = new BoardCell(
+              {
+                Name: i.toString(),
+              },
+              i,
+              3
+            );
+            c.Selected = i < testParam.selectIfLessThan;
+            return c;
+          }),
+        });
+        await helper.setBoard(board);
+        await helper.saveSelected();
+        await dialogHelper.setActiveDialog();
+
+        expect(await dialogHelper.dialog!.getTitleText()).toEqual(
+          'Finishing the game'
+        );
+      });
+    }
+
+    it('The user should be able to modify the reward for the game mode in the completion dialog', async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'traditional',
+        TraditionalGame: {
+          CompletionDateUtc: null,
+          CompletionDeadlineUtc: null,
+          CompletionReward: 'an ice cream',
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map((i) => {
+          const c = new BoardCell(
+            {
+              Name: i.toString(),
+            },
+            i,
+            3
+          );
+          c.Selected = i < 3;
+          return c;
+        }),
+      });
+
+      const localSaveService = spyOn(
+        BingoLocalStorage,
+        'updateBoard'
+      ).and.returnValue(of(true));
+
+      await helper.setBoard(board);
+      await helper.saveSelected();
+      await dialogHelper.setActiveDialog();
+
+      const rewardInput = await dialogHelper.dialog!.getHarness(
+        MatInputHarness.with({ label: 'Completion reward' })
+      );
+      await rewardInput.setValue('a boba tea');
+
+      await dialogHelper.clickButton('Save');
+      await helper.wait();
+
+      expect(localSaveService).toHaveBeenCalledOnceWith(
+        jasmine.objectContaining({
+          TraditionalGame: {
+            CompletionDateUtc: null,
+            CompletionDeadlineUtc: null,
+            CompletionReward: 'a boba tea',
+          },
+        }),
+        jasmine.any(Object)
+      );
+    });
+
+    it('After completing a traditional game, the user should be able to continue in todo mode with one click in the dialog', async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'traditional',
+        TraditionalGame: {
+          CompletionDateUtc: null,
+          CompletionDeadlineUtc: null,
+          CompletionReward: null,
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map((i) => {
+          const c = new BoardCell(
+            {
+              Name: i.toString(),
+            },
+            i,
+            3
+          );
+          c.Selected = i < 3;
+          return c;
+        }),
+      });
+
+      await helper.setBoard(board);
+      await helper.saveSelected();
+      await dialogHelper.setActiveDialog();
+      await dialogHelper.clickButton('Save');
+      await helper.wait();
+      await fixture.whenStable();
+      expect(fixture.nativeElement.innerHTML).toContain('trophy');
+      await dialogHelper.setActiveDialog();
+
+      await dialogHelper.clickButton('Continue in TO-DO mode');
+      await helper.wait();
+      await fixture.whenStable();
+
+      expect(component.board().GameMode).toBe('todo');
+      expect(fixture.nativeElement.innerHTML).not.toContain('trophy');
+    });
+  });
+
+  describe('after completion', () => {
+    it('of a traditional game, the user should be able to switch to to-do mode during edit', async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'traditional',
+        TraditionalGame: {
+          CompletionDateUtc: new Date(),
+          CompletionDeadlineUtc: null,
+          CompletionReward: null,
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map(
+          (i) =>
+            new BoardCell(
+              {
+                Name: i.toString(),
+                CheckedDateUTC: new Date(),
+              },
+              i,
+              3
+            )
+        ),
+      });
+
+      await helper.setBoard(board);
+      await helper.editBoard();
+
+      const gameModeInput = await loader.getHarness(
+        MatSelectHarness.with({ label: 'Game mode' })
+      );
+      expect(await gameModeInput.isDisabled()).toBeFalse();
+      await gameModeInput.open();
+      expect(await (await gameModeInput.getOptions())[1].getText()).toContain(
+        'To-do'
+      );
+      expect(
+        await (await gameModeInput.getOptions())[1].isDisabled()
+      ).toBeFalse();
+    });
+
+    it("of a game mode, deadline and reward shouldn't be editable for it", async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'traditional',
+        TraditionalGame: {
+          CompletionDateUtc: new Date(),
+          CompletionDeadlineUtc: null,
+          CompletionReward: 'test',
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map(
+          (i) =>
+            new BoardCell(
+              {
+                Name: i.toString(),
+                CheckedDateUTC: i < 3 ? new Date() : null,
+              },
+              i,
+              3
+            )
+        ),
+      });
+
+      await helper.setBoard(board);
+      await helper.editBoard();
+
+      const rewardInput = await loader.getHarnessOrNull(
+        MatInputHarness.with({ label: 'Completion reward' })
+      );
+      expect(await rewardInput).toBeNull();
+      expect(fixture.nativeElement.innerHTML).toContain('Completion reward');
+
+      expect(
+        await (
+          await loader.getHarnessOrNull(
+            MatButtonHarness.with({ selector: "[aria-label='Add deadline'" })
+          )
+        )?.isDisabled()
+      ).toBeTrue();
+    });
+
+    it('of a game mode, deadline and reward inputs should appear once game mode is switched to a non-completed one', async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'traditional',
+        TraditionalGame: {
+          CompletionDateUtc: new Date(),
+          CompletionDeadlineUtc: null,
+          CompletionReward: 'test',
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map(
+          (i) =>
+            new BoardCell(
+              {
+                Name: i.toString(),
+                CheckedDateUTC: i < 3 ? new Date() : null,
+              },
+              i,
+              3
+            )
+        ),
+      });
+
+      await helper.setBoard(board);
+      await helper.editBoard();
+      const gameModeInput = await loader.getHarness(
+        MatSelectHarness.with({ label: 'Game mode' })
+      );
+      await gameModeInput.open();
+      await (await gameModeInput.getOptions())[1].click();
+
+      const rewardInput = await loader.getHarnessOrNull(
+        MatInputHarness.with({ label: 'Completion reward' })
+      );
+      expect(await rewardInput).not.toBeNull();
+
+      expect(
+        await (
+          await loader.getHarnessOrNull(
+            MatButtonHarness.with({ selector: "[aria-label='Add deadline'" })
+          )
+        )?.isDisabled()
+      ).toBeFalse();
+
+      await rewardInput?.setValue('todo reward');
+      await helper.saveEdit();
+
+      expect(component.board().GameMode).toBe('todo');
+      expect(component.board().TraditionalGame.CompletionReward).toBe('test');
+      expect(component.board().TodoGame.CompletionReward).toBe('todo reward');
+    });
+  });
+
   // TODO tests:
-  // check computed values and methods
-  // local visibility should store to localstorage, otherwise check that BingoApi is called
-  // delete
-  // update
-  // continueAfterBingo
+  // check icons in case the toolbar is here to stay
+  // save tests with BingoApi
 });
+
+class Helper {
+  private fixture;
+  private loader;
+
+  constructor(fixture: ComponentFixture<BoardPage>, loader: HarnessLoader) {
+    this.fixture = fixture;
+    this.loader = loader;
+  }
+  async wait(forMs: number = 80) {
+    await new Promise((resolve) => setTimeout(resolve, forMs));
+  }
+
+  async saveSelected() {
+    await (await this.getButton(/Save */)).click();
+  }
+
+  async saveEdit() {
+    await (await this.getButton('Save')).click();
+  }
+
+  async editBoard() {
+    await (await this.getButton('edit')).click();
+  }
+
+  async setBoard(board: BoardInfo) {
+    this.fixture.componentRef.setInput('board', board);
+  }
+
+  async getButton(text: string | RegExp) {
+    return await this.loader.getHarness(MatButtonHarness.with({ text: text }));
+  }
+
+  async clickButton(text: string | RegExp) {
+    await (
+      await this.loader.getHarness(MatButtonHarness.with({ text: text }))
+    ).click();
+  }
+
+  async getButtonOrNull(text: string | RegExp) {
+    return await this.loader.getHarnessOrNull(
+      MatButtonHarness.with({ text: text })
+    );
+  }
+}

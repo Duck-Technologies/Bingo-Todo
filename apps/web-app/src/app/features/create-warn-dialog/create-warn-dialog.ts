@@ -12,7 +12,7 @@ import { Message } from '../message/message';
 import { BoardInfo } from '../board/board';
 
 @Component({
-  selector: 'app-save-warn-dialog',
+  selector: 'app-create-warn-dialog',
   imports: [
     MatButtonModule,
     MatDialogTitle,
@@ -21,12 +21,12 @@ import { BoardInfo } from '../board/board';
     MatDialogClose,
     Message,
   ],
-  templateUrl: './save-warn-dialog.html',
-  styleUrl: './save-warn-dialog.css',
+  templateUrl: './create-warn-dialog.html',
+  styleUrl: './create-warn-dialog.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SaveWarnDialog {
-  readonly dialogRef = inject(MatDialogRef<SaveWarnDialog>);
+export class CreateWarnDialog {
+  readonly dialogRef = inject(MatDialogRef<CreateWarnDialog>);
   readonly data = inject<{ board: BoardInfo; overridesLocal: boolean }>(
     MAT_DIALOG_DATA
   );
