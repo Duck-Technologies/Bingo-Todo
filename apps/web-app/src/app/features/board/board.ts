@@ -104,6 +104,11 @@ export class BoardInfo<T = BoardCell> {
         this.TraditionalGame.CompletionDeadlineUtc =
           null;
     }
+
+    this.TraditionalGame.CompletionDateUtc = this.TraditionalGame.CompletionDateUtc ? new Date(this.TraditionalGame.CompletionDateUtc) : null;
+    this.TraditionalGame.CompletionDeadlineUtc = this.TraditionalGame.CompletionDeadlineUtc ? new Date(this.TraditionalGame.CompletionDeadlineUtc) : null;
+    this.TodoGame.CompletionDateUtc = this.TodoGame.CompletionDateUtc ? new Date(this.TodoGame.CompletionDateUtc) : null;
+    this.TodoGame.CompletionDeadlineUtc = this.TodoGame.CompletionDeadlineUtc ? new Date(this.TodoGame.CompletionDeadlineUtc) : null;
   }
 }
 

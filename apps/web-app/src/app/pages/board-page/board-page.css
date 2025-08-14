@@ -11,8 +11,13 @@
     max-height: 50cqh;
   }
 
+  app-board-history {
+    width: min(100cqw, 35.5rem);
+    overflow: auto;
+  }
+
   img {
-    width: 20px;
+    width: 24px;
     height: 20px;
   }
 
@@ -35,6 +40,8 @@
   }
 
   section.edit {
+    align-self: center;
+    width: min(100cqw, 35.5rem);
     flex-direction: column;
     gap: 1rem;
 
@@ -83,16 +90,5 @@
 
   .trophy {
     --mat-icon-color: gold;
-  }
-
-  div.gradient {
-    width: 100px;
-    height: 100px;
-    background-image: conic-gradient(
-      hsl(from var(--green-primary) h s calc(l + 10)) var(--chart-green, 0deg),
-      var(--yellow-primary) 0 var(--chart-yellow, 0deg),
-      hsl(from var(--blue-primary) h s calc(l + 5)) 0 var(--chart-blue, 0deg),
-      #74777f 0 360deg
-    );
   }
 }

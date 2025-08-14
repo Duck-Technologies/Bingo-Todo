@@ -70,6 +70,19 @@ mat-stepper.no-space-on-last-step {
   --green-primary: #027333;
   --blue-primary: #00458f;
 
+  @include mat.sidenav-overrides(
+    (
+      container-background-color: light-dark(#f2f4f7, var(--mat-sys-background)),
+    )
+  );
+
+  @include mat.card-overrides(
+    (
+      elevated-container-color:
+        light-dark(white, var(--mat-sys-surface-container-low)),
+    )
+  );
+
   @include mat.toolbar-overrides(
     (
       container-background-color: #00458f,

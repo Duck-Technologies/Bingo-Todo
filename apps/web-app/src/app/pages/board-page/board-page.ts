@@ -28,6 +28,8 @@ import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-ho
 import { MatDialog } from '@angular/material/dialog';
 import { CompletionDialog } from '../../features/completion-warn-dialog/completion-dialog';
 import { EMPTY, map, Observable, of, pipe, switchMap, tap } from 'rxjs';
+import { BoardHistory } from "../../features/board-history/board-history";
+import { ProgressCircle } from '../../features/progress-circle/progress-circle';
 
 @Component({
   selector: 'app-board-page',
@@ -47,7 +49,9 @@ import { EMPTY, map, Observable, of, pipe, switchMap, tap } from 'rxjs';
     DeadlineRewardForm,
     DeadlineHourglass,
     DatePipe,
-  ],
+    BoardHistory,
+    ProgressCircle
+],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,13 +67,13 @@ export class BoardPage {
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
-  public readonly editMode = signal(false);
+  public readonly displayMode = signal<'board' | 'edit' | 'history'>('board');
   public readonly cells = linkedSignal(() => this.board().Cells);
   public readonly gridMode = signal<'grid' | 'list'>('grid');
   public readonly boardPreviewMode = computed(() =>
     this.gridMode() === 'list'
       ? 'indicator'
-      : this.goalReached() || this.editMode()
+      : this.goalReached() || this.displayMode() !== 'board'
       ? 'preview'
       : null
   );
@@ -103,7 +107,7 @@ export class BoardPage {
   public readonly doDelete = model(false);
 
   public cancelChanges() {
-    this.editMode.set(false);
+    this.displayMode.set('board');
     this.doDelete.set(false);
   }
 
@@ -111,7 +115,7 @@ export class BoardPage {
     this.boardForm.reset();
     this.boardForm.enable();
     this.boardForm.patchValue(this.board());
-    this.editMode.set(true);
+    this.displayMode.set('edit');
   }
 
   public saveChanges() {
@@ -143,11 +147,12 @@ export class BoardPage {
       } else {
         // this.bingoApi.updateBoard(this.board().Id, formData).subscribe();
       }
-      this.editMode.set(false);
+      this.displayMode.set('board');
     }
   }
 
   public saveSelected() {
+    const saveDate = new Date();
     const updatedBoard = new BoardInfo({
       ...this.board(),
       Cells: this.cells().map((c, idx) => {
@@ -159,7 +164,7 @@ export class BoardPage {
           ) as number
         );
         if (c.Selected) {
-          cell.CheckedDateUTC = new Date();
+          cell.CheckedDateUTC = saveDate;
         }
 
         return cell;
@@ -182,6 +187,10 @@ export class BoardPage {
         // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
       }
     }
+  }
+
+  public toggleBoardHistoryDisplay() {
+    this.displayMode.set(this.displayMode() === 'history' ? 'board' : 'history');
   }
 
   public unselect() {
@@ -277,7 +286,7 @@ export class BoardPage {
             ).pipe(
               tap((_) => {
                 this.boardForm.reset();
-                this.editMode.set(false);
+                this.displayMode.set('board');
               }),
               map((_) => board)
             );

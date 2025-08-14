@@ -37,7 +37,7 @@
       Save ({{ pendingSelectCount() }})
       <span class="cdk-visually-hidden">selected tasks as done</span>
     </button>
-    } @else if (!editMode()) {
+    } @else if (displayMode() !== 'edit') {
     <button
       matIconButton
       (click)="editBoard()"
@@ -59,7 +59,7 @@
   </menu>
 </div>
 
-@if (editMode()) {
+@if (displayMode() === 'edit') {
 <section class="edit" aria-label="Game actions and game edit form">
   <app-board-details-form
     [isLoggedIn]="board().Visibility !== 'local'"
@@ -100,15 +100,17 @@
 }
 
 <div class="board-container">
-  @if (!editMode()) {
+  @if (displayMode() !== 'edit') {
   <ng-container *ngTemplateOutlet="boardInfo"></ng-container>
-  }
+  } @if (displayMode() === 'history') {
+  <app-board-history [board]="board()"></app-board-history>
+  } @if (displayMode() !== 'history') {
   <section aria-label="Board">
     <app-board [(cards)]="cells" [previewMode]="boardPreviewMode()"></app-board>
     @if (gridMode() === 'list') {
     <app-board-list-view
       [(cards)]="cells"
-      [disabled]="editMode() || goalReached()"
+      [disabled]="displayMode() !== 'board' || goalReached()"
       [groupBy]="groupingOption"></app-board-list-view>
     <div>
       Group by
@@ -120,6 +122,7 @@
     </div>
     }
   </section>
+  }
 </div>
 
 <ng-template #boardInfo>
@@ -160,30 +163,17 @@
           [matTooltip]="'Goal reached on ' + (board().CompletionDateUtc | date : 'MMM dd, yyyy')"
           >trophy</mat-icon>
       } @else { 
-        <svg
-          role="img"
-          [attr.aria-label]="boardStats().checkedCells + '/' + totalCells + ' tasks marked as done'"
-          matTooltip="{{ boardStats().checkedCells + '/' + totalCells + ' tasks marked as done' }}"
-          viewBox="0 0 100 100"
-          width="24px"
-          height="24px"
-          style="--chart-green: {{ (boardStats().bingoCells / totalCells) * 360 }}deg;
-                    --chart-yellow: {{ (boardStats().checkedCells / totalCells) * 360 }}deg;
-                    --chart-blue: {{ ((boardStats().checkedCells + pendingSelectCount()) / totalCells) * 360 }}deg">
-          <defs>
-            <mask id="smallmask">
-              <circle cx="50" cy="50" r="45" fill="white" />
-              <circle cx="50" cy="50" r="30" />
-            </mask>
-          </defs>
-
-          <foreignObject x="0" y="0" width="100" height="100" mask="url(#smallmask)">
-            <div class="gradient" xmlns="http://www.w3.org/1999/xhtml"></div>
-          </foreignObject>
-        </svg>
+        <app-progress-circle 
+        [attr.aria-label]="boardStats().checkedCells + '/' + totalCells + ' tasks marked as done'"
+        [matTooltip]="boardStats().checkedCells + '/' + totalCells + ' tasks marked as done'"
+        [total]="totalCells"
+        [green]="boardStats().bingoCells"
+        [yellow]="boardStats().checkedCells"
+        [blue]="boardStats().checkedCells + pendingSelectCount()">
+      </app-progress-circle>
       }
 
-      <button matIconButton disabled (click)="(null)" aria-hidden="true">
+      <button matIconButton (click)="toggleBoardHistoryDisplay()" [disabled]="!!pendingSelectCount()" aria-hidden="true">
         <mat-icon>history</mat-icon>
       </button>
     </div>
@@ -193,6 +183,7 @@
         [matTooltip]="buttonLabel"
         attr.aria-label="{{ buttonLabel }}"
         matIconButton
+        [disabled]="displayMode() === 'history'"
         (click)="gridMode() === 'grid' ? gridMode.set('list') : gridMode.set('grid')">
         <mat-icon>{{ gridMode() === "grid" ? "list" : "grid_on" }}</mat-icon>
       </button>

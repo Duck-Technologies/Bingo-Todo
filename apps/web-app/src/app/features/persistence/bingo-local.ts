@@ -86,7 +86,7 @@ export class BingoLocalStorage {
       calculationService
     );
 
-    BingoLocalStorage.calculateCompletionAndFirstBingoDates(updatedBoard);
+    BingoLocalStorage.setCompletionDateIfApplicable(updatedBoard);
 
     localStorage.setItem(
       BingoLocalStorage.LocalStorageBoardKey,
@@ -96,30 +96,23 @@ export class BingoLocalStorage {
     return of(true);
   }
 
-  private static calculateCompletionAndFirstBingoDates(board: BoardInfo) {
-    const sortedCells = BingoLocalStorage.cellsToCheckedDateSorted(board.Cells);
-
+  private static setCompletionDateIfApplicable(board: BoardInfo) {
     if (
       board.GameMode === 'traditional' &&
-      !board.TraditionalGame.CompletionDateUtc
+      !board.TraditionalGame.CompletionDateUtc &&
+      board.Cells.find((c) => c.IsInBingoPattern)
     ) {
-      board.TraditionalGame.CompletionDateUtc =
-        sortedCells
-          .filter((b) => b.IsInBingoPattern)
-          .at(
-            (BoardCalculations.getBoardDimensionFromCellCount(
-              board.Cells.length
-            ) as number) - 1
-          )?.CheckedDateUTC || null;
+      board.TraditionalGame.CompletionDateUtc = new Date();
     }
 
     if (
       board.GameMode === 'todo' &&
       !board.TodoGame.CompletionDateUtc &&
-      !board.Cells.find((c) => !c.CheckedDateUTC)
+      board.Cells.every((c) => c.IsInBingoPattern)
     ) {
-      board.TodoGame.CompletionDateUtc =
-        sortedCells.at(board.Cells.length - 1)?.CheckedDateUTC || null;
+      board.TodoGame.CompletionDateUtc = new Date(
+        Math.max(...board.Cells.map((c) => c.CheckedDateUTC!.getTime()))
+      );
     }
   }
 
