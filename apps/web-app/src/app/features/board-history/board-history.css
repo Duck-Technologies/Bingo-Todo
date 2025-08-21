@@ -37,12 +37,12 @@
     }
 
     mat-card-content {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
-    mat-card.cell-check {
+    mat-card.margin-left {
       margin-left: 1rem;
     }
 
@@ -57,7 +57,18 @@
       gap: 0.5rem;
       padding-bottom: 2rem;
 
-      .entry {
+      .entry:has(.date) {
+        display: grid;
+        grid-template-columns: fit-content(calc(100% - 100px)) 1fr;
+
+        .date {
+          padding-left: 1rem;
+          margin-top: 0.1rem;
+          margin-right: 0;
+        }
+      }
+
+      .entry:not(:has(.date)) {
         display: flex;
         align-items: center;
         gap: 0.3rem;
@@ -69,19 +80,19 @@
           height: fit-content;
           width: fit-content;
         }
-
-        &:has(.date) {
-          flex-wrap: wrap;
-        }
       }
     }
   }
 
   .date {
+    display: flex;
     width: fit-content;
     margin-left: auto;
     margin-right: 3px;
     color: var(--mat-sys-secondary);
     font-size: smaller;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.3rem;
   }
 }

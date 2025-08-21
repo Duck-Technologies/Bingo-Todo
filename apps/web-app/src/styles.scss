@@ -83,6 +83,10 @@ mat-stepper.no-space-on-last-step {
     )
   );
 
+  mat-toolbar {
+    @include mat.toolbar-density(-3);
+  }
+
   @include mat.toolbar-overrides(
     (
       container-background-color: #00458f,

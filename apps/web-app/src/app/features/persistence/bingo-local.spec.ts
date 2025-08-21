@@ -33,8 +33,8 @@ describe('BingoLocalStorage', () => {
   //   board.Cells[2].CheckedDateUTC = calculateDateFromNow(-12);
   //   BingoLocalStorage.updateBoard(board, calculationService);
 
-  //   expect(board.TraditionalGame.CompletionDateUtc).toEqual(firstbingoDate);
-  //   expect(board.TodoGame.CompletionDateUtc).toBeNull();
+  //   expect(board.TraditionalGame.CompletedAtUtc).toEqual(firstbingoDate);
+  //   expect(board.TodoGame.CompletedAtUtc).toBeNull();
   // });
 
   it('shouldn\'t set completion date while saving an in-progress todo board', () => {
@@ -60,8 +60,8 @@ describe('BingoLocalStorage', () => {
     board.Cells[2].CheckedDateUTC = calculateDateFromNow(-12);
     BingoLocalStorage.updateBoard(board, calculationService);
 
-    expect(board.TodoGame.CompletionDateUtc).toBeNull();
-    expect(board.TraditionalGame.CompletionDateUtc).toBeNull();
+    expect(board.TodoGame.CompletedAtUtc).toBeNull();
+    expect(board.TraditionalGame.CompletedAtUtc).toBeNull();
   });
 
   it('should calculate completion date while saving a completed todo board', () => {
@@ -82,13 +82,13 @@ describe('BingoLocalStorage', () => {
       Visibility: 'local',
     });
 
-    const firstbingoDate = calculateDateFromNow(-10);
-    board.Cells[0].CheckedDateUTC = firstbingoDate;
+    board.Cells[0].CheckedDateUTC = calculateDateFromNow(-10);
     board.Cells[1].CheckedDateUTC = calculateDateFromNow(-11);
     board.Cells[2].CheckedDateUTC = calculateDateFromNow(-12);
     BingoLocalStorage.updateBoard(board, calculationService);
 
-    expect(board.TraditionalGame.CompletionDateUtc).toBeNull();
-    expect(board.TodoGame.CompletionDateUtc).toEqual(completionDate);
+    expect(board.TraditionalGame.CompletedAtUtc).toBeNull();
+    expect(board.TodoGame.CompletedAtUtc).not.toBeNull();
+    expect(board.TodoGame.CompletedAtUtc?.getTime()).toBeGreaterThanOrEqual(completionDate.getTime());
   });
 });

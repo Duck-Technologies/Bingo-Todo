@@ -25,13 +25,15 @@
 
   mat-sidenav-container {
     flex: 1;
+    // without this on the board page text can clip through between a slight crack between the toolbar and the sticky header
+    // at least on chrome device emulation
+    top: -1px;
 
     mat-sidenav-content {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       box-sizing: border-box;
-      padding: 0.5rem;
     }
   }
 }

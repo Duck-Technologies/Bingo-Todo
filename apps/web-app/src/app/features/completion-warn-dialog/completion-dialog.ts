@@ -46,7 +46,7 @@ export class CompletionDialog {
   );
 
   private static generateEndStateMessage(board: BoardInfo) {
-    if (!board.CompletionDateUtc) {
+    if (!board.CompletedAtUtc) {
       return '';
     }
 
@@ -54,7 +54,7 @@ export class CompletionDialog {
 
     if (
       !!board.CompletionDeadlineUtc &&
-      new Date(board.CompletionDateUtc) <= new Date(board.CompletionDeadlineUtc)
+      new Date(board.CompletedAtUtc) <= new Date(board.CompletionDeadlineUtc)
     ) {
       message += ' before the deadline!';
     } else {

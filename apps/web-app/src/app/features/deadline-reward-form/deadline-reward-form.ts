@@ -74,8 +74,8 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
   public readonly canOnlyRemove$ = computed(() =>
     this.createMode()
       ? of(false)
-      : this.gameModeForm().controls.CompletionDateUtc.valueChanges.pipe(
-          startWith(this.gameModeForm().getRawValue().CompletionDateUtc),
+      : this.gameModeForm().controls.CompletedAtUtc.valueChanges.pipe(
+          startWith(this.gameModeForm().getRawValue().CompletedAtUtc),
           map((d) => !!d)
         )
   );
@@ -111,8 +111,8 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
           // as long as the completion date can't change while this component is rendered
           // this is fine. If it can change, this subscription should subscribe to their
           // valuechanges
-          !this.boardForm.getRawValue().TodoGame.CompletionDateUtc &&
-          !this.boardForm.getRawValue().TraditionalGame.CompletionDateUtc
+          !this.boardForm.getRawValue().TodoGame.CompletedAtUtc &&
+          !this.boardForm.getRawValue().TraditionalGame.CompletedAtUtc
       ),
       switchMap((form) => {
         return form.valueChanges.pipe(

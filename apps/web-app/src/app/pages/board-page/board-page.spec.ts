@@ -46,6 +46,8 @@ describe('BoardPage', () => {
       (i) => new BoardCell({ Name: i.toString() }, i, 3)
     );
 
+    BingoLocalStorage.createBoard(board);
+
     fixture.componentRef.setInput('board', board);
     fixture.autoDetectChanges();
   });
@@ -289,7 +291,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'todo',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: null,
         },
@@ -350,7 +353,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: null,
+          CompletedAtUtc: null,
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: 'an ice cream',
         },
@@ -362,15 +366,19 @@ describe('BoardPage', () => {
             i,
             3
           );
-          c.Selected = i < 3;
+          c.Selected = false;
           return c;
         }),
       });
 
+      BingoLocalStorage.createBoard(board);
+
+      board.Cells.slice(0, 3).forEach(c => c.Selected = true);
+
       const localSaveService = spyOn(
         BingoLocalStorage,
-        'updateBoard'
-      ).and.returnValue(of(true));
+        'saveSelection'
+      ).and.returnValue(of(board));
 
       await helper.setBoard(board);
       await helper.saveSelected();
@@ -387,11 +395,13 @@ describe('BoardPage', () => {
       expect(localSaveService).toHaveBeenCalledOnceWith(
         jasmine.objectContaining({
           TraditionalGame: {
-            CompletionDateUtc: null,
+            CompletedAtUtc: null,
+            CompletedByGameModeSwitch: false,
             CompletionDeadlineUtc: null,
             CompletionReward: 'a boba tea',
           },
         }),
+        [0, 1, 2],
         jasmine.any(Object)
       );
     });
@@ -401,7 +411,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: null,
+          CompletedAtUtc: null,
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: null,
         },
@@ -442,7 +453,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: null,
         },
@@ -480,7 +492,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: 'test',
         },
@@ -520,7 +533,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: 'test',
         },

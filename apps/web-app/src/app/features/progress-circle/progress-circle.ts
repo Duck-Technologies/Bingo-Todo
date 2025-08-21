@@ -17,5 +17,5 @@ export class ProgressCircle {
   public readonly green = input<number>(0);
   public readonly blue = input<number>(0);
   public readonly yellow = input<number>(0);
-  public safeTotal = computed(() => this.total() ?? 1);
+  public readonly safeTotal = computed(() => this.total() ?? 1);
 }

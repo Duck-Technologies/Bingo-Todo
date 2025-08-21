@@ -1,56 +1,23 @@
 @for (group of history(); track index; let index = $index; let last = $last; let first = $first) {
 <div class="group">
   <div class="separator">
-    <!-- prettier-ignore -->
     @if (!first) {
     <div class="connector"></div>
     }
 
-    <!-- prettier-ignore -->
-    @switch (group.icon) {
-    <!-- prettier-ignore -->
-    @case ("progressBar") {
-    <app-progress-circle
-      [total]="board().Cells.length"
-      [green]="group.progress.green"
-      [yellow]="group.progress.yellow">
-    </app-progress-circle>
-    } @case ("firstStrike") {
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      height="24px"
-      viewBox="0 -960 960 960"
-      width="24px"
-      fill="var(--mat-sys-outline)">
-      <path
-        d="M480-160Q513-160 536.5-183.5T560-240 536.5-296.5 480-320 423.5-296.5 400-240 423.5-183.5 480-160ZM720-160Q753-160 776.5-183.5T800-240 776.5-296.5 720-320 663.5-296.5 640-240 663.5-183.5 720-160ZM720-400Q753-400 776.5-423.5T800-480 776.5-536.5 720-560 663.5-536.5 640-480 663.5-423.5 720-400ZM480-640Q513-640 536.5-663.5T560-720 536.5-776.5 480-800 423.5-776.5 400-720 423.5-663.5 480-640ZM240-640Q273-640 296.5-663.5T320-720 296.5-776.5 240-800 183.5-776.5 160-720 183.5-663.5 240-640ZM240-400Q273-400 296.5-423.5T320-480 296.5-536.5 240-560 183.5-536.5 160-480 183.5-423.5 240-400Z" />
-      <path
-        fill="#00b04c"
-        d="M240-160Q273-160 296.5-183.5T321-241Q322-254.5 318-267.5L459-402Q480-396 500.5-401.5T537-423Q552-438 557.5-459T558-501L700-642 720-640Q753-640 776.5-663.5T800-720 776.5-776.5 720-800 663.5-776.5 640-720V-710Q640-705 642-700L500-558Q479-563 458.5-557.5T423-537 402.5-501.5 402-460L260-318Q255-320 250-320H240Q207-320 183.5-296.5T160-240 183.5-183.5 240-160Z" />
-    </svg>
-    }
+    <ng-container *ngTemplateOutlet="iconTemplate; context: {$implicit: group}"></ng-container>
 
-    <!-- prettier-ignore -->
-    @default {
-    <mat-icon
-      fontSet="material-symbols-outlined"
-      [class.trophy]="group.icon === 'trophy'"
-      >{{group.icon}}</mat-icon
-    >
-    } }
-
-    <!-- prettier-ignore -->
     @if (!last) {
     <div class="connector"></div>
     }
   </div>
 
   <div class="event">
-    @for (entry of group.events; track entryIndex; let entryIndex = $index; let last = $last) { @let atSameTimeAsNext
-    = entry.date?.toISOString()?.slice(0, -8) === group.events.at(entryIndex +
-    1)?.date?.toISOString()?.slice(0, -8);
-    <mat-card
-      [class.cell-check]="entry.type === EventType.CellCheck">
+    <!-- prettier-ignore -->
+    @let lastEventSameMinuteAsGroup = group.events.at(-1)?.date?.toISOString()?.slice(0, -8) === group.date.slice(0, -8);
+    @for (entry of group.events; track entryIndex; let entryIndex = $index; let last = $last) {
+      @let changedToTraditionalEntry = entry.type === EventType.GameModeChange && entry.label.includes('traditional');
+    <mat-card [class.margin-left]="entry.type === EventType.CellCheck || changedToTraditionalEntry">
       <mat-card-content>
         <div class="entry">
           @if (entry.type === EventType.CellCheck) {
@@ -58,40 +25,47 @@
           <span class="cdk-visually-hidden">Checked </span>
           }
 
-          {{entry.label}} @if (entry.type === EventType.GameModeCompletion && entry.props.deadline
-          && entry.props.beforeDeadline) { before the deadline }
+          <span>{{entry.label}}</span>
 
-          <!-- prettier-ignore -->
-          @if (entry.type !== EventType.CellCheck && entry.type !== EventType.Progress) {
+          @if (entry.type !== EventType.CellCheck && !changedToTraditionalEntry && !(entry.type ===
+          EventType.Progress && !lastEventSameMinuteAsGroup) ) {
           <div class="date">
-            {{(group.date | intlDate : {dateStyle: 'medium', timeStyle: 'short'})}}
+            <span>{{(group.date | intlDate : {dateStyle: 'medium'})}}</span>
+            <span>{{(group.date | intlDate : {timeStyle: 'short', hour12: false})}}</span>
           </div>
           }
         </div>
 
-        @if (entry.type === EventType.GameModeCompletion && entry.props.reward) {
-
+        @if (entry.type === EventType.GameModeCompletion) {
         <div class="entry">
-          <mat-icon fontSet="material-symbols-outlined" [matTooltip]="'Reward'">star</mat-icon>
-          <span class="cdk-visually-hidden">earning </span>
-          <span>{{entry.props.reward}}</span>
+          <mat-icon fontSet="material-symbols-outlined">apps</mat-icon>
+          <span>In {{entry.props.gameMode === 'todo' ? 'TO-DO' : 'traditional'}} mode</span>
         </div>
 
-        } @if (entry.type === EventType.GameModeCompletion && entry.props.deadline &&
-        entry.props.beforeDeadline) {
+        <!-- prettier-ignore -->
+        @if (entry.props.reward) {
         <div class="entry">
-          <mat-icon fontSet="material-symbols-outlined" [matTooltip]="'Deadline'"
-            >hourglass</mat-icon
-          >
-          <span class="cdk-visually-hidden">deadline was </span>
-          <span
-            >{{(entry.props.deadline | intlDate : {dateStyle: 'medium', timeStyle: 'short'})}}</span
-          >
+          <mat-icon fontSet="material-symbols-outlined">star</mat-icon>
+          <span>Reward: {{entry.props.reward}}</span>
         </div>
         }
+
+        <!-- prettier-ignore -->
+        @if (entry.props.deadline && entry.props.beforeDeadline) {
+        <div class="entry">
+          <mat-icon fontSet="material-symbols-outlined">hourglass</mat-icon>
+          <span
+            >Before the deadline of
+            {{(entry.props.deadline | intlDate : {dateStyle: 'medium', timeStyle: 'short'})}}</span
+          >
+        </div>
+        } }
       </mat-card-content>
     </mat-card>
-    @if (!atSameTimeAsNext && group.icon === icon[EventType.Progress]) {
+
+    <!-- prettier-ignore -->
+    @let atSameTimeAsNext = entry.date?.toISOString()?.slice(0, -8) === group.events.at(entryIndex + 1)?.date?.toISOString()?.slice(0, -8);
+    @if (!lastEventSameMinuteAsGroup && !atSameTimeAsNext && group.mainEventType === EventType.Progress) {
     <div class="date" [class.extra-bottom-margin]="!atSameTimeAsNext && !last">
       {{(entry.date | intlDate : {dateStyle: 'medium', timeStyle: 'short'})}}
     </div>
@@ -99,3 +73,41 @@
   </div>
 </div>
 }
+
+<ng-template #iconTemplate let-group>
+  <!-- prettier-ignore -->
+  @switch (group.icon) {
+  <!-- prettier-ignore -->
+  @case ("progressBar") {
+  <app-progress-circle
+    [total]="board().Cells.length"
+    [green]="group.progress.green"
+    [yellow]="group.progress.yellow">
+  </app-progress-circle>
+  }
+
+  <!-- prettier-ignore -->
+  @case ("firstStrike") {
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height="24px"
+    viewBox="0 -960 960 960"
+    width="24px"
+    fill="var(--mat-sys-outline)">
+    <path
+      d="M480-160Q513-160 536.5-183.5T560-240 536.5-296.5 480-320 423.5-296.5 400-240 423.5-183.5 480-160ZM720-160Q753-160 776.5-183.5T800-240 776.5-296.5 720-320 663.5-296.5 640-240 663.5-183.5 720-160ZM720-400Q753-400 776.5-423.5T800-480 776.5-536.5 720-560 663.5-536.5 640-480 663.5-423.5 720-400ZM480-640Q513-640 536.5-663.5T560-720 536.5-776.5 480-800 423.5-776.5 400-720 423.5-663.5 480-640ZM240-640Q273-640 296.5-663.5T320-720 296.5-776.5 240-800 183.5-776.5 160-720 183.5-663.5 240-640ZM240-400Q273-400 296.5-423.5T320-480 296.5-536.5 240-560 183.5-536.5 160-480 183.5-423.5 240-400Z" />
+    <path
+      fill="#00b04c"
+      d="M240-160Q273-160 296.5-183.5T321-241Q322-254.5 318-267.5L459-402Q480-396 500.5-401.5T537-423Q552-438 557.5-459T558-501L700-642 720-640Q753-640 776.5-663.5T800-720 776.5-776.5 720-800 663.5-776.5 640-720V-710Q640-705 642-700L500-558Q479-563 458.5-557.5T423-537 402.5-501.5 402-460L260-318Q255-320 250-320H240Q207-320 183.5-296.5T160-240 183.5-183.5 240-160Z" />
+  </svg>
+  }
+
+  <!-- prettier-ignore -->
+  @default {
+  <mat-icon
+    fontSet="material-symbols-outlined"
+    [class.trophy]="group.icon === 'trophy'"
+    >{{group.icon}}</mat-icon
+  >
+  } }
+</ng-template>

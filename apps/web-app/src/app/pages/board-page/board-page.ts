@@ -7,7 +7,12 @@ import {
   model,
   signal,
 } from '@angular/core';
-import { Board, BoardCell, BoardInfo } from '../../features/board/board';
+import {
+  Board,
+  BoardCell,
+  BoardInfo,
+  copyCells,
+} from '../../features/board/board';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 import { Router } from '@angular/router';
@@ -27,8 +32,17 @@ import { BoardCalculations } from '../../features/calculations/board-calculation
 import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-hourglass';
 import { MatDialog } from '@angular/material/dialog';
 import { CompletionDialog } from '../../features/completion-warn-dialog/completion-dialog';
-import { EMPTY, map, Observable, of, pipe, switchMap, tap } from 'rxjs';
-import { BoardHistory } from "../../features/board-history/board-history";
+import {
+  EMPTY,
+  map,
+  Observable,
+  of,
+  pipe,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
+import { BoardHistory } from '../../features/board-history/board-history';
 import { ProgressCircle } from '../../features/progress-circle/progress-circle';
 
 @Component({
@@ -50,8 +64,8 @@ import { ProgressCircle } from '../../features/progress-circle/progress-circle';
     DeadlineHourglass,
     DatePipe,
     BoardHistory,
-    ProgressCircle
-],
+    ProgressCircle,
+  ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,8 +97,16 @@ export class BoardPage {
     this.cells().every((c) => c.IsInBingoPattern)
   );
 
-  public readonly goalReached = computed(
-    () => !!this.board().CompletionDateUtc
+  public readonly goalReached = computed(() => !!this.board().CompletedAtUtc);
+
+  public readonly traditionalOptionDisabled = computed(
+    () =>
+      !!this.board().TraditionalGame.CompletedAtUtc &&
+      !!this.cells().find(
+        (c) =>
+          c.CheckedDateUTC &&
+          c.CheckedDateUTC > this.board().TraditionalGame.CompletedAtUtc!
+      )
   );
 
   public readonly boardStats = computed(() => ({
@@ -126,8 +148,14 @@ export class BoardPage {
 
     // see the constructor of BoardInfo about setting fields to null in case of game mode switch
     // not allowing to change certain fields is the responsibility of the components displaying the inputs
+    const formValue = this.boardForm.getRawValue();
     const updatedBoard = new BoardInfo({
-      ...this.boardForm.getRawValue(),
+      ...formValue,
+      TraditionalGame: {
+        ...formValue.TraditionalGame,
+        CompletedByGameModeSwitch:
+          this.board().TraditionalGame.CompletedByGameModeSwitch,
+      },
       Cells: this.cells(),
     });
 
@@ -142,8 +170,16 @@ export class BoardPage {
       this.saveCompletion(updatedBoard).pipe(this.afterCompletion).subscribe();
     } else {
       if (this.isLocal()) {
-        BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
-        this.board.set(updatedBoard);
+        BingoLocalStorage.updateBoard(
+          updatedBoard,
+          this.calculationService
+        ).subscribe({
+          next: (board) => {
+            if (board !== false) {
+              this.board.set(updatedBoard);
+            }
+          },
+        });
       } else {
         // this.bingoApi.updateBoard(this.board().Id, formData).subscribe();
       }
@@ -152,37 +188,44 @@ export class BoardPage {
   }
 
   public saveSelected() {
-    const saveDate = new Date();
-    const updatedBoard = new BoardInfo({
-      ...this.board(),
-      Cells: this.cells().map((c, idx) => {
-        const cell = new BoardCell(
-          c,
-          idx,
-          BoardCalculations.getBoardDimensionFromCellCount(
-            this.cells().length
-          ) as number
-        );
+    const selectedIndexes = this.cells()
+      .map((c, idx) => {
         if (c.Selected) {
-          cell.CheckedDateUTC = saveDate;
+          return idx;
+        } else {
+          return null;
         }
-
-        return cell;
-      }),
-    });
+      })
+      .filter((i) => i !== null);
 
     const isCompleting = BoardPage.isCompleteAfterSave(
       this.board(),
-      updatedBoard.Cells,
+      copyCells(this.cells()).map((c) => {
+        if (c.Selected) {
+          c.CheckedDateUTC = new Date();
+        }
+        return c;
+      }),
       this.calculationService
     );
 
     if (isCompleting) {
-      this.saveCompletion(updatedBoard).pipe(this.afterCompletion).subscribe();
+      this.saveSelectionAndComplete(this.board(), selectedIndexes)
+        .pipe(this.afterCompletion)
+        .subscribe();
     } else {
       if (this.isLocal()) {
-        BingoLocalStorage.updateBoard(updatedBoard, this.calculationService);
-        this.board.set(updatedBoard);
+        BingoLocalStorage.saveSelection(
+          this.board(),
+          selectedIndexes,
+          this.calculationService
+        ).subscribe({
+          next: (board) => {
+            if (board != false) {
+              this.board.set(board);
+            }
+          },
+        });
       } else {
         // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
       }
@@ -190,7 +233,9 @@ export class BoardPage {
   }
 
   public toggleBoardHistoryDisplay() {
-    this.displayMode.set(this.displayMode() === 'history' ? 'board' : 'history');
+    this.displayMode.set(
+      this.displayMode() === 'history' ? 'board' : 'history'
+    );
   }
 
   public unselect() {
@@ -242,8 +287,23 @@ export class BoardPage {
 
     if (this.isLocal()) {
       this.board.set(updatedBoard);
-      BingoLocalStorage.updateBoard(this.board(), this.calculationService);
-      return of('Successful continue after bingo update');
+      return BingoLocalStorage.updateBoard(
+        this.board(),
+        this.calculationService
+      ).pipe(
+        tap((board) => {
+          if (board != false) {
+            this.board.set(updatedBoard);
+          }
+        }),
+        map((board) => {
+          if (!!board) {
+            return 'Successful continue after bingo update';
+          } else {
+            return 'Failed to switch game mode';
+          }
+        })
+      );
     } else {
       return of('Successful continue after bingo update');
       // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
@@ -284,11 +344,11 @@ export class BoardPage {
               board,
               this.calculationService
             ).pipe(
+              map((savedBoard) => (savedBoard === false ? null : savedBoard)),
               tap((_) => {
                 this.boardForm.reset();
                 this.displayMode.set('board');
-              }),
-              map((_) => board)
+              })
             );
           } else {
             // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
@@ -300,28 +360,89 @@ export class BoardPage {
     );
   }
 
+  private saveSelectionAndComplete(
+    board: BoardInfo,
+    selectedIndexes: number[]
+  ): Observable<BoardInfo<BoardCell> | null> {
+    // The deadline reward form uses the form to make some decisions, so if we don't do this
+    // the reward input might not show up (noticed while testing)
+    this.boardForm.reset();
+    this.boardForm.enable();
+    this.boardForm.patchValue(board);
+
+    const dialogRef = this.dialog.open(CompletionDialog, {
+      data: { board: board },
+    });
+
+    return dialogRef.afterClosed().pipe(
+      switchMap((result: undefined | string) => {
+        if (result !== undefined) {
+          const formValue = this.boardForm.getRawValue();
+          board.TodoGame.CompletionReward = formValue.TodoGame.CompletionReward;
+          board.TraditionalGame.CompletionReward =
+            formValue.TraditionalGame.CompletionReward;
+          board = new BoardInfo(board);
+
+          if (this.isLocal()) {
+            //TODO only update if reward changed
+            return BingoLocalStorage.updateBoard(
+              board,
+              this.calculationService
+            ).pipe(
+              switchMap((board) => {
+                if (board !== false) {
+                  return BingoLocalStorage.saveSelection(
+                    board,
+                    selectedIndexes,
+                    this.calculationService
+                  );
+                } else {
+                  return of(null);
+                }
+              })
+            );
+          } else {
+            // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+            return of(null); // should return board as well
+          }
+        }
+        return of(null);
+      }),
+      map((res) => {
+        if (!!res) {
+          return res;
+        } else {
+          return null;
+        }
+      })
+    );
+  }
+
   private static isCompleteAfterSave(
     board: BoardInfo,
     cells: BoardCell[],
     calculationService: BoardCalculations
   ) {
+    if (
+      !!board.TodoGame.CompletedAtUtc ||
+      (board.GameMode === 'traditional' &&
+        !!board.TraditionalGame.CompletedAtUtc)
+    ) {
+      return false;
+    }
+
+    if (cells.every((c) => !!c.CheckedDateUTC)) {
+      return true;
+    }
+
     const calculatedCells = BoardCalculations.calculateCellBingoState(
       JSON.parse(JSON.stringify(cells)),
       calculationService
     );
 
-    if (
-      !!board.TodoGame.CompletionDateUtc ||
-      (board.GameMode === 'traditional' &&
-        !!board.TraditionalGame.CompletionDateUtc)
-    ) {
-      return false;
-    }
-
     return (
-      (board.GameMode === 'traditional' &&
-        !!calculatedCells.find((c) => c.IsInBingoPattern)) ||
-      calculatedCells.every((c) => c.IsInBingoPattern)
+      board.GameMode === 'traditional' &&
+      !!calculatedCells.find((c) => c.IsInBingoPattern)
     );
   }
 }

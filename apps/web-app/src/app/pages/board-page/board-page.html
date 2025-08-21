@@ -14,13 +14,13 @@
 @let buttonLabel = 'Switch to ' + switchTo + ' view';
 @let totalCells = board().Cells.length;
 
-<div>
+<div class="header">
   <h1>
     @if (goalReached()) {
     <mat-icon
       fontSet="material-symbols-outlined"
       class="trophy"
-      [matTooltip]="'Goal reached on ' + (board().CompletionDateUtc | date : 'MMM dd, yyyy')"
+      [matTooltip]="'Goal reached on ' + (board().CompletedAtUtc | date : 'MMM dd, yyyy')"
       >trophy</mat-icon
     >
     }
@@ -37,7 +37,7 @@
       Save ({{ pendingSelectCount() }})
       <span class="cdk-visually-hidden">selected tasks as done</span>
     </button>
-    } @else if (displayMode() !== 'edit') {
+    } @else if (displayMode() !== 'edit' && displayMode() !== 'history') {
     <button
       matIconButton
       (click)="editBoard()"
@@ -45,7 +45,9 @@
       [matTooltip]="tooltips['edit_button']">
       <mat-icon>edit</mat-icon>
     </button>
-    } @else {
+    } @else if (displayMode() === 'history') {
+    <button mat-button (click)="displayMode.set('board')">Close history</button>
+    }@else {
     <button mat-button (click)="cancelChanges()">
       Cancel<span class="cdk-visually-hidden"> changes</span>
     </button>
@@ -65,10 +67,11 @@
     [isLoggedIn]="board().Visibility !== 'local'"
     [gameFinished]="allChecked()"
     [board]="board()"
+    [traditionalOptionDisabled]="traditionalOptionDisabled()"
     [createMode]="false"></app-board-details-form>
 
-  @if (boardForm.getRawValue().GameMode === 'todo' ? !board().TodoGame.CompletionDateUtc :
-  !board().TraditionalGame.CompletionDateUtc) {
+  @if (boardForm.getRawValue().GameMode === 'todo' ? !board().TodoGame.CompletedAtUtc :
+  !board().TraditionalGame.CompletedAtUtc) {
   <app-deadline-reward-form [createMode]="false" [gameMode]="boardForm.getRawValue().GameMode">
   </app-deadline-reward-form>
   }
@@ -81,7 +84,7 @@
   >
   <button matButton disabled>Create copy</button>
 
-  @if(!!board().TraditionalGame.CompletionDateUtc && (!!board().TraditionalGame.CompletionReward ||
+  @if(!!board().TraditionalGame.CompletedAtUtc && (!!board().TraditionalGame.CompletionReward ||
   !!board().TraditionalGame.CompletionDeadlineUtc)) {
   <h4>Remove reward/deadline for completed traditional game</h4>
   <app-deadline-reward-form [createMode]="false" [gameMode]="'traditional'">
@@ -89,7 +92,7 @@
   }
 
   <!-- prettier-ignore -->
-  @if(!!board().TodoGame.CompletionDateUtc && (!!board().TodoGame.CompletionReward ||
+  @if(!!board().TodoGame.CompletedAtUtc && (!!board().TodoGame.CompletionReward ||
   !!board().TodoGame.CompletionDeadlineUtc)) {
   <h4>Remove reward/deadline for completed todo game</h4>
   <app-deadline-reward-form [createMode]="false" [gameMode]="'todo'"> </app-deadline-reward-form>
@@ -154,13 +157,13 @@
       }
 
       <app-deadline-hourglass
-        [completionDate]="board().CompletionDateUtc"
+        [completionDate]="board().CompletedAtUtc"
         [deadlineDate]="board().CompletionDeadlineUtc"
       ></app-deadline-hourglass>
 
       @if (goalReached()) {
         <mat-icon fontSet="material-symbols-outlined" class="trophy"
-          [matTooltip]="'Goal reached on ' + (board().CompletionDateUtc | date : 'MMM dd, yyyy')"
+          [matTooltip]="'Goal reached on ' + (board().CompletedAtUtc | date : 'MMM dd, yyyy')"
           >trophy</mat-icon>
       } @else { 
         <app-progress-circle 

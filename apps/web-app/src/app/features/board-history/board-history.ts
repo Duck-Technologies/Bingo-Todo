@@ -7,23 +7,22 @@ import {
   Signal,
 } from '@angular/core';
 import { BoardCell, BoardInfo } from '../board/board';
-import { calculateDateFromNow } from '../calculations/date-calculations';
 import { MatIcon } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { IntlDatePipe } from 'angular-ecmascript-intl';
 import { ProgressCircle } from '../progress-circle/progress-circle';
 import { BoardCalculations } from '../calculations/board-calculations';
-import { MatTooltip } from '@angular/material/tooltip';
+import { NgTemplateOutlet } from '@angular/common';
 
-const EventType = {
-  GameModeCompletion: 1000,
+export const EventType = {
   Creation: 0,
   CellCheck: 100,
   Progress: 101,
-  DeadlineExpiry: 600,
-  GameModeChange: 700,
   FirstStrike: 200,
   Halfway: 300,
+  DeadlineExpiry: 600,
+  GameModeChange: 700,
+  GameModeCompletion: 1000,
 } as const;
 
 type HistoryEvent =
@@ -43,12 +42,14 @@ type HistoryEvent =
         reward: string | null;
         deadline: Date | null;
         beforeDeadline: boolean | null;
+        gameMode: BoardInfo['GameMode'];
       };
     };
 
 type HistoryGroup = {
   date: string;
   events: HistoryEvent[];
+  mainEventType: (typeof EventType)[keyof typeof EventType];
   icon:
     | 'trophy'
     | 'app_registration'
@@ -63,9 +64,32 @@ type HistoryGroup = {
   };
 };
 
+const icon = {
+  [EventType.GameModeCompletion]: 'trophy',
+  [EventType.Creation]: 'app_registration',
+  [EventType.CellCheck]: 'progressBar',
+  [EventType.Progress]: 'progressBar',
+  [EventType.DeadlineExpiry]: 'hourglass_bottom',
+  [EventType.GameModeChange]: 'app_registration',
+  [EventType.FirstStrike]: 'firstStrike',
+  [EventType.Halfway]: 'star_half',
+} as const;
+
+/**
+ * Be aware that this component works just as good as the dates allow it
+ * during grouping. If for example a completion date doesn't match up
+ * with the check that made the board complete, the check won't be grouped
+ * under it.
+ */
 @Component({
   selector: 'app-board-history',
-  imports: [IntlDatePipe, MatIcon, MatCardModule, ProgressCircle, MatTooltip],
+  imports: [
+    IntlDatePipe,
+    MatIcon,
+    MatCardModule,
+    ProgressCircle,
+    NgTemplateOutlet,
+  ],
   templateUrl: './board-history.html',
   styleUrl: './board-history.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,157 +99,92 @@ export class BoardHistory {
   private readonly calculationService = inject(BoardCalculations);
 
   protected EventType = EventType;
-  public icon = {
-    [EventType.GameModeCompletion]: 'trophy',
-    [EventType.Creation]: 'app_registration',
-    [EventType.CellCheck]: 'progressBar',
-    [EventType.Progress]: 'progressBar',
-    [EventType.DeadlineExpiry]: 'hourglass_bottom',
-    [EventType.GameModeChange]: 'app_registration',
-    [EventType.FirstStrike]: 'firstStrike',
-    [EventType.Halfway]: 'star_half',
-  } as const;
 
+  // note that there is this unlikely edge case where the cells would be grouped under a deadline expiry event
+  // for this the deadline would have to be at the very exact moment when the cell is checked (same ms)
   public history: Signal<HistoryGroup[]> = computed(() => {
     const board = this.board();
-    let firstStrikeAdded = false;
-    let halfwayAdded = false;
+    const groupingState = {
+      firstStrikeAdded: false,
+      halfwayAdded: false,
+    };
 
-    const history = Object.entries(
+    return Object.entries(
       Object.groupBy(
         [
           BoardHistory.getDeadlineExpiredEntry(
             board.TraditionalGame.CompletionDeadlineUtc,
-            board.TraditionalGame.CompletionDateUtc,
+            board.TraditionalGame.CompletedAtUtc,
             !!board.TodoGame.CompletionDeadlineUtc,
             'traditional'
           ),
           BoardHistory.getDeadlineExpiredEntry(
             board.TodoGame.CompletionDeadlineUtc,
-            board.TodoGame.CompletionDateUtc,
+            board.TodoGame.CompletedAtUtc,
             !!board.TraditionalGame.CompletionDeadlineUtc ||
-              !!board.TraditionalGame.CompletionDateUtc,
+              !!board.TraditionalGame.CompletedAtUtc,
             'to-do'
           ),
           BoardHistory.getCompletionEntry(
             board.TraditionalGame.CompletionDeadlineUtc,
-            board.TraditionalGame.CompletionDateUtc,
+            board.TraditionalGame.CompletedAtUtc,
             board.TraditionalGame.CompletionReward,
             'traditional'
           ),
           BoardHistory.getCompletionEntry(
             board.TodoGame.CompletionDeadlineUtc,
-            board.TodoGame.CompletionDateUtc,
+            board.TodoGame.CompletedAtUtc,
             board.TodoGame.CompletionReward,
-            'to-do'
+            'todo'
           ),
           ...BoardHistory.getCellCheckEntries(board.Cells),
           {
-            label: 'Changed the game mode to traditional',
-            date: null,
+            label: 'Set game mode to traditional',
+            date: board.TraditionalGame.CompletedByGameModeSwitch
+              ? board.TraditionalGame.CompletedAtUtc
+              : null,
             type: this.EventType.GameModeChange,
           },
           {
-            label: 'Changed the game mode to TODO',
-            date: null,
+            label: 'Set game mode to TO-DO',
+            date: board.SwitchedToTodoAfterCompleteDateUtc,
             type: this.EventType.GameModeChange,
           },
           {
             label: 'Created board',
-            date: calculateDateFromNow(-900), //board.CreationDateUtc
+            date: board.CreatedAtUtc,
             type: this.EventType.Creation,
           },
         ]
-          .filter((e) => e.date !== null)
+          .filter((e) => e.date != null)
           .sort((a, b) => b.type - a.type) as HistoryEvent[],
         ({ date }) => date!.toISOString()
       )
     )
       .filter((x) => !!x.at(1)?.length)
-      .map(([date, events]) => {
-        events = events as [HistoryEvent, ...HistoryEvent[]]; // we know that there's at least 1 item
-        const progress = BoardHistory.calculateProgress(
+      .sort((a, b) => a[0].localeCompare(b[0])) // events should be in order, because the next step adds halfway and first strike
+      .map(([date, events]) =>
+        BoardHistory.historyEventGroupToHistoryGroup(
+          date,
+          events as [HistoryEvent, ...HistoryEvent[]], // typescript doesn't get the memo of the filter above
           board.Cells,
-          events.find((x) => x.type === EventType.CellCheck)?.date,
-          this.calculationService
-        );
-
-        firstStrikeAdded =
-          firstStrikeAdded ||
-          BoardHistory.addFirstStrikeIfApplies(
-            progress.green,
-            board.Cells.length,
-            events,
-            firstStrikeAdded
-          );
-
-        halfwayAdded =
-          halfwayAdded ||
-          BoardHistory.addHalfwayIfApplies(
-            progress.yellow,
-            board.Cells.length,
-            events,
-            halfwayAdded
-          );
-
-        return {
-          date: date,
-          events: events,
-          icon: this.icon[events[0].type],
-          progress: progress,
-        };
-      })
+          this.calculationService,
+          groupingState
+        )
+      )
       .sort((a, b) => a.date.localeCompare(b.date))
-      .reduce((acc, curr, idx, source) => {
-        if (curr.icon !== this.icon[EventType.CellCheck]) {
-          acc.push(curr);
-          return acc;
-        } else {
-          let nextNonCellCheck = source
-            .slice(idx)
-            .findIndex((curr) => curr.icon !== this.icon[EventType.CellCheck]);
-          const lastIncludedIndex =
-            nextNonCellCheck === -1
-              ? source.length - 1
-              : idx + nextNonCellCheck - 1;
-
-          if (acc.at(-1)?.icon !== this.icon[EventType.CellCheck]) {
-            acc.push({
-              date: source.at(lastIncludedIndex)?.date!,
-              events: [
-                {
-                  date: new Date(source.at(lastIncludedIndex)?.date!),
-                  label: `Checked ${
-                    source.at(lastIncludedIndex)!.progress.yellow
-                  }/${board.Cells.length}`,
-                  type: EventType.Progress,
-                },
-                ...source
-                  .slice(idx, lastIncludedIndex + 1)
-                  .reduce(
-                    (acc, curr) => [...acc, ...curr.events],
-                    [] as HistoryEvent[]
-                  )
-                  .sort((a, b) => b.date!.getTime() - a.date!.getTime()),
-              ],
-              icon: this.icon[EventType.CellCheck],
-              progress: source.at(lastIncludedIndex)!.progress,
-            });
-            return acc;
-          }
-        }
-        return acc;
-      }, [] as HistoryGroup[])
+      .reduce(
+        (acc, curr, idx, source) =>
+          BoardHistory.groupChecksUntilNextMainEvent(
+            acc,
+            curr,
+            idx,
+            source,
+            board.Cells.length
+          ),
+        [] as HistoryGroup[]
+      )
       .sort((a, b) => b.date.localeCompare(a.date));
-
-    BoardHistory.addSwitchedBackToTraditionalIfApplies(
-      history,
-      board.GameMode,
-      board.TraditionalGame.CompletionDateUtc,
-      this.icon[EventType.GameModeChange]
-    );
-
-    return history;
   });
 
   private static addHalfwayIfApplies(
@@ -234,6 +193,14 @@ export class BoardHistory {
     events: HistoryEvent[],
     alreadyAdded: boolean
   ) {
+    if (
+      checkedCount >= total / 2 &&
+      events[0].type !== EventType.CellCheck &&
+      !alreadyAdded
+    ) {
+      return true;
+    }
+
     if (
       checkedCount >= total / 2 &&
       events[0].type === EventType.CellCheck &&
@@ -258,6 +225,14 @@ export class BoardHistory {
     alreadyAdded: boolean
   ) {
     if (
+      events[0].type === EventType.GameModeCompletion &&
+      events[0].props.gameMode === 'traditional' &&
+      !alreadyAdded
+    ) {
+      return true;
+    }
+
+    if (
       !!checkedCount &&
       events[0].type === EventType.CellCheck &&
       !alreadyAdded
@@ -277,33 +252,6 @@ export class BoardHistory {
     }
 
     return false;
-  }
-
-  private static addSwitchedBackToTraditionalIfApplies(
-    history: HistoryGroup[],
-    gameMode: BoardInfo['GameMode'],
-    traditionalCompletion: Date | null,
-    icon: HistoryGroup['icon']
-  ) {
-    if (
-      history[0].events.find((e) => e.type === EventType.CellCheck) &&
-      gameMode === 'traditional' &&
-      !!traditionalCompletion &&
-      history[0].events[0].type !== EventType.GameModeCompletion
-    ) {
-      history.unshift({
-        date: '',
-        events: [
-          {
-            label: 'Switched back to traditional game mode',
-            type: EventType.GameModeChange,
-            date: new Date(),
-          },
-        ],
-        icon: icon,
-        progress: { green: 0, yellow: 0 },
-      });
-    }
   }
 
   private static calculateProgress(
@@ -334,6 +282,7 @@ export class BoardHistory {
     );
 
     BoardCalculations.calculateCellBingoState(mappedCells, calculationService);
+
     return {
       green: mappedCells.reduce((a, c) => (a += +c.IsInBingoPattern), 0),
       yellow: mappedCells.filter((c) => !!c.CheckedDateUTC).length,
@@ -358,6 +307,26 @@ export class BoardHistory {
       }));
   }
 
+  private static getCompletionEntry(
+    deadline: Date | null,
+    completionDate: Date | null,
+    reward: string | null,
+    gameMode: BoardInfo['GameMode']
+  ) {
+    return {
+      label: 'Completed the game',
+      date: completionDate,
+      type: EventType.GameModeCompletion,
+      props: {
+        gameMode: gameMode,
+        reward: reward,
+        deadline: deadline,
+        beforeDeadline:
+          !!deadline && !!completionDate ? deadline > completionDate : null,
+      },
+    };
+  }
+
   private static getDeadlineExpiredEntry(
     deadline: Date | null,
     completionDate: Date | null,
@@ -365,8 +334,8 @@ export class BoardHistory {
     gameMode: 'traditional' | 'to-do'
   ) {
     return {
-      label: `Deadline ${
-        hasOtherDeadline ? `set for ${gameMode} game ` : ''
+      label: `Deadline${
+        hasOtherDeadline ? ` set for ${gameMode} game` : ''
       } expired`,
       date:
         !!deadline &&
@@ -378,22 +347,98 @@ export class BoardHistory {
     };
   }
 
-  private static getCompletionEntry(
-    deadline: Date | null,
-    completionDate: Date | null,
-    reward: string | null,
-    gameMode: 'traditional' | 'to-do'
+  // Each cell check is grouped under a unique date in source.
+  // This merges consecutive cell checks under a progress event
+  // and stops grouping once a main event is reached.
+  // So for example Creation, Check, Check, Check, First strike
+  // gets turned into Creation, Progress (3 checks), First strike
+  private static groupChecksUntilNextMainEvent(
+    acc: HistoryGroup[],
+    curr: HistoryGroup,
+    idx: number,
+    source: HistoryGroup[],
+    totalCells: number
   ) {
+    if (curr.mainEventType !== EventType.CellCheck) {
+      acc.push(curr);
+      return acc;
+    } else {
+      let nextNonCellCheck = source
+        .slice(idx)
+        .findIndex((curr) => curr.mainEventType !== EventType.CellCheck);
+      const lastIncludedIndex =
+        nextNonCellCheck === -1
+          ? source.length - 1
+          : idx + nextNonCellCheck - 1;
+
+      if (acc.at(-1)?.mainEventType !== EventType.Progress) {
+        acc.push({
+          date: source.at(lastIncludedIndex)?.date!,
+          events: [
+            {
+              date: new Date(source.at(lastIncludedIndex)?.date!),
+              label: `Checked ${
+                source.at(lastIncludedIndex)!.progress.yellow
+              }/${totalCells}`,
+              type: EventType.Progress,
+            },
+            ...source
+              .slice(idx, lastIncludedIndex + 1)
+              .reduce(
+                (acc, curr) => [...acc, ...curr.events],
+                [] as HistoryEvent[]
+              )
+              .sort((a, b) => b.date!.getTime() - a.date!.getTime()),
+          ],
+          mainEventType: EventType.Progress,
+          icon: icon[EventType.CellCheck],
+          progress: source.at(lastIncludedIndex)!.progress,
+        });
+        return acc;
+      }
+    }
+    return acc;
+  }
+
+  // maps the date: HistoryEvent[] object to HistoryGroup[]
+  // adds the first strike and halfway events
+  private static historyEventGroupToHistoryGroup(
+    date: string,
+    events: [HistoryEvent, ...HistoryEvent[]],
+    cells: BoardCell[],
+    calculationService: BoardCalculations,
+    state: { firstStrikeAdded: boolean; halfwayAdded: boolean }
+  ) {
+    const progress = BoardHistory.calculateProgress(
+      cells,
+      events.find((x) => x.type === EventType.CellCheck)?.date,
+      calculationService
+    );
+
+    state.firstStrikeAdded =
+      state.firstStrikeAdded ||
+      BoardHistory.addFirstStrikeIfApplies(
+        progress.green,
+        cells.length,
+        events,
+        state.firstStrikeAdded
+      );
+
+    state.halfwayAdded =
+      state.halfwayAdded ||
+      BoardHistory.addHalfwayIfApplies(
+        progress.yellow,
+        cells.length,
+        events,
+        state.halfwayAdded
+      );
+
     return {
-      label: `Completed the game in ${gameMode} mode`,
-      date: completionDate,
-      type: EventType.GameModeCompletion,
-      props: {
-        reward: reward,
-        deadline: deadline,
-        beforeDeadline:
-          !!deadline && !!completionDate ? deadline > completionDate : null,
-      },
-    };
+      date: date,
+      events: events,
+      icon: icon[events[0].type],
+      progress: progress,
+      mainEventType: events[0].type,
+    } as HistoryGroup;
   }
 }

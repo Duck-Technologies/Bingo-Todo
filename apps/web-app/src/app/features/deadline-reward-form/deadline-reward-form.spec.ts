@@ -258,7 +258,7 @@ describe('DeadlineRewardForm', () => {
     it("if there's a completion date for the game mode, the user should only be able to remove the deadline", async () => {
       component
         .gameModeForm()
-        .controls.CompletionDateUtc.setValue(calculateDateFromNow(-1));
+        .controls.CompletedAtUtc.setValue(calculateDateFromNow(-1));
       component
         .gameModeForm()
         .controls.CompletionDeadlineUtc.setValue(calculateDateFromNow(16));
@@ -281,7 +281,7 @@ describe('DeadlineRewardForm', () => {
     it("if there's a completion date for the game mode, the user should only be able to remove the reward", async () => {
       component
         .gameModeForm()
-        .controls.CompletionDateUtc.setValue(calculateDateFromNow(-1));
+        .controls.CompletedAtUtc.setValue(calculateDateFromNow(-1));
       component
         .gameModeForm()
         .controls.CompletionReward.setValue('a day at the zoo');
@@ -336,7 +336,7 @@ describe('DeadlineRewardForm', () => {
         TraditionalGame: {
           CompletionReward: 'Traditional reward',
           CompletionDeadlineUtc: null,
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
         },
       });
 
