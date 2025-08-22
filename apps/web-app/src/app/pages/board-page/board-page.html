@@ -6,7 +6,6 @@
     visible_public: "Public board, visible to those who visit your profile.",
     game_mode_bingo: "Bingo game mode with the goal of reaching a vertical, horizontal or diagonal pattern from marked tasks.",
     game_mode_todo: "TO-DO game mode with the goal of marking all tasks.",
-    edit_button: "Edit the board name, game mode, deadline or delete it.", 
 };
 @let switchTo = gridMode() === 'grid' ? 'list' : 'grid';
 @let buttonLabel = 'Switch to ' + switchTo + ' view';
@@ -25,6 +24,25 @@
     {{ board().Name || "Untitled Board" }}
   </h1>
 
+  @if (displayMode() !== 'edit' && displayMode() !== 'history' && pendingSelectCount() === 0) {
+  <button matIconButton [matMenuTriggerFor]="menu" aria-label="Available actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="editBoard()">
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
+    <a mat-menu-item routerLink="/board/copy/local">
+      <mat-icon>content_copy</mat-icon>
+      Copy
+    </a>
+    <button mat-menu-item (click)="deleteBoardClick()">
+      <mat-icon>delete</mat-icon>
+      Delete
+    </button>
+  </mat-menu>
+  } @else {
   <menu aria-label="Edit and save actions">
     @if (pendingSelectCount() !== 0) {
     <button mat-button (click)="unselect()">
@@ -35,28 +53,18 @@
       Save ({{ pendingSelectCount() }})
       <span class="cdk-visually-hidden">selected tasks as done</span>
     </button>
-    } @else if (displayMode() !== 'edit' && displayMode() !== 'history') {
-    <button
-      matIconButton
-      (click)="editBoard()"
-      attr.aria-label="{{ tooltips['edit_button'] }}"
-      [matTooltip]="tooltips['edit_button']">
-      <mat-icon>edit</mat-icon>
-    </button>
     } @else if (displayMode() === 'history') {
     <button mat-button (click)="displayMode.set('board')">Close history</button>
-    }@else {
+    } @else if (displayMode() === 'edit') {
     <button mat-button (click)="cancelChanges()">
       Cancel<span class="cdk-visually-hidden"> changes</span>
     </button>
     <button mat-flat-button (click)="saveChanges()" [disabled]="boardForm.controls.Name.disabled">
-      {{doDelete() ? 'Delete' : 'Save'}}
-      @if(doDelete()) {
-      <span class="cdk-visually-hidden"> board</span>
-      }
+      Save
     </button>
     }
   </menu>
+  }
 </div>
 
 @if (displayMode() === 'edit') {
@@ -74,29 +82,35 @@
   </app-deadline-reward-form>
   }
 
-  <mat-divider></mat-divider>
-
-  <h3>Actions</h3>
-  <mat-checkbox [(ngModel)]="doDelete" [disabled]="boardForm.controls.Name.disabled"
-    >Delete board</mat-checkbox
-  >
-  <button matButton disabled>Create copy</button>
-
-  @if(!!board().TraditionalGame.CompletedAtUtc && (!!board().TraditionalGame.CompletionReward ||
-  !!board().TraditionalGame.CompletionDeadlineUtc)) {
-  <h4>Remove reward/deadline for completed traditional game</h4>
-  <app-deadline-reward-form [createMode]="false" [gameMode]="'traditional'">
-  </app-deadline-reward-form>
-  }
+  <!-- prettier-ignore -->
+  @let hasRewardOrDeadlineTraditional = !!board().TraditionalGame.CompletedAtUtc &&
+  (!!board().TraditionalGame.CompletionReward || !!board().TraditionalGame.CompletionDeadlineUtc);
+  @let hasRewardOrDeadlineTodo = !!board().TodoGame.CompletedAtUtc &&
+  (!!board().TodoGame.CompletionReward || !!board().TodoGame.CompletionDeadlineUtc);
 
   <!-- prettier-ignore -->
-  @if(!!board().TodoGame.CompletedAtUtc && (!!board().TodoGame.CompletionReward ||
-  !!board().TodoGame.CompletionDeadlineUtc)) {
-  <h4>Remove reward/deadline for completed todo game</h4>
-  <app-deadline-reward-form [createMode]="false" [gameMode]="'todo'"> </app-deadline-reward-form>
-  }
+  @if (hasRewardOrDeadlineTraditional || hasRewardOrDeadlineTodo) {
+  <mat-card [appearance]="'outlined'">
+    <h4>Remove reward/deadline</h4>
+    @if(hasRewardOrDeadlineTraditional) {
+    <span>For completed game: traditional</span>
+    <app-deadline-reward-form [createMode]="false" [gameMode]="'traditional'">
+    </app-deadline-reward-form>
+    }
 
-  <mat-divider></mat-divider>
+    <!-- prettier-ignore -->
+    @if (hasRewardOrDeadlineTraditional && hasRewardOrDeadlineTodo) {
+    <mat-divider></mat-divider>
+    }
+
+    <!-- prettier-ignore -->
+    @if(hasRewardOrDeadlineTodo) {
+    <span>For completed game: to-do</span>
+    <app-deadline-reward-form [createMode]="false" [gameMode]="'todo'"> </app-deadline-reward-form>
+    }
+  </mat-card>
+
+  }
 </section>
 }
 

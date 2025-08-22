@@ -26,6 +26,7 @@
   @if (data.board.Visibility === 'local') {
   <app-message [title]="'Local board'" [type]="'info'">
     <p>This is a local board. You have to delete it if you want to start a new one.</p>
+    <p>Alternatively you can <a href="/board/copy/local">Create a copy of it</a></p>
     <mat-checkbox [(ngModel)]="deleteBoard">Delete board</mat-checkbox>
   </app-message>
   }

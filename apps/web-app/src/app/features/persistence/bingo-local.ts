@@ -35,6 +35,12 @@ export class BingoLocalStorage {
     board: BoardInfo<BoardCellDto>
   ): Observable<string> {
     board.CreatedAtUtc = new Date();
+    board.SwitchedToTodoAfterCompleteDateUtc = undefined;
+    board.TraditionalGame.CompletedAtUtc = null;
+    board.TraditionalGame.CompletedByGameModeSwitch = undefined;
+    board.TodoGame.CompletedAtUtc = null;
+    board.Cells.forEach(c => c.CheckedDateUTC = null);
+    
     localStorage.setItem(
       BingoLocalStorage.LocalStorageBoardKey,
       JSON.stringify(board)

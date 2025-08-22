@@ -28,7 +28,8 @@
 
   div,
   section,
-  menu {
+  menu,
+  mat-card {
     display: flex;
     align-items: center;
   }
@@ -37,6 +38,10 @@
     margin: 0;
     padding: 0;
     flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  button.mat-mdc-menu-trigger {
     margin-left: auto;
   }
 
@@ -49,6 +54,17 @@
     h3,
     h4 {
       margin: 0;
+    }
+
+    mat-card {
+      margin: auto;
+      width: 100%;
+      padding: 0.5rem;
+      gap: 1rem;
+
+      h4 {
+        text-align: center;
+      }
     }
 
     mat-divider {
