@@ -5,6 +5,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { BoardInfo } from '../board/board';
 import { MatTestDialogOpener } from '@angular/material/dialog/testing';
 import { calculateDateFromNow } from '../calculations/date-calculations';
+import { boardForm } from '../board-details-form/form';
 
 describe('CompletionWarnDialog', () => {
   let component: MatTestDialogOpener<CompletionDialog>;
@@ -15,6 +16,9 @@ describe('CompletionWarnDialog', () => {
       imports: [CompletionDialog],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
+
+    boardForm.reset();
+    boardForm.enable();
   });
 
   function createComponent(data: { board: BoardInfo }) {
@@ -43,7 +47,7 @@ describe('CompletionWarnDialog', () => {
   it("When there's traditional completion date, it should render accordingly", async () => {
     const board = new BoardInfo();
     board.GameMode = 'traditional';
-    board.TraditionalGame.CompletionDateUtc = new Date();
+    board.TraditionalGame.CompletedAtUtc = new Date();
     createComponent({ board: board });
     const dialogContainer = document.querySelector('mat-dialog-container');
     expect(dialogContainer!.innerHTML).toContain(
@@ -56,7 +60,7 @@ describe('CompletionWarnDialog', () => {
   it("When there's todo completion date, it should render accordingly", async () => {
     const board = new BoardInfo();
     board.GameMode = 'todo';
-    board.TodoGame.CompletionDateUtc = new Date();
+    board.TodoGame.CompletedAtUtc = new Date();
     createComponent({ board: board });
     const dialogContainer = document.querySelector('mat-dialog-container');
     expect(dialogContainer!.innerHTML).toContain('Well done');
@@ -66,7 +70,7 @@ describe('CompletionWarnDialog', () => {
   it("When it's a local game there should be a hint for deleting it", async () => {
     const board = new BoardInfo();
     board.GameMode = 'todo';
-    board.TodoGame.CompletionDateUtc = new Date();
+    board.TodoGame.CompletedAtUtc = new Date();
     board.Visibility = 'local';
     createComponent({ board: board });
     const dialogContainer = document.querySelector('mat-dialog-container');
@@ -79,7 +83,7 @@ describe('CompletionWarnDialog', () => {
   it("When it's a non-local game there shouldn't be a hint for deleting it", async () => {
     const board = new BoardInfo();
     board.GameMode = 'todo';
-    board.TodoGame.CompletionDateUtc = new Date();
+    board.TodoGame.CompletedAtUtc = new Date();
     board.Visibility = 'public';
     createComponent({ board: board });
     const dialogContainer = document.querySelector('mat-dialog-container');
@@ -93,7 +97,7 @@ describe('CompletionWarnDialog', () => {
     it("should be 'You did it' without deadline and reward", () => {
       const board = new BoardInfo();
       board.GameMode = 'todo';
-      board.TodoGame.CompletionDateUtc = new Date();
+      board.TodoGame.CompletedAtUtc = new Date();
       createComponent({ board: board });
       const dialogContainer = document.querySelector('mat-dialog-container');
       expect(dialogContainer!.innerHTML).toContain('You did it!');
@@ -102,7 +106,7 @@ describe('CompletionWarnDialog', () => {
     it("should be 'You did it before the deadline' if there's no reward and deadline is before completion date", () => {
       const board = new BoardInfo();
       board.GameMode = 'todo';
-      board.TodoGame.CompletionDateUtc = new Date();
+      board.TodoGame.CompletedAtUtc = new Date();
       board.TodoGame.CompletionDeadlineUtc = calculateDateFromNow(10);
       createComponent({ board: board });
       const dialogContainer = document.querySelector('mat-dialog-container');
@@ -114,7 +118,7 @@ describe('CompletionWarnDialog', () => {
     it("should be 'You did it! You've earned something' if there's reward and no deadline", () => {
       const board = new BoardInfo();
       board.GameMode = 'todo';
-      board.TodoGame.CompletionDateUtc = new Date();
+      board.TodoGame.CompletedAtUtc = new Date();
       board.TodoGame.CompletionReward = 'something';
       createComponent({ board: board });
       const dialogContainer = document.querySelector('mat-dialog-container');
@@ -126,7 +130,7 @@ describe('CompletionWarnDialog', () => {
     it("should be 'You did it before the deadline! You've earned something' if there's reward and deadline is before completion date", () => {
       const board = new BoardInfo();
       board.GameMode = 'todo';
-      board.TodoGame.CompletionDateUtc = new Date();
+      board.TodoGame.CompletedAtUtc = new Date();
       board.TodoGame.CompletionDeadlineUtc = calculateDateFromNow(10);
       board.TodoGame.CompletionReward = 'something';
       createComponent({ board: board });
@@ -139,7 +143,7 @@ describe('CompletionWarnDialog', () => {
     it("should be 'You did it! You've earned something' if there's reward and deadline is after completion date", () => {
       const board = new BoardInfo();
       board.GameMode = 'todo';
-      board.TodoGame.CompletionDateUtc = calculateDateFromNow(10);
+      board.TodoGame.CompletedAtUtc = calculateDateFromNow(10);
       board.TodoGame.CompletionDeadlineUtc = new Date();
       board.TodoGame.CompletionReward = 'something';
       createComponent({ board: board });

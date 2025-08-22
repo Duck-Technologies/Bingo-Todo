@@ -12,7 +12,7 @@ export type BoardForm = FormGroup<{
 }>;
 
 export type GameModeSettingsForm = {
-  CompletionDateUtc: FormControl<Date | null>;
+  CompletedAtUtc: FormControl<Date | null>;
   CompletionReward: FormControl<string | null>;
   CompletionDeadlineUtc: FormControl<Date | null>;
 };
@@ -29,12 +29,12 @@ export const boardForm: BoardForm = new FormGroup({
     nonNullable: true,
   }),
   TraditionalGame: new FormGroup<GameModeSettingsForm>({
-    CompletionDateUtc: new FormControl<Date | null>(null),
+    CompletedAtUtc: new FormControl<Date | null>(null),
     CompletionReward: new FormControl<string | null>(null),
     CompletionDeadlineUtc: new FormControl<Date | null>(null),
   }),
   TodoGame: new FormGroup<GameModeSettingsForm>({
-    CompletionDateUtc: new FormControl<Date | null>(null),
+    CompletedAtUtc: new FormControl<Date | null>(null),
     CompletionReward: new FormControl<string | null>(null),
     CompletionDeadlineUtc: new FormControl<Date | null>(null),
   }),

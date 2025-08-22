@@ -17,6 +17,20 @@ export type BoardCellDto = Omit<
   'IsInBingoPattern' | 'Selected' | 'Row' | 'Column'
 >;
 
+export function copyCells(cells: BoardCell[]) {
+  return cells.map((c, idx) => {
+    const cell = new BoardCell(
+      c,
+      idx,
+      BoardCalculations.getBoardDimensionFromCellCount(cells.length) as number
+    );
+
+    // Selected and IsInBingoPattern is set to default with each "new BoardCell" call
+    cell.Selected = cells[idx].Selected;
+    return cell;
+  });
+}
+
 export class BoardCell {
   public Name: string | null;
   public CheckedDateUTC: Date | null;
@@ -41,15 +55,21 @@ export class BoardInfo<T = BoardCell> {
   Id?: string;
   Name: string | null = null;
   GameMode: 'traditional' | 'todo' = 'traditional';
+  CreatedAtUtc: Date | undefined;
+  CreatedBy: string = 'local user';
+  LastChangedAtUtc: Date | undefined;
   Cells: T[] = [];
   Visibility: 'local' | 'unlisted' | 'public' = 'local';
-  TraditionalGame: GameModeSettings = {
-    CompletionDateUtc: null,
-    CompletionReward: null,
-    CompletionDeadlineUtc: null,
-  };
+  SwitchedToTodoAfterCompleteDateUtc: Date | undefined;
+  TraditionalGame: GameModeSettings & { CompletedByGameModeSwitch?: boolean } =
+    {
+      CompletedAtUtc: null,
+      CompletionReward: null,
+      CompletionDeadlineUtc: null,
+      CompletedByGameModeSwitch: false,
+    };
   TodoGame: GameModeSettings = {
-    CompletionDateUtc: null,
+    CompletedAtUtc: null,
     CompletionReward: null,
     CompletionDeadlineUtc: null,
   };
@@ -60,9 +80,9 @@ export class BoardInfo<T = BoardCell> {
       : this.TodoGame;
   }
 
-  set CompletionDateUtc(x) {}
-  get CompletionDateUtc() {
-    return this.getGameModeSetting().CompletionDateUtc;
+  set CompletedAtUtc(x) {}
+  get CompletedAtUtc() {
+    return this.getGameModeSetting().CompletedAtUtc;
   }
 
   set CompletionReward(x) {}
@@ -87,9 +107,9 @@ export class BoardInfo<T = BoardCell> {
     // however if they switch to todo and they've completed it in traditional, we leave whatever's passed in alone
     if (
       this.GameMode === 'traditional' &&
-      this.TodoGame.CompletionDateUtc === null
+      this.TodoGame.CompletedAtUtc === null
     ) {
-      this.TodoGame.CompletionDateUtc =
+      this.TodoGame.CompletedAtUtc =
         this.TodoGame.CompletionReward =
         this.TodoGame.CompletionDeadlineUtc =
           null;
@@ -97,18 +117,26 @@ export class BoardInfo<T = BoardCell> {
 
     if (
       this.GameMode === 'todo' &&
-      this.TraditionalGame.CompletionDateUtc === null
+      this.TraditionalGame.CompletedAtUtc === null
     ) {
-      this.TraditionalGame.CompletionDateUtc =
+      this.TraditionalGame.CompletedAtUtc =
         this.TraditionalGame.CompletionReward =
         this.TraditionalGame.CompletionDeadlineUtc =
           null;
     }
+
+    this.TraditionalGame.CompletedAtUtc = normalizeDate(this.TraditionalGame.CompletedAtUtc);
+    this.TraditionalGame.CompletionDeadlineUtc = normalizeDate(this.TraditionalGame.CompletionDeadlineUtc);
+    this.TodoGame.CompletedAtUtc = normalizeDate(this.TodoGame.CompletedAtUtc);
+    this.TodoGame.CompletionDeadlineUtc = normalizeDate(this.TodoGame.CompletionDeadlineUtc);
+    this.SwitchedToTodoAfterCompleteDateUtc = normalizeDate(this.SwitchedToTodoAfterCompleteDateUtc) ?? undefined;
+    this.LastChangedAtUtc = normalizeDate(this.LastChangedAtUtc) ?? undefined;
+    this.CreatedAtUtc = normalizeDate(this.CreatedAtUtc) ?? undefined;
   }
 }
 
 export type GameModeSettings = {
-  CompletionDateUtc: Date | null;
+  CompletedAtUtc: Date | null;
   CompletionReward: string | null;
   CompletionDeadlineUtc: Date | null;
 };
@@ -172,4 +200,8 @@ export class Board {
       this.checkCard(card);
     }
   }
+}
+
+function normalizeDate(date: string | Date | undefined | null) {
+  return date ? new Date(date) : null
 }

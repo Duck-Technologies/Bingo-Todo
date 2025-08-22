@@ -1,18 +1,24 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
   height: 100%;
   overflow: auto;
   container: board-container / inline-size;
+  padding: 0 0.5rem 0.5rem 0.5rem;
 
   app-board-list-view {
     width: min(100cqw, 35.5rem);
     max-height: 50cqh;
   }
 
+  app-board-history {
+    width: min(100cqw, 35.5rem);
+    overflow: auto;
+  }
+
   img {
-    width: 20px;
+    width: 24px;
     height: 20px;
   }
 
@@ -35,6 +41,8 @@
   }
 
   section.edit {
+    align-self: center;
+    width: min(100cqw, 35.5rem);
     flex-direction: column;
     gap: 1rem;
 
@@ -64,35 +72,34 @@
     gap: 0.4rem;
   }
 
-  h1 {
-    font-size: larger;
-    font-weight: 500;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  div.header {
+    align-self: center;
+    width: min(100cqw, 35.5rem);
+    position: sticky;
+    top: 0;
+    background: var(--mat-sys-surface);
+    z-index: 100;
+    padding: 0.5rem 0;
 
-    .trophy {
-      height: 1rem;
-      width: 1rem;
-      font-size: 1rem;
+    h1 {
+      font-size: larger;
+      font-weight: 500;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .trophy {
+        height: 1rem;
+        width: 1rem;
+        font-size: 1rem;
+      }
     }
   }
 
   .trophy {
     --mat-icon-color: gold;
-  }
-
-  div.gradient {
-    width: 100px;
-    height: 100px;
-    background-image: conic-gradient(
-      hsl(from var(--green-primary) h s calc(l + 10)) var(--chart-green, 0deg),
-      var(--yellow-primary) 0 var(--chart-yellow, 0deg),
-      hsl(from var(--blue-primary) h s calc(l + 5)) 0 var(--chart-blue, 0deg),
-      #74777f 0 360deg
-    );
   }
 }

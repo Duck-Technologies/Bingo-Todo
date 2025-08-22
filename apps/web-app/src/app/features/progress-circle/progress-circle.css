@@ -1,0 +1,15 @@
+:host {
+  height: 24px;
+  width: 24px;
+}
+
+div.gradient {
+  width: 100px;
+  height: 100px;
+  background-image: conic-gradient(
+    hsl(from var(--green-primary) h s calc(l + 10)) var(--chart-green, 0deg),
+    var(--yellow-primary) 0 var(--chart-yellow, 0deg),
+    hsl(from var(--blue-primary) h s calc(l + 5)) 0 var(--chart-blue, 0deg),
+    var(--mat-sys-outline) 0 360deg
+  );
+}

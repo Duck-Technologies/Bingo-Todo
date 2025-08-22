@@ -17,7 +17,7 @@
   <mat-form-field [subscriptSizing]="'dynamic'">
     <mat-label>Game mode</mat-label>
     <mat-select formControlName="GameMode">
-      <mat-option [value]="'traditional'">
+      <mat-option [value]="'traditional'" [disabled]="traditionalOptionDisabled()">
         <img class="icon" src="bingo.svg" alt="" /> Traditional (1 strike)
       </mat-option>
       <mat-option [value]="'todo'">

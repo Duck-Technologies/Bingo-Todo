@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BoardPage } from './board-page';
-import { Component, provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
 import { BingoApi } from '../../features/persistence/bingo-api';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -46,6 +46,8 @@ describe('BoardPage', () => {
       (i) => new BoardCell({ Name: i.toString() }, i, 3)
     );
 
+    BingoLocalStorage.createBoard(board);
+
     fixture.componentRef.setInput('board', board);
     fixture.autoDetectChanges();
   });
@@ -54,49 +56,72 @@ describe('BoardPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('Edit button should be visible by default', async () => {
-    expect(await helper.getButtonOrNull('edit')).not.toBeNull();
+  describe('main actions', () => {
+    // TODO shouldn't be edit if it's not the user's board
+    it('should be edit by default', async () => {
+      expect(await helper.getButtonOrNull('edit')).not.toBeNull();
+    });
+
+    it('should be close history when mode is history', async () => {
+      // select a cell
+      await helper.clickButton('history');
+      expect(await helper.getButtonOrNull('Close history')).not.toBeNull();
+    });
   });
 
-  it('Edit button should be toggled to save/unselect if a board cell is selected', async () => {
-    // select a cell
-    fixture.debugElement
-      .query(By.css('app-board mat-card'))
-      .triggerEventHandler('click');
+  describe('If a board cell is selected', () => {
+    it('The main action should be save/unselect', async () => {
+      // select a cell
+      fixture.debugElement
+        .query(By.css('app-board mat-card'))
+        .triggerEventHandler('click');
 
-    expect(component.pendingSelectCount()).toBe(1);
-    expect(await helper.getButtonOrNull('edit')).toBeNull();
-    expect(await helper.getButtonOrNull(/Save \(1\)*/)).not.toBeNull();
-    expect(await helper.getButtonOrNull(/Unselect*/)).not.toBeNull();
+      expect(component.pendingSelectCount()).toBe(1);
+      expect(await helper.getButtonOrNull('edit')).toBeNull();
+      expect(await helper.getButtonOrNull(/Save \(1\)*/)).not.toBeNull();
+      expect(await helper.getButtonOrNull(/Unselect*/)).not.toBeNull();
 
-    // unselect the same cell
-    fixture.debugElement
-      .query(By.css('app-board mat-card'))
-      .triggerEventHandler('click');
+      // unselect the same cell
+      fixture.debugElement
+        .query(By.css('app-board mat-card'))
+        .triggerEventHandler('click');
 
-    expect(component.pendingSelectCount()).toBe(0);
-    expect(await helper.getButtonOrNull('edit')).not.toBeNull();
-  });
+      expect(component.pendingSelectCount()).toBe(0);
+      expect(await helper.getButtonOrNull('edit')).not.toBeNull();
+    });
 
-  it('Unselect should work', async () => {
-    fixture.debugElement
-      .query(By.css('app-board mat-card'))
-      .triggerEventHandler('click');
+    it('The history button should be disabled', async () => {
+      // select a cell
+      fixture.debugElement
+        .query(By.css('app-board mat-card'))
+        .triggerEventHandler('click');
 
-    expect(component.pendingSelectCount()).toBe(1);
+      expect(component.pendingSelectCount()).toBe(1);
+      expect(
+        await (await helper.getButtonOrNull('history'))?.isDisabled()
+      ).toBeTrue();
+    });
 
-    await helper.clickButton(/Unselect*/);
+    it('Unselect should work', async () => {
+      fixture.debugElement
+        .query(By.css('app-board mat-card'))
+        .triggerEventHandler('click');
 
-    expect(component.pendingSelectCount()).toBe(0);
-  });
+      expect(component.pendingSelectCount()).toBe(1);
 
-  it('Save label should update based on how many cells are selected', async () => {
-    fixture.debugElement
-      .queryAll(By.css('app-board mat-card'))
-      .slice(0, 3)
-      .forEach((c) => c.triggerEventHandler('click'));
+      await helper.clickButton(/Unselect*/);
 
-    expect(await helper.getButtonOrNull(/Save \(3\)*/)).not.toBeNull();
+      expect(component.pendingSelectCount()).toBe(0);
+    });
+
+    it('Save label should update based on how many cells are selected', async () => {
+      fixture.debugElement
+        .queryAll(By.css('app-board mat-card'))
+        .slice(0, 3)
+        .forEach((c) => c.triggerEventHandler('click'));
+
+      expect(await helper.getButtonOrNull(/Save \(3\)*/)).not.toBeNull();
+    });
   });
 
   describe('Color of board cell should change after save to', () => {
@@ -289,7 +314,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'todo',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: null,
         },
@@ -350,7 +376,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: null,
+          CompletedAtUtc: null,
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: 'an ice cream',
         },
@@ -362,15 +389,19 @@ describe('BoardPage', () => {
             i,
             3
           );
-          c.Selected = i < 3;
+          c.Selected = false;
           return c;
         }),
       });
 
+      BingoLocalStorage.createBoard(board);
+
+      board.Cells.slice(0, 3).forEach((c) => (c.Selected = true));
+
       const localSaveService = spyOn(
         BingoLocalStorage,
-        'updateBoard'
-      ).and.returnValue(of(true));
+        'saveSelection'
+      ).and.returnValue(of(board));
 
       await helper.setBoard(board);
       await helper.saveSelected();
@@ -387,11 +418,13 @@ describe('BoardPage', () => {
       expect(localSaveService).toHaveBeenCalledOnceWith(
         jasmine.objectContaining({
           TraditionalGame: {
-            CompletionDateUtc: null,
+            CompletedAtUtc: null,
+            CompletedByGameModeSwitch: false,
             CompletionDeadlineUtc: null,
             CompletionReward: 'a boba tea',
           },
         }),
+        [0, 1, 2],
         jasmine.any(Object)
       );
     });
@@ -401,7 +434,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: null,
+          CompletedAtUtc: null,
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: null,
         },
@@ -442,7 +476,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: null,
         },
@@ -475,12 +510,91 @@ describe('BoardPage', () => {
       ).toBeFalse();
     });
 
+    it('of a traditional game, traditional mode should be disabled in edit mode after the first check', async () => {
+      const board = new BoardInfo({
+        Visibility: 'local',
+        GameMode: 'traditional',
+        TraditionalGame: {
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
+          CompletionDeadlineUtc: null,
+          CompletionReward: 'test',
+        },
+        Cells: BoardCalculations.getRowIndexes(9).map(
+          (i) =>
+            new BoardCell(
+              {
+                Name: i.toString(),
+                CheckedDateUTC: i < 3 ? new Date() : null,
+              },
+              i,
+              3
+            )
+        ),
+      });
+
+      BingoLocalStorage.createBoard(board);
+
+      await helper.setBoard(board);
+
+      // check that all game mode options are enabled to start with
+      await helper.editBoard();
+      let gameModeInput = await loader.getHarness(
+        MatSelectHarness.with({ label: 'Game mode' })
+      );
+      await gameModeInput.open();
+      let options = await gameModeInput.getOptions();
+      for await (const option of options) {
+        expect(await option.isDisabled()).toBeFalse();
+      }
+
+      await (await gameModeInput.getOptions())[1].click();
+
+      await helper.clickButton(/Save */);
+
+      // check that it's still enabled after switching game mode
+      await helper.editBoard();
+      gameModeInput = await loader.getHarness(
+        MatSelectHarness.with({ label: 'Game mode' })
+      );
+      await gameModeInput.open();
+      options = await gameModeInput.getOptions();
+      for await (const option of options) {
+        expect(await option.isDisabled()).toBeFalse();
+      }
+
+      await helper.clickButton(/Cancel */);
+
+      // check a cell and save it
+      fixture.debugElement
+        .query(By.css('app-board mat-card:not(.bg-green)'))
+        .triggerEventHandler('click');
+
+      await helper.saveSelected();
+
+      // now the traditional option should be disabled
+      await helper.editBoard();
+      gameModeInput = await loader.getHarness(
+        MatSelectHarness.with({ label: 'Game mode' })
+      );
+      await gameModeInput.open();
+      options = await gameModeInput.getOptions();
+      for await (const option of options) {
+        if ((await option.getText()).includes('Traditional')) {
+          expect(await option.isDisabled()).toBeTrue();
+        } else {
+          expect(await option.isDisabled()).toBeFalse();
+        }
+      }
+    });
+
     it("of a game mode, deadline and reward shouldn't be editable for it", async () => {
       const board = new BoardInfo({
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: 'test',
         },
@@ -520,7 +634,8 @@ describe('BoardPage', () => {
         Visibility: 'local',
         GameMode: 'traditional',
         TraditionalGame: {
-          CompletionDateUtc: new Date(),
+          CompletedAtUtc: new Date(),
+          CompletedByGameModeSwitch: false,
           CompletionDeadlineUtc: null,
           CompletionReward: 'test',
         },
@@ -565,6 +680,62 @@ describe('BoardPage', () => {
       expect(component.board().TraditionalGame.CompletionReward).toBe('test');
       expect(component.board().TodoGame.CompletionReward).toBe('todo reward');
     });
+  });
+
+  describe('when history is shown', () => {
+    it("the grid shouldn't be visible and the grid mode toggle should be disabled", async () => {
+      await helper.clickButton('history');
+      expect(fixture.debugElement.query(By.css('app-board'))).toBeFalsy();
+      expect(await (await helper.getButton('list')).isDisabled()).toBeTrue();
+    });
+
+    it('the timeline should be shown', async () => {
+      await helper.clickButton('history');
+      expect(fixture.nativeElement.outerHTML).toContain('Created board');
+    });
+
+    it('clicking history again should close it', async () => {
+      await helper.clickButton('history');
+      await helper.clickButton('history');
+      expect(fixture.nativeElement.outerHTML).not.toContain('Created board');
+    });
+
+    it('clicking close history should close it', async () => {
+      await helper.clickButton('history');
+      await helper.clickButton('Close history');
+      expect(fixture.nativeElement.outerHTML).not.toContain('Created board');
+    });
+  });
+
+  it('should update history as expected', async () => {
+    // select a cell
+    fixture.debugElement
+      .query(By.css('app-board mat-card'))
+      .triggerEventHandler('click');
+
+    await helper.clickButton(/Save */);
+
+    await helper.clickButton('history');
+
+    expect(fixture.nativeElement.outerHTML).toContain('Checked 1/9');
+
+    await helper.clickButton('Close history');
+
+    fixture.debugElement
+      .query(By.css('app-board mat-card:not(.bg-yellow)'))
+      .triggerEventHandler('click');
+
+    await fixture.whenStable();
+
+    fixture.debugElement
+      .query(By.css('app-board mat-card:not(.bg-yellow):not(.bg-blue)'))
+      .triggerEventHandler('click');
+
+    await helper.clickButton(/Save */);
+
+    await helper.clickButton('history');
+
+    expect(fixture.nativeElement.outerHTML).toContain('First strike');
   });
 
   // TODO tests:

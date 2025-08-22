@@ -34,6 +34,7 @@ export class BoardDetailsForm {
   public readonly createMode = input.required<boolean>();
   public readonly isLoggedIn = input.required<boolean>();
   public readonly gameFinished = input<boolean>(false);
+  public readonly traditionalOptionDisabled = input<boolean>(false);
   public readonly resizeBoard = output<BoardSize>();
 
   public readonly boardForm = boardForm;

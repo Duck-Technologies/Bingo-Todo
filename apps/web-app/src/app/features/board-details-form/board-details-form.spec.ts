@@ -6,6 +6,7 @@ import { BingoLocalStorage } from '../persistence/bingo-local';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { boardForm } from './form';
 
 describe('BoardDetailsForm', () => {
   let component: BoardDetailsForm;
@@ -23,6 +24,8 @@ describe('BoardDetailsForm', () => {
     fixture.componentRef.setInput('createMode', true);
     fixture.componentRef.setInput('isLoggedIn', false);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    boardForm.reset();
+    boardForm.enable();
     component = fixture.componentInstance;
     fixture.autoDetectChanges();
   });
