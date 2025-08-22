@@ -35,12 +35,18 @@ export class BingoLocalStorage {
     board: BoardInfo<BoardCellDto>
   ): Observable<string> {
     board.CreatedAtUtc = new Date();
+
+    // in normal cases there's no need for this
+    // but during copying we want to guarantee that these are set to their defaults
+    board.Id = undefined;
+    board.CreatedBy = 'local user';
+    board.LastChangedAtUtc = board.CreatedAtUtc;
     board.SwitchedToTodoAfterCompleteDateUtc = undefined;
     board.TraditionalGame.CompletedAtUtc = null;
     board.TraditionalGame.CompletedByGameModeSwitch = undefined;
     board.TodoGame.CompletedAtUtc = null;
     board.Cells.forEach(c => c.CheckedDateUTC = null);
-    
+
     localStorage.setItem(
       BingoLocalStorage.LocalStorageBoardKey,
       JSON.stringify(board)

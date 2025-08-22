@@ -131,7 +131,14 @@ export class BoardSetup implements OnInit {
   );
 
   ngOnInit(): void {
-    const baseBoard = this.board() ?? this.baseBoard;
+    const board = this.board();
+    if (board) {
+      // makes reward and deadline belonging to another game mode be cleared in the BoardInfo constructor
+      board.TraditionalGame.CompletedAtUtc = board.TodoGame.CompletedAtUtc =
+        null;
+    }
+    const baseBoard = board ? new BoardInfo(board) : this.baseBoard;
+
     this.boardForm.reset();
     this.boardForm.enable();
     this.boardForm.patchValue(baseBoard);
