@@ -10,6 +10,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 })
 export class GameModeIcon {
   public readonly gameMode = input.required<'todo' | 'traditional'>();
+  public readonly presentation = input<boolean>(false);
   protected readonly todoTooltip = "TO-DO game mode with the goal of marking all tasks.";
   protected readonly traditionalTooltip = "Bingo game mode with the goal of reaching a vertical, horizontal or diagonal pattern from marked tasks.";
 }
