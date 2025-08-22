@@ -7,19 +7,19 @@
 
   padding: 0.7rem;
   display: grid;
-  grid-template-columns: 24px auto;
-  grid-template-rows: 24px auto;
+  grid-template-columns: max(24px, fit-content) auto;
+  grid-template-rows: max(24px, fit-content) auto;
   grid-template-areas:
     "icon title"
     ". content";
   gap: 0.3rem 0.4rem;
   border-radius: var(--mat-sys-corner-medium);
   background-color: light-dark(
-    hsl(from var(--color) h calc(s - 30) calc(l + 32.5)),
+    hsl(from var(--color) h calc(s - 30) calc(l + 30)),
     hsl(from var(--color) h calc(s - 30) calc(l - 50))
   );
   color: light-dark(
-    hsl(from var(--color) h s calc(l - 35)),
+    hsl(from var(--color) h s calc(l - 45)),
     hsl(from var(--color) h s calc(l + 25))
   );
 

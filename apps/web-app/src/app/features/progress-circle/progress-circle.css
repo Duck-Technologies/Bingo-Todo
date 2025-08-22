@@ -10,6 +10,6 @@ div.gradient {
     hsl(from var(--green-primary) h s calc(l + 10)) var(--chart-green, 0deg),
     var(--yellow-primary) 0 var(--chart-yellow, 0deg),
     hsl(from var(--blue-primary) h s calc(l + 5)) 0 var(--chart-blue, 0deg),
-    var(--mat-sys-outline) 0 360deg
+    var(--mat-sys-outline-variant) 0 360deg
   );
 }

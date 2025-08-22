@@ -86,10 +86,7 @@
         switchTo + ' view';
 
         <div class="title">
-          <img
-            class="icon"
-            alt=""
-            src="{{ boardDetails.GameMode === 'todo' ? 'todo' : 'bingo' }}.svg" />
+          <app-game-mode-icon [gameMode]="boardDetails.GameMode"></app-game-mode-icon>
           <h3>
             {{ boardDetails.Name || "Untitled Board" }}
           </h3>

@@ -47,6 +47,7 @@ import { BoardCalculations } from '../../features/calculations/board-calculation
 import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline-reward-form';
 import { CreateWarnDialog } from '../../features/create-warn-dialog/create-warn-dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { GameModeIcon } from '../../features/game-mode-icon/game-mode-icon';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
@@ -74,6 +75,7 @@ type CellForm = FormGroup<{
     BoardListView,
     MatDivider,
     DeadlineRewardForm,
+    GameModeIcon
   ],
   providers: [
     {

@@ -95,7 +95,7 @@
     top: 0;
     background: var(--mat-sys-surface);
     z-index: 100;
-    padding: 0.5rem 0;
+    padding-top: 0.3rem;
 
     h1 {
       font-size: larger;
@@ -116,6 +116,6 @@
   }
 
   .trophy {
-    --mat-icon-color: gold;
+    --mat-icon-color: var(--yellow-primary);
   }
 }

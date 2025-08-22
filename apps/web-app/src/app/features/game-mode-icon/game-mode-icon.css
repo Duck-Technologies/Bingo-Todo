@@ -1,0 +1,10 @@
+:host {
+    --gray: var(--mat-sys-outline-variant);
+    height: 20px;
+    width: 20px;
+
+    svg {
+        height: inherit;
+        width: inherit;
+    }
+}
