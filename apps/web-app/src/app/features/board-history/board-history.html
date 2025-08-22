@@ -1,5 +1,8 @@
 @for (group of history(); track index; let index = $index; let last = $last; let first = $first) {
-<div class="group">
+<div
+  class="group"
+  [attr.role]="group.events.length > 1 ? 'group' : 'presentation'"
+  [attr.aria-label]="group.events.length > 1 ? group.events[0].label : null">
   <div class="separator">
     @if (!first) {
     <div class="connector"></div>
@@ -14,65 +17,95 @@
 
   <div class="event">
     <!-- prettier-ignore -->
-    @let lastEventSameMinuteAsGroup = group.events.at(-1)?.date?.toISOString()?.slice(0, -8) === group.date.slice(0, -8);
-    @for (entry of group.events; track entryIndex; let entryIndex = $index; let last = $last) {
-      @let changedToTraditionalEntry = entry.type === EventType.GameModeChange && entry.label.includes('traditional');
-    <mat-card [class.margin-left]="entry.type === EventType.CellCheck || changedToTraditionalEntry">
-      <mat-card-content>
-        <div class="entry">
+    @let lastEventSameMinuteAsGroup = group.events.at(-1)?.date?.toISOString()?.slice(0, -8) ===
+    group.date.slice(0, -8);
+    @let displayDateOnFirstEntry = group.mainEventType !== EventType.Progress ||
+    (group.mainEventType === EventType.Progress && lastEventSameMinuteAsGroup);
+
+    @for (entry of group.events; track entryIndex; let entryIndex = $index; let last = $last; let
+    first = $first) {
+    <!-- prettier-ignore -->
+    @let atSameTimeAsNext = entry.date?.toISOString()?.slice(0, -8) === group.events.at(entryIndex +
+    1)?.date?.toISOString()?.slice(0, -8);
+    @let displayDateUnderEvent = !lastEventSameMinuteAsGroup && !atSameTimeAsNext &&
+    group.mainEventType === EventType.Progress;
+
+    <mat-card
+      [class.margin-left]="entry.type === EventType.CellCheck || (entry.type === EventType.GameModeChange && !first)">
+      <mat-card-content role="listitem" [attr.aria-hidden]="!displayDateOnFirstEntry && first">
+        <div
+          [class.entry]="!displayDateOnFirstEntry || (displayDateOnFirstEntry && !first)"
+          [class.main-event-with-date]="displayDateOnFirstEntry && first">
           @if (entry.type === EventType.CellCheck) {
           <mat-icon fontSet="material-symbols-outlined">check</mat-icon>
-          <span class="cdk-visually-hidden">Checked </span>
           }
 
-          <span>{{entry.label}}</span>
+          <span [attr.aria-hidden]="group.events.length > 1 && first">
+            @if (entry.type === EventType.CellCheck) {
+            <span class="cdk-visually-hidden">Checked</span>}{{entry.label}}</span
+          >
 
-          @if (entry.type !== EventType.CellCheck && !changedToTraditionalEntry && !(entry.type ===
-          EventType.Progress && !lastEventSameMinuteAsGroup) ) {
-          <div class="date">
-            <span>{{(group.date | intlDate : {dateStyle: 'medium'})}}</span>
-            <span>{{(group.date | intlDate : {timeStyle: 'short', hour12: false})}}</span>
-          </div>
+          <!-- prettier-ignore -->
+          @if (displayDateOnFirstEntry && first) {
+          <time [attr.datetime]="group.date">
+            <span class="cdk-visually-hidden">at</span>
+            {{(group.date | intlDate : {dateStyle: 'medium', timeStyle: 'short', hour12: false})}}
+          </time>
           }
         </div>
 
-        @if (entry.type === EventType.GameModeCompletion) {
-        <div class="entry">
-          <mat-icon fontSet="material-symbols-outlined">apps</mat-icon>
-          <span>In {{entry.props.gameMode === 'todo' ? 'TO-DO' : 'traditional'}} mode</span>
-        </div>
-
-        <!-- prettier-ignore -->
-        @if (entry.props.reward) {
-        <div class="entry">
-          <mat-icon fontSet="material-symbols-outlined">star</mat-icon>
-          <span>Reward: {{entry.props.reward}}</span>
-        </div>
+        @if (entry.type === EventType.CellCheck && !displayDateOnFirstEntry) {
+        <!--It's not recommended to put another group into a group, so to make sense of the 'grouped' 
+          progress check dates on screen readers in this case it should read the date with each entry.-->
+        <time [attr.datetime]="entry.date" class="cdk-visually-hidden"
+          >at
+          {{(entry.date | intlDate : {dateStyle: 'medium', timeStyle: 'short', hour12: false})}}
+        </time>
         }
 
         <!-- prettier-ignore -->
-        @if (entry.props.deadline && entry.props.beforeDeadline) {
-        <div class="entry">
-          <mat-icon fontSet="material-symbols-outlined">hourglass</mat-icon>
-          <span
-            >Before the deadline of
-            {{(entry.props.deadline | intlDate : {dateStyle: 'medium', timeStyle: 'short'})}}</span
-          >
-        </div>
-        } }
+        @if (entry.type === EventType.GameModeCompletion) {
+        <ng-container
+          *ngTemplateOutlet="completionDetails; context: {$implicit: entry}"></ng-container>
+        }
       </mat-card-content>
     </mat-card>
 
     <!-- prettier-ignore -->
-    @let atSameTimeAsNext = entry.date?.toISOString()?.slice(0, -8) === group.events.at(entryIndex + 1)?.date?.toISOString()?.slice(0, -8);
-    @if (!lastEventSameMinuteAsGroup && !atSameTimeAsNext && group.mainEventType === EventType.Progress) {
-    <div class="date" [class.extra-bottom-margin]="!atSameTimeAsNext && !last">
-      {{(entry.date | intlDate : {dateStyle: 'medium', timeStyle: 'short'})}}
-    </div>
+    @if (displayDateUnderEvent) {
+    <time [attr.datetime]="entry.date" aria-hidden="true" [class.extra-bottom-margin]="!last">
+      {{(entry.date | intlDate : {dateStyle: 'medium', timeStyle: 'short', hour12: false})}}
+    </time>
     } }
   </div>
 </div>
 }
+
+<ng-template #completionDetails let-entry>
+  <div class="entry">
+    <mat-icon fontSet="material-symbols-outlined">apps</mat-icon>
+    <span>In {{entry.props.gameMode === 'todo' ? 'TO-DO' : 'traditional'}} mode</span>
+  </div>
+
+  <!-- prettier-ignore -->
+  @if (entry.props.reward) {
+  <div class="entry">
+    <mat-icon fontSet="material-symbols-outlined">star</mat-icon>
+    <span>Reward: {{entry.props.reward}}</span>
+  </div>
+  }
+
+  <!-- prettier-ignore -->
+  @if (entry.props.deadline && entry.props.beforeDeadline) {
+  <div class="entry">
+    <mat-icon fontSet="material-symbols-outlined">hourglass</mat-icon>
+    <span
+      >Before the deadline of
+      {{(entry.props.deadline | intlDate : {dateStyle: 'medium', timeStyle: 'short', hour12: false})}}</span
+    >
+  </div>
+  }
+</ng-template>
 
 <ng-template #iconTemplate let-group>
   <!-- prettier-ignore -->
@@ -89,6 +122,7 @@
   <!-- prettier-ignore -->
   @case ("firstStrike") {
   <svg
+    role="presentation"
     xmlns="http://www.w3.org/2000/svg"
     height="24px"
     viewBox="0 -960 960 960"

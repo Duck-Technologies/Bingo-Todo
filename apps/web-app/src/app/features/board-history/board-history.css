@@ -57,42 +57,47 @@
       gap: 0.5rem;
       padding-bottom: 2rem;
 
-      .entry:has(.date) {
+      mat-icon {
+        font-size: inherit;
+        height: fit-content;
+        width: fit-content;
+      }
+
+      .main-event-with-date {
         display: grid;
         grid-template-columns: fit-content(calc(100% - 100px)) 1fr;
 
-        .date {
+        & + .entry {
+          margin-top: 0.5rem;
+        }
+
+        time:not(.cdk-visually-hidden) {
           padding-left: 1rem;
           margin-top: 0.1rem;
           margin-right: 0;
         }
       }
 
-      .entry:not(:has(.date)) {
+      .entry {
         display: flex;
         align-items: center;
         gap: 0.3rem;
 
-        --mat-icon-color: var(--mat-sys-secondary);
 
-        mat-icon {
-          font-size: inherit;
-          height: fit-content;
-          width: fit-content;
+        &:not(:last-of-type) {
+          margin-bottom: 0.3rem;
         }
+
+        --mat-icon-color: var(--mat-sys-secondary);
       }
     }
   }
 
-  .date {
-    display: flex;
-    width: fit-content;
+  time:not(.cdk-visually-hidden) {
     margin-left: auto;
     margin-right: 3px;
     color: var(--mat-sys-secondary);
     font-size: smaller;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.3rem;
+    text-align: end;
   }
 }

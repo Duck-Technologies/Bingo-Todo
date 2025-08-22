@@ -40,7 +40,6 @@ import {
   pipe,
   switchMap,
   tap,
-  throwError,
 } from 'rxjs';
 import { BoardHistory } from '../../features/board-history/board-history';
 import { ProgressCircle } from '../../features/progress-circle/progress-circle';

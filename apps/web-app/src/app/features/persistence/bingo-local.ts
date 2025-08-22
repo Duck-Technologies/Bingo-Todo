@@ -104,7 +104,8 @@ export class BingoLocalStorage {
     if (board != false) {
       updatedBoard.LastChangedAtUtc = saveDate;
       updatedBoard.CreatedAtUtc = board.CreatedAtUtc;
-      updatedBoard.SwitchedToTodoAfterCompleteDateUtc = board.SwitchedToTodoAfterCompleteDateUtc;
+      updatedBoard.SwitchedToTodoAfterCompleteDateUtc =
+        board.SwitchedToTodoAfterCompleteDateUtc;
 
       BoardCalculations.calculateCellBingoState(
         updatedBoard.Cells,
@@ -116,6 +117,7 @@ export class BingoLocalStorage {
         true,
         saveDate
       );
+
       BingoLocalStorage.setSwitchedToTodoDateIfApplicable(
         updatedBoard,
         saveDate
@@ -129,63 +131,6 @@ export class BingoLocalStorage {
     }
 
     return of(false as const);
-  }
-
-  private static setSwitchedToTodoDateIfApplicable(
-    board: BoardInfo,
-    saveDate: Date
-  ) {
-    if (!board.TraditionalGame.CompletedAtUtc) return;
-
-    const cellsSorted = BingoLocalStorage.cellsToCheckedDateSorted(board.Cells);
-    const firstCheckAfterCompletion = cellsSorted.find(
-      (c) =>
-        c.CheckedDateUTC &&
-        c.CheckedDateUTC > board.TraditionalGame.CompletedAtUtc!
-    )?.CheckedDateUTC;
-
-    if (!firstCheckAfterCompletion && board.GameMode === 'traditional') {
-      board.SwitchedToTodoAfterCompleteDateUtc = undefined;
-      return;
-    }
-
-    if (
-      board.GameMode === 'todo' &&
-      !board.SwitchedToTodoAfterCompleteDateUtc
-    ) {
-      board.SwitchedToTodoAfterCompleteDateUtc = saveDate;
-    }
-  }
-
-  public static setCompletionDateIfApplicable(
-    board: BoardInfo,
-    completedByGameModeSwitch: boolean,
-    dateToUse: Date
-  ) {
-    if (
-      board.GameMode === 'traditional' &&
-      !board.TraditionalGame.CompletedAtUtc &&
-      board.Cells.find((c) => c.IsInBingoPattern)
-    ) {
-      board.TraditionalGame.CompletedAtUtc = dateToUse;
-      board.TraditionalGame.CompletedByGameModeSwitch =
-        completedByGameModeSwitch;
-    }
-
-    if (
-      board.GameMode === 'todo' &&
-      !board.TodoGame.CompletedAtUtc &&
-      board.Cells.every((c) => c.IsInBingoPattern)
-    ) {
-      board.TodoGame.CompletedAtUtc = dateToUse;
-    }
-  }
-
-  private static cellsToCheckedDateSorted(cells: BoardCell[]) {
-    return [...cells].sort(
-      (a, b) =>
-        (a.CheckedDateUTC?.getTime() ?? 0) - (b.CheckedDateUTC?.getTime() ?? 0)
-    );
   }
 
   private static boardFromLocalStorage(calculationService: BoardCalculations) {
@@ -211,6 +156,55 @@ export class BingoLocalStorage {
           calculationService
         ),
       });
+    }
+  }
+
+  private static setCompletionDateIfApplicable(
+    board: BoardInfo,
+    completedByGameModeSwitch: boolean,
+    dateToUse: Date
+  ) {
+    if (
+      board.GameMode === 'traditional' &&
+      !board.TraditionalGame.CompletedAtUtc &&
+      board.Cells.find((c) => c.IsInBingoPattern)
+    ) {
+      board.TraditionalGame.CompletedAtUtc = dateToUse;
+      board.TraditionalGame.CompletedByGameModeSwitch =
+        completedByGameModeSwitch;
+    }
+
+    if (
+      board.GameMode === 'todo' &&
+      !board.TodoGame.CompletedAtUtc &&
+      board.Cells.every((c) => c.CheckedDateUTC)
+    ) {
+      board.TodoGame.CompletedAtUtc = dateToUse;
+    }
+  }
+
+  private static setSwitchedToTodoDateIfApplicable(
+    board: BoardInfo,
+    saveDate: Date
+  ) {
+    if (!board.TraditionalGame.CompletedAtUtc) return;
+
+    const hasCheckedAfterCompletion = board.Cells.find(
+      (c) =>
+        c.CheckedDateUTC &&
+        c.CheckedDateUTC > board.TraditionalGame.CompletedAtUtc!
+    )?.CheckedDateUTC;
+
+    if (!hasCheckedAfterCompletion && board.GameMode === 'traditional') {
+      board.SwitchedToTodoAfterCompleteDateUtc = undefined;
+      return;
+    }
+
+    if (
+      board.GameMode === 'todo' &&
+      !board.SwitchedToTodoAfterCompleteDateUtc
+    ) {
+      board.SwitchedToTodoAfterCompleteDateUtc = saveDate;
     }
   }
 }

@@ -93,6 +93,10 @@ const icon = {
   templateUrl: './board-history.html',
   styleUrl: './board-history.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    role: 'list',
+    'aria-label': 'game history starting from latest events'
+  }
 })
 export class BoardHistory {
   public readonly board = input.required<BoardInfo>();
