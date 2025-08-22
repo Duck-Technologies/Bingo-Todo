@@ -36,6 +36,9 @@
   }
 
   &.indicator {
+    mat-card {
+      align-items: center;
+    }
     --box-size: 2rem;
 
     &.five {
@@ -43,7 +46,8 @@
     }
 
     mat-card:not(.bg-green):not(.bg-yellow):not(.bg-blue) {
-      filter: brightness(1.4);
+      --mat-card-elevated-container-elevation: var(--mat-sys-level3);
+      filter: brightness(1.1);
     }
   }
 
@@ -51,7 +55,11 @@
     mat-card:focus-within {
       outline: -webkit-focus-ring-color auto 1px;
     }
-    
+
+    mat-card:not(.bg-green):not(.bg-yellow) > div > span:hover {
+      cursor: pointer;
+    }
+
     mat-card:hover:not(.bg-yellow):not(.bg-green) {
       cursor: pointer;
 

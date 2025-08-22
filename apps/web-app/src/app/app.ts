@@ -6,6 +6,7 @@ import { AuthOperations } from './core/auth/auth-operations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
+import { GameModeIcon } from './features/game-mode-icon/game-mode-icon';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ import { MatButtonModule } from '@angular/material/button';
     AsyncPipe,
     MatToolbarModule,
     MatSidenavModule,
-    MatButtonModule
+    MatButtonModule,
+    GameModeIcon
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

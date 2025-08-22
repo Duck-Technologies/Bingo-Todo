@@ -7,7 +7,7 @@
     --mat-icon-color: gray;
 
     &.red {
-      --mat-icon-color: #ac1103;
+      --mat-icon-color: var(--red-primary);
     }
 
     &.green {
@@ -15,7 +15,7 @@
     }
 
     &.yellow {
-      --mat-icon-color: gold;
+      --mat-icon-color: var(--yellow-primary);
     }
   }
 }

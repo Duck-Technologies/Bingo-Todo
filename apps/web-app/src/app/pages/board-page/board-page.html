@@ -28,7 +28,7 @@
   <button matIconButton [matMenuTriggerFor]="menu" aria-label="Available actions">
     <mat-icon>more_vert</mat-icon>
   </button>
-  <mat-menu #menu="matMenu">
+  <mat-menu #menu="matMenu" xPosition="before">
     <button mat-menu-item (click)="editBoard()">
       <mat-icon>edit</mat-icon>
       Edit
@@ -144,10 +144,7 @@
   <section [style.width]="'100%'" aria-label="Game information and toolbar">
     <!-- prettier-ignore -->
     <div>
-      <img
-        src="{{ board().GameMode === 'todo' ? 'todo' : 'bingo' }}.svg"
-        [matTooltip]="board().GameMode === 'todo' ? tooltips['game_mode_todo'] : tooltips['game_mode_bingo']"
-        alt="{{ board().GameMode === 'todo' ? tooltips['game_mode_todo'] : tooltips['game_mode_bingo'] }}" />
+      <app-game-mode-icon [gameMode]="board().GameMode"></app-game-mode-icon>
 
       <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['creator']">person</mat-icon>
       <span class="cdk-visually-hidden">{{ tooltips["creator"] }}</span>

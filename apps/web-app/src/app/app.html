@@ -2,8 +2,8 @@
 
 <mat-toolbar role="banner">
     <a class="brand" [routerLink]="''">
-      <img class="icon" src="bingo.svg" alt="">
-      BINGO TODO
+      <app-game-mode-icon [gameMode]="'traditional'"></app-game-mode-icon>
+      TODO BINGO
     </a>
     <a>
       @if (!!user) {

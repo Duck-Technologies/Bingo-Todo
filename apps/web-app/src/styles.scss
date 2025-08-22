@@ -66,15 +66,10 @@ mat-stepper.no-space-on-last-step {
 }
 
 :root {
-  --yellow-primary: #f2a516;
+  --yellow-primary: light-dark(hsl(from #f2a516 h calc(s + 3) calc(l + 8)), #f2a516);
   --green-primary: #027333;
-  --blue-primary: #00458f;
-
-  @include mat.sidenav-overrides(
-    (
-      container-background-color: light-dark(#f2f4f7, var(--mat-sys-background)),
-    )
-  );
+  --blue-primary: light-dark(hsl(from #00458f h s calc(l + 2.5)), #00458f);
+  --red-primary: #bf2234; 
 
   @include mat.card-overrides(
     (

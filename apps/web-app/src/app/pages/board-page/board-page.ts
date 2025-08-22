@@ -37,6 +37,7 @@ import { ProgressCircle } from '../../features/progress-circle/progress-circle';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { ConfirmDialog } from '../../features/confirm-dialog/confirm-dialog';
+import { GameModeIcon } from '../../features/game-mode-icon/game-mode-icon';
 
 @Component({
   selector: 'app-board-page',
@@ -60,6 +61,7 @@ import { ConfirmDialog } from '../../features/confirm-dialog/confirm-dialog';
     MatCardModule,
     MatMenuModule,
     RouterLink,
+    GameModeIcon
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',

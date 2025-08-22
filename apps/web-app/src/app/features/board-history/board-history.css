@@ -13,12 +13,28 @@
       flex-direction: column;
       align-items: center;
 
+      svg {
+        color: light-dark(var(--green-primary), hsl(from var(--green-primary) h s calc(l + 15)));
+      }
+
       & *:first-child:not(.connector) {
         margin-top: calc(var(--line-empty-space) + var(--spacing-top));
       }
 
+      .deadline {
+        --mat-icon-color: var(--red-primary);
+      }
+
       .trophy {
-        --mat-icon-color: gold;
+        border-width: 0;
+        border-style: solid;
+        border-radius: 100%;
+        background: light-dark(gold, transparent);
+        font-size: 22px;
+        text-align: center;
+        box-sizing: border-box;
+        padding-top: 2px;
+        --mat-icon-color: light-dark(black, gold);
       }
 
       & :not(.connector) {
@@ -82,7 +98,6 @@
         display: flex;
         align-items: center;
         gap: 0.3rem;
-
 
         &:not(:last-of-type) {
           margin-bottom: 0.3rem;

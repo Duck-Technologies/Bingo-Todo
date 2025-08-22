@@ -16,6 +16,12 @@
     display: flex;
     justify-content: space-between;
 
+    app-game-mode-icon {
+      height: 24px;
+      width: 24px;
+      --gray: lightslategray;
+    }
+
     & > a:first-of-type {
       display: flex;
       gap: 0.3rem;
