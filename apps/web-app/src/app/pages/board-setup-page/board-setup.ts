@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  input,
   OnInit,
   signal,
 } from '@angular/core';
@@ -88,11 +89,12 @@ type CellForm = FormGroup<{
   },
 })
 export class BoardSetup implements OnInit {
+  public readonly board = input<BoardInfo | null>(null);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly bingoApi = inject(BingoApi);
 
-  public readonly baseBoard = new BoardInfo(BingoLocalStorage.DefaultBoard); // once copying boards is implemented, this should be dynamic
+  public readonly baseBoard = new BoardInfo(BingoLocalStorage.DefaultBoard);
   public readonly boardForm = boardForm;
   public readonly Math = Math;
   public readonly defaultBoardSize = 9;
@@ -122,21 +124,27 @@ export class BoardSetup implements OnInit {
       () =>
         this.cardsFormArray.getRawValue().map((c, idx) => ({
           IsInBingoPattern:
-            !!c.Name?.length && this.cardsFormArray.at(idx).valid,
+            !!c.Name?.toString()?.length && this.cardsFormArray.at(idx).valid,
           ...c,
         })) as BoardCell[]
     )
   );
 
   ngOnInit(): void {
+    const board = this.board();
+    if (board) {
+      // makes reward and deadline belonging to another game mode be cleared in the BoardInfo constructor
+      board.TraditionalGame.CompletedAtUtc = board.TodoGame.CompletedAtUtc =
+        null;
+    }
+    const baseBoard = board ? new BoardInfo(board) : this.baseBoard;
+
     this.boardForm.reset();
     this.boardForm.enable();
-    this.boardForm.patchValue(this.baseBoard);
+    this.boardForm.patchValue(baseBoard);
 
-    this.resizeBoard(
-      (this.baseBoard.Cells.length as any) || this.defaultBoardSize
-    );
-    this.cardsFormArray.patchValue(this.baseBoard.Cells);
+    this.resizeBoard((baseBoard.Cells.length as any) || this.defaultBoardSize);
+    this.cardsFormArray.patchValue(baseBoard.Cells);
   }
 
   public createBoard() {

@@ -13,8 +13,10 @@ import { BoardCell, BoardInfo } from '../../features/board/board';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
+import { ActivatedRoute } from '@angular/router';
 
 describe('BoardPage', () => {
   let component: BoardPage;
@@ -28,6 +30,10 @@ describe('BoardPage', () => {
       imports: [BoardPage],
       providers: [
         provideZonelessChangeDetection(),
+        {
+          provide: ActivatedRoute,
+          useValue: jasmine.createSpyObj<ActivatedRoute>('ActivatedRoute', [''])
+        },
         {
           provide: BingoApi,
           useValue: jasmine.createSpyObj<BingoApi>(['createBoard']),
@@ -56,10 +62,10 @@ describe('BoardPage', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('main actions', () => {
-    // TODO shouldn't be edit if it's not the user's board
-    it('should be edit by default', async () => {
-      expect(await helper.getButtonOrNull('edit')).not.toBeNull();
+  describe('available actions', () => {
+    // TODO should disable/hide edit and delete if it's not the user's board
+    it('should be visible by default', async () => {
+      expect(await loader.getHarnessOrNull(MatMenuHarness)).not.toBeNull();
     });
 
     it('should be close history when mode is history', async () => {
@@ -87,7 +93,7 @@ describe('BoardPage', () => {
         .triggerEventHandler('click');
 
       expect(component.pendingSelectCount()).toBe(0);
-      expect(await helper.getButtonOrNull('edit')).not.toBeNull();
+      expect(await loader.getHarnessOrNull(MatMenuHarness)).not.toBeNull();
     });
 
     it('The history button should be disabled', async () => {
@@ -184,42 +190,33 @@ describe('BoardPage', () => {
     });
   });
 
+  it('clicking delete should delete the board and navigate the user away from the page', async () => {
+    const navigateSpy = spyOn((component as any).router, 'navigate');
+    const dialogSpy = spyOn((component as any).dialog, 'open');
+    dialogSpy.and.returnValue({
+      afterClosed: () => of(true),
+    });
+
+    await (
+      await loader.getHarness(MatMenuHarness)
+    ).clickItem({ text: new RegExp('Delete', 'g') });
+
+    expect(navigateSpy).toHaveBeenCalledOnceWith(['board/create']);
+  });
+
   describe('During editing', () => {
     beforeEach(async () => {
       await helper.editBoard();
     });
 
     it('edit button should toggle to save and cancel', async () => {
-      expect(await helper.getButtonOrNull('edit')).toBeNull();
+      expect(await loader.getHarnessOrNull(MatMenuHarness)).toBeNull();
       expect(await helper.getButtonOrNull(/Cancel */)).not.toBeNull();
       expect(await helper.getButtonOrNull(/Save */)).not.toBeNull();
 
       await helper.clickButton(/Cancel */);
 
-      expect(await helper.getButtonOrNull('edit')).not.toBeNull();
-    });
-
-    it("selecting delete should switch the save label to 'delete'", async () => {
-      await (
-        await loader.getHarness(
-          MatCheckboxHarness.with({ label: 'Delete board' })
-        )
-      ).check();
-
-      expect(await helper.getButtonOrNull(/Save */)).toBeNull();
-      expect(await helper.getButtonOrNull(/Delete */)).not.toBeNull();
-    });
-
-    it('clicking delete should delete the board and navigate the user away from the page', async () => {
-      await (
-        await loader.getHarness(
-          MatCheckboxHarness.with({ label: 'Delete board' })
-        )
-      ).check();
-      const navigateSpy = spyOn((component as any).router, 'navigate');
-
-      await helper.clickButton(/Delete */);
-      expect(navigateSpy).toHaveBeenCalledOnceWith(['board/create']);
+      expect(await loader.getHarnessOrNull(MatMenuHarness)).not.toBeNull();
     });
 
     it("clicking 'add deadline' should disable all inputs and buttons except cancel", async () => {
@@ -377,7 +374,7 @@ describe('BoardPage', () => {
         GameMode: 'traditional',
         TraditionalGame: {
           CompletedAtUtc: null,
-          CompletedByGameModeSwitch: false,
+          CompletedByGameModeSwitch: undefined,
           CompletionDeadlineUtc: null,
           CompletionReward: 'an ice cream',
         },
@@ -419,7 +416,7 @@ describe('BoardPage', () => {
         jasmine.objectContaining({
           TraditionalGame: {
             CompletedAtUtc: null,
-            CompletedByGameModeSwitch: false,
+            CompletedByGameModeSwitch: undefined,
             CompletionDeadlineUtc: null,
             CompletionReward: 'a boba tea',
           },
@@ -534,8 +531,19 @@ describe('BoardPage', () => {
       });
 
       BingoLocalStorage.createBoard(board);
+      const completedBoard = await firstValueFrom(
+        BingoLocalStorage.saveSelection(
+          board,
+          [0, 1, 2],
+          new BoardCalculations()
+        )
+      );
 
-      await helper.setBoard(board);
+      if (completedBoard === false) {
+        expect(completedBoard).toBeTruthy();
+        return;
+      }
+      await helper.setBoard(completedBoard);
 
       // check that all game mode options are enabled to start with
       await helper.editBoard();
@@ -764,7 +772,9 @@ class Helper {
   }
 
   async editBoard() {
-    await (await this.getButton('edit')).click();
+    await (
+      await this.loader.getHarness(MatMenuHarness)
+    ).clickItem({ text: new RegExp('Edit', 'g') });
   }
 
   async setBoard(board: BoardInfo) {

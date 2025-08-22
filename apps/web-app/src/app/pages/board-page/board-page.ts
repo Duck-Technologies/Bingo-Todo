@@ -15,10 +15,9 @@ import {
 } from '../../features/board/board';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { BingoApi } from '../../features/persistence/bingo-api';
 import { BoardDetailsForm } from '../../features/board-details-form/board-details-form';
@@ -32,17 +31,12 @@ import { BoardCalculations } from '../../features/calculations/board-calculation
 import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-hourglass';
 import { MatDialog } from '@angular/material/dialog';
 import { CompletionDialog } from '../../features/completion-warn-dialog/completion-dialog';
-import {
-  EMPTY,
-  map,
-  Observable,
-  of,
-  pipe,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { EMPTY, map, Observable, of, pipe, switchMap, tap } from 'rxjs';
 import { BoardHistory } from '../../features/board-history/board-history';
 import { ProgressCircle } from '../../features/progress-circle/progress-circle';
+import { MatCardModule } from '@angular/material/card';
+import { MatMenuModule } from '@angular/material/menu';
+import { ConfirmDialog } from '../../features/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-board-page',
@@ -52,7 +46,6 @@ import { ProgressCircle } from '../../features/progress-circle/progress-circle';
     MatIcon,
     MatIconButton,
     MatTooltip,
-    MatCheckboxModule,
     FormsModule,
     BoardDetailsForm,
     MatDivider,
@@ -64,6 +57,9 @@ import { ProgressCircle } from '../../features/progress-circle/progress-circle';
     DatePipe,
     BoardHistory,
     ProgressCircle,
+    MatCardModule,
+    MatMenuModule,
+    RouterLink,
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
@@ -125,11 +121,25 @@ export class BoardPage {
 
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
   public readonly boardForm = boardForm;
-  public readonly doDelete = model(false);
 
   public cancelChanges() {
     this.displayMode.set('board');
-    this.doDelete.set(false);
+  }
+
+  public deleteBoardClick() {
+    this.dialog
+      .open(ConfirmDialog)
+      .afterClosed()
+      .pipe(
+        switchMap((confirmed) => {
+          if (!confirmed) {
+            return of(false);
+          } else {
+            return this.deleteBoard();
+          }
+        })
+      )
+      .subscribe();
   }
 
   public editBoard() {
@@ -140,11 +150,6 @@ export class BoardPage {
   }
 
   public saveChanges() {
-    if (this.doDelete()) {
-      this.deleteBoard();
-      return;
-    }
-
     // see the constructor of BoardInfo about setting fields to null in case of game mode switch
     // not allowing to change certain fields is the responsibility of the components displaying the inputs
     const formValue = this.boardForm.getRawValue();

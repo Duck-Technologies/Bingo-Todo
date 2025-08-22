@@ -10,9 +10,11 @@
   @if (!!gameModeForm().getRawValue().CompletionDeadlineUtc) {
   <span
     >Deadline:
-    <span
+    <time
+      [attr.datetime]="gameModeForm().getRawValue().CompletionDeadlineUtc"
       class="gray"
-      >{{gameModeForm().getRawValue().CompletionDeadlineUtc | date : 'MMM dd, yyyy HH:mm'}}</span
+      >{{(gameModeForm().getRawValue().CompletionDeadlineUtc 
+      | intlDate : {dateStyle: 'medium', timeStyle: 'short', hour12: false})}}</time
     >
   </span>
 

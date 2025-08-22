@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { ProfilePage } from './features/init/profile-page/profile-page';
 import { MsalGuard } from '@azure/msal-angular';
 import { boardResolver } from './pages/board-page/board-resolver';
+import { boardToCopyResolver } from './pages/board-setup-page/board-resolver';
 
 export const routes: Routes = [
   // {
@@ -13,6 +14,14 @@ export const routes: Routes = [
     path: 'board/create',
     loadComponent: () =>
       import('./pages/board-setup-page/board-setup').then((m) => m.BoardSetup),
+  },
+  {
+    path: 'board/copy/local',
+    loadComponent: () =>
+      import('./pages/board-setup-page/board-setup').then((m) => m.BoardSetup),
+    resolve: {
+      board: boardToCopyResolver,
+    },
   },
   {
     path: 'board/local',

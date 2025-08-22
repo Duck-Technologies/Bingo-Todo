@@ -23,7 +23,7 @@ import {
   boardForm,
   NotOnlyWhiteSpacePattern,
 } from '../board-details-form/form';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,6 +36,7 @@ import { calculateDateFromNow } from '../calculations/date-calculations';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { DATE_FORMATS } from '../../app.config';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { IntlDatePipe } from 'angular-ecmascript-intl';
 
 @Component({
   selector: 'app-deadline-reward-form',
@@ -46,7 +47,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
     ReactiveFormsModule,
     MatDatepickerModule,
     MatTimepickerModule,
-    DatePipe,
+    IntlDatePipe,
     AsyncPipe,
     MatIcon,
     MatIconButton,
@@ -125,7 +126,7 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
             (this.gameMode() === 'traditional'
               ? this.boardForm.controls.TodoGame
               : this.boardForm.controls.TraditionalGame
-            ).patchValue(value, {emitEvent: false});
+            ).patchValue(value, { emitEvent: false });
           })
         );
       })
@@ -187,7 +188,9 @@ export class DeadlineRewardForm implements OnInit, OnDestroy {
 
     this.minDateSubscription = combineLatest([
       this.minDate$,
-      this.gameModeForm().controls.CompletionDeadlineUtc.valueChanges,
+      this.gameModeForm().controls.CompletionDeadlineUtc.valueChanges.pipe(
+        startWith(this.gameModeForm().getRawValue().CompletionDeadlineUtc)
+      ),
     ])
       .pipe(
         tap(([_, currentDate]) => {
