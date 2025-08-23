@@ -7,7 +7,7 @@
 
   padding: 0.7rem;
   display: grid;
-  grid-template-columns: max(24px, fit-content) auto;
+  grid-template-columns: 24px auto;
   grid-template-rows: max(24px, fit-content) auto;
   grid-template-areas:
     "icon title"
