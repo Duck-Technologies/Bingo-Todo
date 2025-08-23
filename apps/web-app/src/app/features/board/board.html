@@ -6,7 +6,7 @@
     aria-hidden="true"
     [class.bg-green]="card.IsInBingoPattern"
     [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
-    [class.bg-blue]="card.Selected">{{card.Selected ? "&#128949;" : ""}}</mat-card>
+    [class.bg-blue]="card.Selected">{{card.Selected ? "*" : ""}}</mat-card>
   } @else { @let actualIdx = idx + (boardSize() * row);
   <mat-card
     [class.bg-green]="card.IsInBingoPattern"

@@ -37,7 +37,8 @@
 
   &.indicator {
     mat-card {
-      align-items: center;
+      justify-content: end;
+      padding: 0;
     }
     --box-size: 2rem;
 
