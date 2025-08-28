@@ -35,7 +35,7 @@
         "appProject": "${workspaceFolder}/apps/api-server/Api/BingoTodo.Api.csproj"
       },
       "dockerServerReadyAction": {
-        "uriFormat": "%s://localhost:%s/WeatherForecast"
+        "uriFormat": "%s://localhost:%s/openapi/v1.json"
       }
     },
     {

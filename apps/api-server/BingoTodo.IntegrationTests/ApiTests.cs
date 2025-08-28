@@ -2,7 +2,6 @@
 
 namespace BingoTodo.IntegrationTests;
 
-
 public class ApiTests : IClassFixture<ClientFixture>
 {
     ClientFixture clientFixture;
@@ -12,15 +11,16 @@ public class ApiTests : IClassFixture<ClientFixture>
         this.clientFixture = clientFixture;
     }
 
-
     [Fact]
     public async Task Test1()
     {
-        var result = await clientFixture.api.GetForAppAsync<JsonArray>("MyApi",
+        var result = await clientFixture.api.GetForAppAsync<JsonArray>(
+            "MyApi",
             options =>
-        {
-            options.RelativePath = $"books";
-        });
+            {
+                options.RelativePath = $"books";
+            }
+        );
         // Console.WriteLine($"result = {result}");
         Assert.Equal("[]", result.ToString());
     }

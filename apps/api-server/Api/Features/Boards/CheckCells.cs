@@ -1,0 +1,63 @@
+namespace BingoTodo.Features.Boards;
+
+using System.Security.Claims;
+using BingoTodo.Common.Extensions;
+using BingoTodo.Features.Boards.CustomValidations;
+using BingoTodo.Features.Boards.Extensions;
+using BingoTodo.Features.Boards.Models;
+using BingoTodo.Features.Boards.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
+
+public class CheckCells
+{
+    public static void Map(IEndpointRouteBuilder app) =>
+        app.MapPost("/{id}", Handle)
+            .WithName("BoardCellCheckUpdate")
+            .WithSummary("Sets CheckedAtUtc of the cells for the given indexes")
+            .WithRequestValidation<IdParam>()
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+    private static async Task<Results<NotFound, ForbidHttpResult, Ok, BadRequest<string>>> Handle(
+        [AsParameters] IdParam parameters,
+        int?[] indexes,
+        BoardDataService database,
+        BoardSaveService saveService,
+        ClaimsPrincipal claimsPrincipal,
+        CancellationToken cancellationToken
+    )
+    {
+        var board = await database.GetAsync(parameters.Id);
+
+        if (claimsPrincipal.UserEligibleToProceed(board, out var result) != true)
+        {
+            return result == false ? TypedResults.Forbid() : TypedResults.NotFound();
+        }
+
+        if (IsBadRequest(board!, out var msg))
+        {
+            return TypedResults.BadRequest(msg);
+        }
+
+        await saveService.UpdateCellsAsync(parameters.Id, board!, indexes, cancellationToken);
+
+        return TypedResults.Ok();
+    }
+
+    private static bool IsBadRequest(BoardMongo board, out string message)
+    {
+        if (board!.TodoGame.CompletedAtUtc != null || board.Cells.All(x => x.CheckedAtUtc != null))
+        {
+            message = "The board can't be updated as all cells are checked.";
+            return true;
+        }
+
+        if (board.TraditionalGame.CompletedAtUtc != null && board.GameMode == GameMode.traditional)
+        {
+            message = "The board can't be updated in this game mode.";
+            return true;
+        }
+
+        message = "";
+        return false;
+    }
+}
