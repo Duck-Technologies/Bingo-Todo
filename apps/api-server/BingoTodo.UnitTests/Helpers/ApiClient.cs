@@ -20,7 +20,7 @@ public class ApiClient
     public async Task<HttpResponseMessage> CheckCells(string id, int[] cellIndexes)
     {
         return await client.PostAsJsonAsync(
-            $"{baseUrl}/{id}",
+            $"{baseUrl}/{id}/CheckCells",
             cellIndexes,
             cancellationToken: cancellationToken
         );
@@ -29,7 +29,7 @@ public class ApiClient
     public async Task<HttpResponseMessage> CheckCells(string id, int?[] cellIndexes)
     {
         return await client.PostAsJsonAsync(
-            $"{baseUrl}/{id}",
+            $"{baseUrl}/{id}/CheckCells",
             cellIndexes,
             cancellationToken: cancellationToken
         );
@@ -43,7 +43,7 @@ public class ApiClient
     {
         var request = new HttpRequestMessage
         {
-            RequestUri = new Uri($"{client.BaseAddress!.OriginalString}{baseUrl}/{id}"),
+            RequestUri = new Uri($"{client.BaseAddress!.OriginalString}{baseUrl}/{id}/CheckCells"),
             Method = HttpMethod.Post,
             Content = JsonContent.Create(cellIndexes),
         };

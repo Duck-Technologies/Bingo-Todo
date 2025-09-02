@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 public class CheckCells
 {
     public static void Map(IEndpointRouteBuilder app) =>
-        app.MapPost("/{id}", Handle)
+        app.MapPost("/{id}/CheckCells", Handle)
             .WithName("BoardCellCheckUpdate")
             .WithSummary("Sets CheckedAtUtc of the cells for the given indexes")
             .WithRequestValidation<IdParam>()
@@ -30,6 +30,11 @@ public class CheckCells
         CancellationToken cancellationToken
     )
     {
+        if (indexes is null || !indexes.Where(i => i is not null && i >= 0 && i < 25).Any())
+        {
+            return TypedResults.Ok();
+        }
+
         var board = await database.GetAsync(parameters.Id);
 
         if (claimsPrincipal.UserEligibleToProceed(board, out var result) != true)

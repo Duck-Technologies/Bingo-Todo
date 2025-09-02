@@ -163,7 +163,7 @@ public class ApiTests(ClientFixture clientFixture) : IClassFixture<ClientFixture
             [0, 1, 2, 3, 4],
             options =>
             {
-                options.RelativePath = $"/boards/{BoardId}";
+                options.RelativePath = $"/boards/{BoardId}/CheckCells";
             },
             TestContext.Current.CancellationToken
         );
@@ -279,7 +279,7 @@ public class ApiTests(ClientFixture clientFixture) : IClassFixture<ClientFixture
             [.. Enumerable.Range(5, 25)],
             options =>
             {
-                options.RelativePath = $"/boards/{BoardId}";
+                options.RelativePath = $"/boards/{BoardId}/CheckCells";
             },
             TestContext.Current.CancellationToken
         );
