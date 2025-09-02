@@ -4,9 +4,10 @@ services:
   integrationTest:
     image: bingotodo-integtest
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ../
+      dockerfile: ./BingoTodo.IntegrationTests/Dockerfile
     network_mode: host
+    tty: true
     depends_on:
       dotnetserver:
         condition: service_started

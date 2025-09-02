@@ -1,4 +1,4 @@
-namespace Bingo_Todo.Models;
+namespace BingoTodo.Common.Models;
 
 public class MongoDatabaseSettings
 {

@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore
       - name: Test with the dotnet CLI
-        run: dotnet test --no-build
+        run: dotnet run
 
   dev_build_and_publish:
     runs-on: ubuntu-latest

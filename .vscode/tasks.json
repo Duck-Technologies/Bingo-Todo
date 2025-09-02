@@ -60,7 +60,7 @@
         "tag": "bingotodo:unittest",
         "target": "build",
         "dockerfile": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests/Dockerfile",
-        "context": "${workspaceFolder}/apps/api-server/BingoTodo.UnitTests",
+        "context": "${workspaceFolder}/apps/api-server",
         "pull": true
       },
       "netCore": {

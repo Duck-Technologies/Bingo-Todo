@@ -1,6 +1,6 @@
-@Bingo_Todo_HostAddress = http://localhost:8080
+@BingoTodo_HostAddress = http://localhost:8080
 
-GET {{Bingo_Todo_HostAddress}}/weatherforecast/
+GET {{BingoTodo_HostAddress}}/openapi/v1.json
 Accept: application/json
 
 ###
