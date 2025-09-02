@@ -9,6 +9,7 @@ using BingoTodo.Features.Boards.Models;
 using BingoTodo.Features.Boards.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 public class UpdateBoardExclCells
 {
@@ -19,8 +20,11 @@ public class UpdateBoardExclCells
             .WithRequestValidation<IdParam>()
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
-    private static async Task<Results<Ok, NotFound, ForbidHttpResult, ValidationProblem>> Handle(
+    private static async Task<
+        Results<Ok, NotFound, ForbidHttpResult, ValidationProblem, Conflict>
+    > Handle(
         [AsParameters] IdParam request,
+        [FromHeader(Name = "If-Match")] string? ticks,
         BoardPUT requestBody,
         BoardSaveService saveService,
         BoardDataService database,
@@ -35,6 +39,14 @@ public class UpdateBoardExclCells
             return result == false ? TypedResults.Forbid() : TypedResults.NotFound();
         }
 
+        if (
+            long.TryParse(ticks?.Replace("\"", ""), out var _ticks)
+            && _ticks != board!.LastChangedAtUtc.Ticks
+        )
+        {
+            return TypedResults.Conflict();
+        }
+
         var validationResult = new BoardPutRequestValidator(board!).Validate(requestBody);
         if (!validationResult.IsValid)
         {
@@ -46,9 +58,18 @@ public class UpdateBoardExclCells
             return TypedResults.Ok();
         }
 
-        await saveService.UpdateExcludingCellsAsync(request.Id, board!, requestBody, cancellationToken);
+        var isConflict =
+            (
+                await saveService.UpdateExcludingCellsAsync(
+                    request.Id,
+                    board!,
+                    requestBody,
+                    board!.LastChangedAtUtc,
+                    cancellationToken
+                )
+            ) == "conflict";
 
-        return TypedResults.Ok();
+        return isConflict ? TypedResults.Conflict() : TypedResults.Ok();
     }
 
     private static bool DidAnythingChange(BoardMongo board, BoardPUT requestBody)

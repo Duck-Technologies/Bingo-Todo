@@ -71,15 +71,16 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
         return board.Id;
     }
 
-    public async Task UpdateExcludingCellsAsync(
+    public async Task<string?> UpdateExcludingCellsAsync(
         string id,
         BoardMongo board,
         BoardPUT payload,
+        DateTime originalLastChangedDate,
         CancellationToken cancellationToken
     )
     {
         var updateDate = DateTime.Now;
-        CalculateUpdateFields(board!, payload.GameMode, updateDate);
+        CalculateUpdateFields(board, payload.GameMode, updateDate);
 
         board.TraditionalGame.CompletionDeadlineUtc = payload.TraditionalGame.CompletionDeadlineUtc;
         board.TodoGame.CompletionDeadlineUtc = payload.TodoGame.CompletionDeadlineUtc;
@@ -91,11 +92,23 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
 
         board.LastChangedAtUtc = updateDate;
 
-        await dataService.UpdateAsync(id, board, cancellationToken);
+        var result = await dataService.UpdateAsync(
+            id,
+            board,
+            originalLastChangedDate,
+            cancellationToken
+        );
+
+        if (result.MatchedCount == 0)
+        {
+            return "conflict"; // it might be deleted as well, but then a retry will tell the user that
+        }
+
+        return null;
         // should also update user stats
     }
 
-    public async Task UpdateCellsAsync(
+    public async Task<string?> UpdateCellsAsync(
         string id,
         BoardMongo board,
         int?[] indexes,
@@ -103,16 +116,29 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
     )
     {
         var updateDate = DateTime.Now;
-        var didUpdate = UpdateCells(board!, indexes, updateDate);
+        var originalLastChangedDate = board.LastChangedAtUtc;
+        var didUpdate = UpdateCells(board, indexes, updateDate);
         if (!didUpdate)
         {
-            return;
+            return null;
         }
 
-        board!.LastChangedAtUtc = updateDate;
+        board.LastChangedAtUtc = updateDate;
         SetCompletedDateIfApplicable(board, updateDate);
 
-        await dataService.UpdateAsync(id, board, cancellationToken);
+        var result = await dataService.UpdateAsync(
+            id,
+            board,
+            originalLastChangedDate,
+            cancellationToken
+        );
+
+        if (result.MatchedCount == 0)
+        {
+            return "conflict"; // it might be deleted as well, but then a retry will tell the user that
+        }
+
+        return null;
         // should also update user stats
     }
 

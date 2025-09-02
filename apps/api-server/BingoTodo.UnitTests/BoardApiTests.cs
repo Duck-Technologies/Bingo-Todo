@@ -3,6 +3,7 @@
 using System.Net;
 using BingoTodo.Features.Boards.Models;
 using BingoTodo.UnitTests.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -1019,7 +1020,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
     }
 
     [Fact]
-    public async Task UpdateBoard_IsPossibleToSwitchGameModeBeforeCompletion()
+    public async Task BoardUpdate_IsPossibleToSwitchGameModeBeforeCompletion()
     {
         var client = new ApiClient(app.CreateClient(), TestContext.Current.CancellationToken);
 
@@ -1128,7 +1129,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
     }
 
     [Fact]
-    public async Task UpdateBoard_IgnoreIfSameAsDatabaseState()
+    public async Task BoardUpdate_IgnoreIfSameAsDatabaseState()
     {
         var httpClient = app.CreateClient();
         var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
@@ -1167,5 +1168,126 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         // Assert
         Assert.Equal(updated!.LastChangedAtUtc, updated2!.LastChangedAtUtc);
         Assert.NotEqual(updated!.LastChangedAtUtc, updated3!.LastChangedAtUtc);
+    }
+
+    [Fact]
+    public async Task BoardUpdate_Conflict()
+    {
+        var httpClient = app.CreateClient();
+        var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
+
+        var cells = new BoardCellPOST[9];
+        Array.Fill(cells, new BoardCellPOST { Name = "a" });
+
+        var id = await client.CreateBoardSuccess(
+            new BoardPOST
+            {
+                Cells = cells,
+                GameMode = GameMode.traditional,
+                Visibility = Visibility.unlisted,
+            }
+        );
+
+        var payload1 = new BoardPUT
+        {
+            GameMode = GameMode.traditional,
+            Visibility = Visibility.unlisted,
+            Name = "New name",
+        };
+
+        var payload2 = new BoardPUT
+        {
+            GameMode = GameMode.todo,
+            Visibility = Visibility.@public,
+            Name = "Other name",
+        };
+
+        // Act
+        var responses = await Task.WhenAll(
+            [client.UpdateBoard(id!, payload1), client.UpdateBoard(id!, payload2)]
+        );
+
+        // Assert
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
+    }
+
+    [Fact]
+    public async Task BoardUpdate_ConflictWithHeader()
+    {
+        var httpClient = app.CreateClient();
+        var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
+
+        var cells = new BoardCellPOST[9];
+        Array.Fill(cells, new BoardCellPOST { Name = "a" });
+
+        var id = await client.CreateBoardSuccess(
+            new BoardPOST
+            {
+                Cells = cells,
+                GameMode = GameMode.traditional,
+                Visibility = Visibility.unlisted,
+            }
+        );
+
+        var lastChangeDate = (await client.LoadBoardSuccess(id!))!.LastChangedAtUtc;
+
+        var payload1 = new BoardPUT
+        {
+            GameMode = GameMode.traditional,
+            Visibility = Visibility.unlisted,
+            Name = "New name",
+        };
+
+        var payload2 = new BoardPUT
+        {
+            GameMode = GameMode.todo,
+            Visibility = Visibility.@public,
+            Name = "Other name",
+        };
+
+        // Act
+        var res1 = await client.UpdateBoardWithHeader(id!, payload1, lastChangeDate);
+        var res2 = await client.UpdateBoardWithHeader(id!, payload2, lastChangeDate);
+        HttpResponseMessage[] responses = [res1, res2];
+
+        // Assert
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
+    }
+
+    [Fact]
+    public async Task BoardCellCheck_Conflict()
+    {
+        var httpClient = app.CreateClient();
+        var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
+
+        var cells = new BoardCellPOST[9];
+        Array.Fill(cells, new BoardCellPOST { Name = "a" });
+
+        var id = await client.CreateBoardSuccess(
+            new BoardPOST
+            {
+                Cells = cells,
+                GameMode = GameMode.traditional,
+                Visibility = Visibility.unlisted,
+            }
+        );
+
+        var lastChangeDate = (await client.LoadBoardSuccess(id!))!.LastChangedAtUtc;
+
+        int[] payload1 = [0, 1, 2];
+
+        int[] payload2 = [0, 1, 2, 3, 4];
+
+        // Act
+        var responses = await Task.WhenAll(
+            [
+                client.CheckCellsWithHeader(id!, payload1, lastChangeDate),
+                client.CheckCellsWithHeader(id!, payload2, lastChangeDate),
+            ]
+        );
+
+        // Assert
+        Assert.Equal(1, responses.Count(r => r.IsSuccessStatusCode));
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
     }
 }

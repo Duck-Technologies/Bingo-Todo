@@ -7,6 +7,7 @@ using BingoTodo.Features.Boards.Extensions;
 using BingoTodo.Features.Boards.Models;
 using BingoTodo.Features.Boards.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 public class CheckCells
 {
@@ -17,8 +18,11 @@ public class CheckCells
             .WithRequestValidation<IdParam>()
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
-    private static async Task<Results<NotFound, ForbidHttpResult, Ok, BadRequest<string>>> Handle(
+    private static async Task<
+        Results<NotFound, ForbidHttpResult, Ok, BadRequest<string>, Conflict>
+    > Handle(
         [AsParameters] IdParam parameters,
+        [FromHeader(Name = "If-Match")] string? ticks,
         int?[] indexes,
         BoardDataService database,
         BoardSaveService saveService,
@@ -33,14 +37,24 @@ public class CheckCells
             return result == false ? TypedResults.Forbid() : TypedResults.NotFound();
         }
 
+        if (
+            long.TryParse(ticks?.Replace("\"", ""), out var _ticks)
+            && _ticks != board!.LastChangedAtUtc.Ticks
+        )
+        {
+            return TypedResults.Conflict();
+        }
+
         if (IsBadRequest(board!, out var msg))
         {
             return TypedResults.BadRequest(msg);
         }
 
-        await saveService.UpdateCellsAsync(parameters.Id, board!, indexes, cancellationToken);
+        var isConflict =
+            (await saveService.UpdateCellsAsync(parameters.Id, board!, indexes, cancellationToken))
+            == "conflict";
 
-        return TypedResults.Ok();
+        return isConflict ? TypedResults.Conflict() : TypedResults.Ok();
     }
 
     private static bool IsBadRequest(BoardMongo board, out string message)

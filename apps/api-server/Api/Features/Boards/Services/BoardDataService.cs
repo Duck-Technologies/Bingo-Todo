@@ -26,17 +26,18 @@ public class BoardDataService
     public async Task CreateAsync(BoardMongo board, CancellationToken cancellationToken) =>
         await _boardsCollection.InsertOneAsync(board, cancellationToken: cancellationToken);
 
-    public async Task UpdateAsync(
+    public async Task<ReplaceOneResult> UpdateAsync(
         string id,
         BoardMongo updatedBoard,
+        DateTime lastChangedAt,
         CancellationToken cancellationToken
     ) =>
         await _boardsCollection.ReplaceOneAsync(
-            x => x.Id == id,
+            x => x.Id == id && x.LastChangedAtUtc == lastChangedAt,
             updatedBoard,
             cancellationToken: cancellationToken
         );
 
-    public async Task RemoveAsync(string id, CancellationToken cancellationToken) =>
+    public async Task<DeleteResult> RemoveAsync(string id, CancellationToken cancellationToken) =>
         await _boardsCollection.DeleteOneAsync(x => x.Id == id, cancellationToken);
 }

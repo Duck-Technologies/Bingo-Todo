@@ -35,6 +35,22 @@ public class ApiClient
         );
     }
 
+    public async Task<HttpResponseMessage> CheckCellsWithHeader(
+        string id,
+        int[] cellIndexes,
+        DateTime lastChangeDate
+    )
+    {
+        var request = new HttpRequestMessage
+        {
+            RequestUri = new Uri($"{client.BaseAddress!.OriginalString}{baseUrl}/{id}"),
+            Method = HttpMethod.Post,
+            Content = JsonContent.Create(cellIndexes),
+        };
+        request.Headers.Add("If-Match", $"\"{lastChangeDate.Ticks}\"");
+        return await client.SendAsync(request, cancellationToken: cancellationToken);
+    }
+
     public async Task<HttpResponseMessage> CreateBoard(BoardPOST board)
     {
         return await client.PostAsJsonAsync(
@@ -99,5 +115,21 @@ public class ApiClient
         var response = await UpdateBoard(id, board);
         response.EnsureSuccessStatusCode();
         return response;
+    }
+
+    public async Task<HttpResponseMessage> UpdateBoardWithHeader(
+        string id,
+        BoardPUT board,
+        DateTime lastChangeDate
+    )
+    {
+        var request = new HttpRequestMessage
+        {
+            RequestUri = new Uri($"{client.BaseAddress!.OriginalString}{baseUrl}/{id}"),
+            Method = HttpMethod.Put,
+            Content = JsonContent.Create(board),
+        };
+        request.Headers.Add("If-Match", $"\"{lastChangeDate.Ticks}\"");
+        return await client.SendAsync(request, cancellationToken: cancellationToken);
     }
 }
