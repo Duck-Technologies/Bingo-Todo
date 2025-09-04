@@ -20,6 +20,7 @@ public sealed class Statistics : IBoardStatistics
     public int DeletedBoardsWithUnRegistration { get; set; }
     public GameStatistics BoardStatistics { get; set; } = new(); // includes DeletedBoardStatistics
     public GameStatistics DeletedBoardStatistics { get; set; } = new(); // point in time data like deadline, reward can't be calculated in this
+    public Achievements Achievements { get; set; } = new();
 }
 
 public sealed class BoardStatistics
@@ -61,6 +62,19 @@ public sealed class Achievements
     public int FirstClearedBeforeDeadline { get; set; } // CompletedTodo|CompletedTodoAfterTraditional before deadline
     public int FirstClearedAfterDeadline { get; set; } // CompletedTodo|CompletedTodoAfterTraditional after deadline
     public int FirstCompleteWithGameModeSwitch { get; set; } // Quick win: already have a strike in TO-DO mode, switches to Traditional FromTodoToTraditionalCompletes
+
+    internal bool ReachedAll =>
+        FirstBingoAtLastChance4x4
+            + FirstBingoAtLastChance5x5
+            + FirstBingoReached
+            + FirstCleared3x3Board
+            + FirstCleared4x4Board
+            + FirstCleared5x5Board
+            + FirstClearedAfterDeadline
+            + FirstClearedBeforeDeadline
+            + FirstCompleteWithGameModeSwitch
+            + FirstEarnedReward
+        == 10;
 }
 
 

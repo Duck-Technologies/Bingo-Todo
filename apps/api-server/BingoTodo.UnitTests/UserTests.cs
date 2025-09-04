@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 using Xunit.Internal;
 
-public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixture>
+public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixture>, IAsyncDisposable
 {
     private readonly WebApplicationFactory<Program> app = webAppFixture.TestServerClient;
 
@@ -52,12 +52,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name"]
-        );
-
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Email", "Name", "Achievements"]
         );
     }
 
@@ -135,12 +130,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name"]
-        );
-
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Email", "Name", "Achievements"]
         );
     }
 
@@ -190,12 +180,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name"]
-        );
-
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Email", "Name", "Achievements"]
         );
     }
 
@@ -242,7 +227,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name"]
+            ["Id", "Email", "Name", "Achievements"]
         );
 
         // Then switching game mode
@@ -259,12 +244,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
         Assert.EquivalentWithExclusions(
             new User { BoardStatistics = user.BoardStatistics },
             user3,
-            ["Id", "Email", "Name"]
-        );
-
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Email", "Name", "Achievements"]
         );
     }
 
@@ -313,12 +293,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name"]
-        );
-
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Email", "Name", "Achievements"]
         );
     }
 
@@ -371,7 +346,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name"]
+            ["Id", "Email", "Name", "Achievements"]
         );
 
         // Check all cells
@@ -390,9 +365,12 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user2,
-            ["Id", "Email", "Name"]
+            ["Id", "Email", "Name", "Achievements"]
         );
+    }
 
+    public async ValueTask DisposeAsync()
+    {
         await webAppFixture.UserService.RemoveAsync(
             webAppFixture.DefaultUserId,
             TestContext.Current.CancellationToken

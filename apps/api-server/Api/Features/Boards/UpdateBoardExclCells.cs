@@ -29,6 +29,7 @@ public class UpdateBoardExclCells
         BoardSaveService saveService,
         BoardDataService database,
         ClaimsPrincipal claimsPrincipal,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken
     )
     {
@@ -47,7 +48,9 @@ public class UpdateBoardExclCells
             return TypedResults.Conflict();
         }
 
-        var validationResult = new BoardPutRequestValidator(board!).Validate(requestBody);
+        var validationResult = new BoardPutRequestValidator(board!, timeProvider).Validate(
+            requestBody
+        );
         if (!validationResult.IsValid)
         {
             return TypedResults.ValidationProblem(validationResult.ToDictionary());
@@ -97,7 +100,7 @@ public class UpdateBoardExclCells
 
 public class BoardPutRequestValidator : AbstractValidator<BoardPUT>
 {
-    public BoardPutRequestValidator(BoardMongo state)
+    public BoardPutRequestValidator(BoardMongo state, TimeProvider timeProvider)
     {
         RuleFor(x => x.Name).MaximumLength(200).When(x => x != null);
 
@@ -116,7 +119,7 @@ public class BoardPutRequestValidator : AbstractValidator<BoardPUT>
             .When(x => x.GameMode == GameMode.todo && state.TraditionalGame.CompletedAtUtc is null);
 
         RuleFor(x => x.TraditionalGame.CompletionDeadlineUtc)
-            .GreaterThan(DateTime.Now)
+            .GreaterThan(timeProvider.GetUtcNow().UtcDateTime)
             .When(x =>
                 x.TraditionalGame.CompletionDeadlineUtc is not null
                 && x.TraditionalGame.CompletionDeadlineUtc
@@ -133,7 +136,7 @@ public class BoardPutRequestValidator : AbstractValidator<BoardPUT>
             .When(x => x.GameMode == GameMode.traditional);
 
         RuleFor(x => x.TodoGame.CompletionDeadlineUtc)
-            .GreaterThan(DateTime.Now)
+            .GreaterThan(timeProvider.GetUtcNow().UtcDateTime)
             .When(x =>
                 x.TodoGame.CompletionDeadlineUtc is not null
                 && x.TodoGame.CompletionDeadlineUtc != state.TodoGame.CompletionDeadlineUtc

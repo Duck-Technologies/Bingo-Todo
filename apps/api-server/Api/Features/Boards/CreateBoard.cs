@@ -18,12 +18,12 @@ public class CreateBoard
 
     public class RequestValidator : AbstractValidator<BoardPOST>
     {
-        public RequestValidator()
+        public RequestValidator(TimeProvider timeProvider)
         {
             RuleFor(x => x.Name).MaximumLength(200).When(x => x != null);
 
             RuleFor(x => x.CompletionDeadlineUtc)
-                .GreaterThan(DateTime.Now)
+                .GreaterThan(timeProvider.GetUtcNow().UtcDateTime)
                 .When(x => x != null)
                 .WithMessage("'{PropertyName}' must be in the future.");
 

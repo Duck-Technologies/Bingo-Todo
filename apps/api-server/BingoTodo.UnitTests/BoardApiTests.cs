@@ -42,7 +42,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         var client = new ApiClient(app.CreateClient(), TestContext.Current.CancellationToken);
 
         var cells = new BoardCellPOST[9];
-        var startDate = DateTime.UtcNow;
+        var startDate = webAppFixture.TimeProvider.GetUtcNow().UtcDateTime;
         Array.Fill(cells, new BoardCellPOST { Name = "a" });
         var request = new BoardPOST
         {
@@ -280,7 +280,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         await client.UpdateBoardSuccess(id!, new BoardPUT { GameMode = GameMode.todo });
         var todoBoardBeforeCheck = await client.LoadBoardSuccess(id!);
 
-        Thread.Sleep(10);
+        await Task.Delay(10, TestContext.Current.CancellationToken);
         await client.CheckCells(id!, [3]);
 
         var todoBoardAfterCheck = await client.LoadBoardSuccess(id!);
@@ -536,11 +536,11 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         var afterFirstCheck = await client.LoadBoardSuccess(id!);
 
         // Act
-        Thread.Sleep(10);
+        await Task.Delay(10, TestContext.Current.CancellationToken);
         await client.CheckCells(id!, [null, 0, 1, 2, 70, int.MaxValue, int.MinValue]);
         var afterSecondCheck = await client.LoadBoardSuccess(id!);
 
-        Thread.Sleep(5);
+        await Task.Delay(5, TestContext.Current.CancellationToken);
         await client.CheckCells(id!, [0, 1, 2, 3]);
         var afterThirdCheck = await client.LoadBoardSuccess(id!);
 
@@ -858,7 +858,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
             {
                 Cells = cells,
                 GameMode = gameMode,
-                CompletionDeadlineUtc = DateTime.Now.AddMilliseconds(300),
+                CompletionDeadlineUtc = DateTime.UtcNow.AddMilliseconds(200),
             }
         );
 
@@ -870,7 +870,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
                 : (DateTime)saved!.TraditionalGame.CompletionDeadlineUtc;
 #pragma warning restore CS8629 // Nullable value type may be null.
 
-        Thread.Sleep(300);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         // Act
         var gameDetail = new GameDetailPUT()
@@ -1156,7 +1156,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         await client.UpdateBoardSuccess(id!, payload);
         var updated = await client.LoadBoardSuccess(id!);
 
-        Thread.Sleep(20);
+        await Task.Delay(20, TestContext.Current.CancellationToken);
         await client.UpdateBoardSuccess(id!, payload);
         var updated2 = await client.LoadBoardSuccess(id!);
 

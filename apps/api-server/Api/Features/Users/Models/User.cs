@@ -28,4 +28,16 @@ public sealed class Achievements
     public DateTime? FirstClearedBeforeDeadlineAt { get; set; } // TO-DO completion before deadline
     public DateTime? FirstClearedAfterDeadlineAt { get; set; } // TO-DO completion after deadline
     public DateTime? FirstCompleteWithGameModeSwitchAt { get; set; } // Quick win: already have a strike in TO-DO mode, switches to Traditional
+
+    internal bool ReachedAll =>
+        FirstBingoAtLastChance4x4At is null
+        && FirstBingoAtLastChance5x5At is null
+        && FirstBingoReachedAt is null
+        && FirstCleared3x3BoardAt is null
+        && FirstCleared4x4BoardAt is null
+        && FirstCleared5x5BoardAt is null
+        && FirstClearedAfterDeadlineAt is null
+        && FirstClearedBeforeDeadlineAt is null
+        && FirstCompleteWithGameModeSwitchAt is null
+        && FirstEarnedRewardAt is null is false;
 }

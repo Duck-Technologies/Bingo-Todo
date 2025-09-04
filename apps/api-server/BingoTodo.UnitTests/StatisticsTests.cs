@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 using Xunit.Internal;
 
-public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixture>
+public sealed class StatisticsTests(WebAppFixture webAppFixture)
+    : IClassFixture<WebAppFixture>,
+        IAsyncDisposable
 {
     private readonly WebApplicationFactory<Program> app = webAppFixture.TestServerClient;
 
@@ -60,12 +62,6 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
             },
             stats,
             ["Id", "Year"]
-        );
-
-        await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
         );
     }
 
@@ -155,13 +151,7 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
                 },
             },
             stats,
-            ["Id", "Year", "UserRegistrations"]
-        );
-
-        await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Year", "UserRegistrations", "Achievements"]
         );
     }
 
@@ -220,12 +210,6 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
             stats,
             ["Id", "Year", "UserRegistrations"]
         );
-
-        await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
-        );
     }
 
     [Theory]
@@ -271,7 +255,7 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
                 },
             },
             stats,
-            ["Id", "Year", "UserRegistrations"]
+            ["Id", "Year", "UserRegistrations", "Achievements"]
         );
 
         // Then switching game mode
@@ -293,13 +277,7 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
                 DeletedBoardStatistics = stats.BoardStatistics,
             },
             stats3,
-            ["Id", "Year", "UserRegistrations"]
-        );
-
-        await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Year", "UserRegistrations", "Achievements"]
         );
     }
 
@@ -355,13 +333,7 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
                 },
             },
             stats,
-            ["Id", "Year", "UserRegistrations"]
-        );
-
-        await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Year", "UserRegistrations", "Achievements"]
         );
     }
 
@@ -414,7 +386,7 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
                 },
             },
             stats,
-            ["Id", "Year", "UserRegistrations"]
+            ["Id", "Year", "UserRegistrations", "Achievements"]
         );
 
         // Check all cells
@@ -440,13 +412,7 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
                 },
             },
             stats2,
-            ["Id", "Year", "UserRegistrations"]
-        );
-
-        await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
-        await webAppFixture.UserService.RemoveAsync(
-            webAppFixture.DefaultUserId,
-            TestContext.Current.CancellationToken
+            ["Id", "Year", "UserRegistrations", "Achievements"]
         );
     }
 
@@ -471,7 +437,10 @@ public sealed class StatisticsTests(WebAppFixture webAppFixture) : IClassFixture
             stats,
             ["Id", "Year", "BoardStatistics"]
         );
+    }
 
+    public async ValueTask DisposeAsync()
+    {
         await webAppFixture.StatisticsService.RemoveAsync(TestContext.Current.CancellationToken);
         await webAppFixture.UserService.RemoveAsync(
             webAppFixture.DefaultUserId,
