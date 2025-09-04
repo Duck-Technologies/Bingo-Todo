@@ -3,7 +3,6 @@
 using System.Net;
 using BingoTodo.Features.Boards.Models;
 using BingoTodo.UnitTests.Helpers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -1171,47 +1170,6 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
     }
 
     [Fact]
-    public async Task BoardUpdate_Conflict()
-    {
-        var httpClient = app.CreateClient();
-        var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
-
-        var cells = new BoardCellPOST[9];
-        Array.Fill(cells, new BoardCellPOST { Name = "a" });
-
-        var id = await client.CreateBoardSuccess(
-            new BoardPOST
-            {
-                Cells = cells,
-                GameMode = GameMode.traditional,
-                Visibility = Visibility.unlisted,
-            }
-        );
-
-        var payload1 = new BoardPUT
-        {
-            GameMode = GameMode.traditional,
-            Visibility = Visibility.unlisted,
-            Name = "New name",
-        };
-
-        var payload2 = new BoardPUT
-        {
-            GameMode = GameMode.todo,
-            Visibility = Visibility.@public,
-            Name = "Other name",
-        };
-
-        // Act
-        var responses = await Task.WhenAll(
-            [client.UpdateBoard(id!, payload1), client.UpdateBoard(id!, payload2)]
-        );
-
-        // Assert
-        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
-    }
-
-    [Fact]
     public async Task BoardUpdate_ConflictWithHeader()
     {
         var httpClient = app.CreateClient();
@@ -1246,6 +1204,8 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         };
 
         // Act
+        // originally I had another test without the header which passed locally
+        // but not when run in a Docker container
         var res1 = await client.UpdateBoardWithHeader(id!, payload1, lastChangeDate);
         var res2 = await client.UpdateBoardWithHeader(id!, payload2, lastChangeDate);
         HttpResponseMessage[] responses = [res1, res2];

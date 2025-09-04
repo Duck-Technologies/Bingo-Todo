@@ -1,76 +1,42 @@
 namespace BingoTodo.Features.Boards.Services;
 
 using BingoTodo.Features.Boards.Models;
+using BingoTodo.Features.Statistics.Models;
+using BingoTodo.Features.Statistics.Services;
+using BingoTodo.Features.Users.Models;
 using BingoTodo.Features.Users.Services;
+using MongoDB.Driver;
 
-public class BoardSaveService(BoardDataService dataService, UserService userService)
+public class BoardSaveService(
+    BoardDataService dataService,
+    UserService userService,
+    GlobalStatisticsService statisticsService
+)
 {
+    /// <summary>
+    /// Creates the board, creates the user if doesn't exist
+    /// and updates both the global and user statistics
+    /// </summary>
     public async Task<string> CreateAsync(
         BoardPOST request,
         Common.Models.User user,
-        CancellationToken token
+        CancellationToken cancellationToken
     )
     {
-        var createDate = DateTime.Now;
+        var board = MapPostPayloadToDBModel(request, user.Id);
+        await dataService.CreateAsync(board, cancellationToken);
+        await UpdateCreationStatistics(user, board, cancellationToken);
 
-        var board = new BoardMongo
-        {
-            Name = request.Name?.Trim() ?? null,
-            CreatedAtUtc = createDate,
-            LastChangedAtUtc = createDate,
-            GameMode = request.GameMode,
-            Visibility = request.Visibility,
-            Cells =
-            [
-                .. request.Cells.Select(x => new BoardCellGET
-                {
-                    Name = x.Name.Trim(),
-                    CheckedAtUtc = null,
-                }),
-            ],
-            CreatedBy = user.Id,
-        };
-
-        if (request.CompletionDeadlineUtc != null || request.CompletionReward != null)
-        {
-            if (board.GameMode == GameMode.todo)
-            {
-                board.TodoGame.CompletionDeadlineUtc = request.CompletionDeadlineUtc;
-                board.TodoGame.CompletionReward = request.CompletionReward?.Trim();
-            }
-
-            if (board.GameMode == GameMode.traditional)
-            {
-                board.TraditionalGame.CompletionDeadlineUtc = request.CompletionDeadlineUtc;
-                board.TraditionalGame.CompletionReward = request.CompletionReward?.Trim();
-            }
-        }
-
-        await dataService.CreateAsync(board, token);
-
-        var boardSize =
-            board.Cells.Length == 9 ? 3
-            : board.Cells.Length == 16 ? 4
-            : 5;
-
-        await userService.CreateOrUpdateAsync(
-            new Users.Models.User
-            {
-                Id = user.Id,
-                Email = user.Email,
-                Name = user.Name,
-                Statistics = new()
-                {
-                    Board3x3 = new() { Created = boardSize == 3 ? 1 : 0 },
-                    Board4x4 = new() { Created = boardSize == 4 ? 1 : 0 },
-                    Board5x5 = new() { Created = boardSize == 5 ? 1 : 0 },
-                },
-            },
-            token
-        );
         return board.Id;
     }
 
+    /// <summary>
+    /// Updates the board (excluding the Cells) if the DB state differs
+    /// and updates both the global and user statistics if there was an update
+    /// </summary>
+    /// <returns>
+    /// null or "conflict" if LastChangedAt isn't the same in the DB as in the board
+    /// </returns>
     public async Task<string?> UpdateExcludingCellsAsync(
         string id,
         BoardMongo board,
@@ -79,18 +45,7 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
         CancellationToken cancellationToken
     )
     {
-        var updateDate = DateTime.Now;
-        CalculateUpdateFields(board, payload.GameMode, updateDate);
-
-        board.TraditionalGame.CompletionDeadlineUtc = payload.TraditionalGame.CompletionDeadlineUtc;
-        board.TodoGame.CompletionDeadlineUtc = payload.TodoGame.CompletionDeadlineUtc;
-        board.TraditionalGame.CompletionReward = payload.TraditionalGame.CompletionReward;
-        board.TodoGame.CompletionReward = payload.TodoGame.CompletionReward;
-        board.Name = payload.Name;
-        board.GameMode = payload.GameMode;
-        board.Visibility = payload.Visibility;
-
-        board.LastChangedAtUtc = updateDate;
+        var analyticsEvent = MapCreatePayloadAndGetEvent(board, payload);
 
         var result = await dataService.UpdateAsync(
             id,
@@ -104,10 +59,18 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
             return "conflict"; // it might be deleted as well, but then a retry will tell the user that
         }
 
+        await UpdateStatistics(analyticsEvent, board, cancellationToken);
+
         return null;
-        // should also update user stats
     }
 
+    /// <summary>
+    /// Updates only the Cells in the board if the given indexes are not checked yet.
+    /// Updates both the global and user statistics if there was an update.
+    /// </summary>
+    /// <returns>
+    /// null or "conflict" if LastChangedAt isn't the same in the DB as in the board
+    /// </returns>
     public async Task<string?> UpdateCellsAsync(
         string id,
         BoardMongo board,
@@ -124,7 +87,7 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
         }
 
         board.LastChangedAtUtc = updateDate;
-        SetCompletedDateIfApplicable(board, updateDate);
+        var didComplete = SetCompletedDateIfApplicable(board, updateDate);
 
         var result = await dataService.UpdateAsync(
             id,
@@ -138,12 +101,40 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
             return "conflict"; // it might be deleted as well, but then a retry will tell the user that
         }
 
+        var analyticsEvent = BoardAnalyticsEvent.CellCheck;
+        if (didComplete)
+        {
+            // csharpier-ignore
+            analyticsEvent =
+                board.TodoGame.CompletedAtUtc != null
+                && board.TraditionalGame.CompletedAtUtc != null
+                    ? BoardAnalyticsEvent.CompletedTodoAfterTraditional
+                    : board.TodoGame.CompletedAtUtc != null
+                        ? BoardAnalyticsEvent.CompletedTodo
+                        : BoardAnalyticsEvent.CompletedTraditional;
+        }
+
+        await UpdateStatistics(analyticsEvent, board, cancellationToken);
+
         return null;
-        // should also update user stats
     }
 
-    public async Task RemoveAsync(string id, CancellationToken cancellationToken) =>
+    /// <summary>
+    /// Removes the given board and updates the global statistics
+    /// </summary>
+    public async Task RemoveAsync(string id, CancellationToken cancellationToken)
+    {
+        var board = await dataService.GetAsync(id);
         await dataService.RemoveAsync(id, cancellationToken);
+        if (board != null)
+        {
+            var update = UpdateDefinitionBuilderForStatistics.GetDeletedGameStatisticsUpdate(
+                [board],
+                true
+            );
+            await statisticsService.Update(update, cancellationToken);
+        }
+    }
 
     private static void CalculateUpdateFields(
         BoardMongo board,
@@ -168,7 +159,98 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
         }
     }
 
-    private static void SetCompletedDateIfApplicable(BoardMongo board, DateTime updateDate)
+    private static BoardMongo MapPostPayloadToDBModel(BoardPOST request, Guid userId)
+    {
+        var createDate = DateTime.Now;
+
+        var board = new BoardMongo
+        {
+            Name = request.Name?.Trim() ?? null,
+            CreatedAtUtc = createDate,
+            LastChangedAtUtc = createDate,
+            GameMode = request.GameMode,
+            Visibility = request.Visibility,
+            Cells =
+            [
+                .. request.Cells.Select(x => new BoardCellGET
+                {
+                    Name = x.Name.Trim(),
+                    CheckedAtUtc = null,
+                }),
+            ],
+            CreatedBy = userId,
+        };
+
+        if (request.CompletionDeadlineUtc != null || request.CompletionReward != null)
+        {
+            if (board.GameMode == GameMode.todo)
+            {
+                board.TodoGame.CompletionDeadlineUtc = request.CompletionDeadlineUtc;
+                board.TodoGame.CompletionReward = request.CompletionReward?.Trim();
+            }
+
+            if (board.GameMode == GameMode.traditional)
+            {
+                board.TraditionalGame.CompletionDeadlineUtc = request.CompletionDeadlineUtc;
+                board.TraditionalGame.CompletionReward = request.CompletionReward?.Trim();
+            }
+        }
+
+        return board;
+    }
+
+    private static BoardAnalyticsEvent? MapCreatePayloadAndGetEvent(
+        BoardMongo board,
+        BoardPUT payload
+    )
+    {
+        var updateDate = DateTime.Now;
+        BoardAnalyticsEvent? analyticsEvent = null;
+        if (board.GameMode != payload.GameMode)
+        {
+            if (board.TraditionalGame.CompletedAtUtc is not null)
+            {
+                analyticsEvent =
+                    payload.GameMode == GameMode.traditional
+                        ? BoardAnalyticsEvent.FromTodoToTraditionalCompleted
+                    : payload.GameMode == GameMode.todo
+                        ? BoardAnalyticsEvent.FromTraditionalCompletedToTodoInProgress
+                    : analyticsEvent;
+            }
+            else
+            {
+                analyticsEvent =
+                    payload.GameMode == GameMode.traditional
+                        ? BoardAnalyticsEvent.FromTodoToTraditionalInProgress
+                    : payload.GameMode == GameMode.todo
+                        ? BoardAnalyticsEvent.FromTraditionalToTodoInProgress
+                    : analyticsEvent;
+            }
+        }
+        CalculateUpdateFields(board, payload.GameMode, updateDate);
+
+        if (
+            analyticsEvent == BoardAnalyticsEvent.FromTodoToTraditionalInProgress
+            && board.TraditionalGame.CompletedAtUtc is not null
+        )
+        {
+            analyticsEvent = BoardAnalyticsEvent.FromTodoToTraditionalCompletes;
+        }
+
+        board.TraditionalGame.CompletionDeadlineUtc = payload.TraditionalGame.CompletionDeadlineUtc;
+        board.TodoGame.CompletionDeadlineUtc = payload.TodoGame.CompletionDeadlineUtc;
+        board.TraditionalGame.CompletionReward = payload.TraditionalGame.CompletionReward;
+        board.TodoGame.CompletionReward = payload.TodoGame.CompletionReward;
+        board.Name = payload.Name;
+        board.GameMode = payload.GameMode;
+        board.Visibility = payload.Visibility;
+
+        board.LastChangedAtUtc = updateDate;
+
+        return analyticsEvent;
+    }
+
+    private static bool SetCompletedDateIfApplicable(BoardMongo board, DateTime updateDate)
     {
         var allCellsChecked = board.Cells.All(x => x.CheckedAtUtc != null);
 
@@ -179,11 +261,12 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
                     allCellsChecked || ReachedBingoService.ReachedStrike(board.Cells)
                         ? updateDate
                         : null;
-                break;
+                return board.TraditionalGame.CompletedAtUtc != null;
             case GameMode.todo:
                 board.TodoGame.CompletedAtUtc = allCellsChecked ? updateDate : null;
-                break;
+                return board.TodoGame.CompletedAtUtc != null;
         }
+        return false;
     }
 
     private static bool UpdateCells(BoardMongo board, int?[] indexes, DateTime updateDate)
@@ -202,5 +285,77 @@ public class BoardSaveService(BoardDataService dataService, UserService userServ
 #pragma warning restore CS8629 // Nullable value type may be null.
 
         return didUpdate;
+    }
+
+    /// <summary>
+    /// Updates both the global and user statistics
+    /// and creates the user if it doesn't exist
+    /// </summary>
+    private async Task UpdateCreationStatistics(
+        Common.Models.User user,
+        BoardMongo board,
+        CancellationToken cancellationToken
+    )
+    {
+        var userUpdate = UpdateDefinitionBuilderForStatistics.AddStatisticsToUserUpdate(
+            new UpdateDefinitionBuilder<User>().Set(x => x.Id, user.Id),
+            BoardAnalyticsEvent.CreatedBoard,
+            board
+        );
+        var userInDbBeforeUpdate = await userService.CreateOrUpdateAsync(
+            userUpdate,
+            new()
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Name,
+            },
+            cancellationToken
+        );
+
+        var update = UpdateDefinitionBuilderForStatistics.GetStatisticsUpdate(
+            userInDbBeforeUpdate is null
+                ? BoardAnalyticsEvent.CreatedBoardWithUserRegistration
+                : BoardAnalyticsEvent.CreatedBoard,
+            board
+        );
+
+        if (update is not null)
+        {
+            await statisticsService.Update(update, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Updates both the global and user statistics
+    /// </summary>
+    private async Task UpdateStatistics(
+        BoardAnalyticsEvent? analyticsEvent,
+        BoardMongo board,
+        CancellationToken cancellationToken
+    )
+    {
+        if (analyticsEvent != null)
+        {
+            var update = UpdateDefinitionBuilderForStatistics.GetStatisticsUpdate(
+                (BoardAnalyticsEvent)analyticsEvent,
+                board
+            );
+
+            if (update is not null)
+            {
+                await statisticsService.Update(update, cancellationToken);
+            }
+
+            var userUpdate = UpdateDefinitionBuilderForStatistics.UpdateUserStatistics(
+                (BoardAnalyticsEvent)analyticsEvent,
+                board
+            );
+
+            if (userUpdate != null)
+            {
+                await userService.UpdateAsync(board.CreatedBy, userUpdate, cancellationToken);
+            }
+        }
     }
 }

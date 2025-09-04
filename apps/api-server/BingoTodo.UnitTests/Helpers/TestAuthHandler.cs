@@ -3,7 +3,6 @@ namespace BingoTodo.UnitTests.Helpers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
@@ -26,7 +25,7 @@ public class TestAuthHandler(
             new(ClaimTypes.NameIdentifier, "123"),
             new("preferred_username", "bingo@todo.www"),
             new("oid", userId.FirstOrDefault() ?? Guid.Empty.ToString()),
-            new(ClaimTypes.Name, "Test user"),
+            new(ClaimConstants.Name, "Test user"),
         };
 
         var identity = new ClaimsIdentity(claims, AuthenticationScheme);

@@ -2,6 +2,8 @@ namespace BingoTodo.UnitTests.Helpers;
 
 using System.Runtime.InteropServices;
 using BingoTodo.Common.Models;
+using BingoTodo.Features.Statistics.Services;
+using BingoTodo.Features.Users.Services;
 using EphemeralMongo;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -12,6 +14,9 @@ public sealed class WebAppFixture : IDisposable
 {
     public readonly WebApplicationFactory<Program> TestServerClient;
     private IMongoRunner Runner { get; }
+    public UserService UserService { get; private set; }
+    public Guid DefaultUserId = Guid.Empty;
+    public GlobalStatisticsService StatisticsService { get; private set; }
 
     public WebAppFixture()
     {
@@ -41,6 +46,10 @@ public sealed class WebAppFixture : IDisposable
                 });
             });
         });
+
+        using var scope = TestServerClient.Services.CreateScope();
+        StatisticsService = scope.ServiceProvider.GetRequiredService<GlobalStatisticsService>();
+        UserService = scope.ServiceProvider.GetRequiredService<UserService>();
     }
 
     public void Dispose()
