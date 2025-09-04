@@ -16,45 +16,75 @@ public static class UpdateDefinitionBuilderForAchievements
     {
         update ??= new UpdateDefinitionBuilder<Statistics>().Inc(x => x.DeletedBoardsManually, 0);
 
-        if (achievements.FirstCleared3x3Board == 1)
+        if (achievements.FirstCleared3x3Board != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstCleared3x3Board, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstCleared3x3Board,
+                achievements.FirstCleared3x3Board
+            );
         }
-        if (achievements.FirstCleared4x4Board == 1)
+        if (achievements.FirstCleared4x4Board != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstCleared4x4Board, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstCleared4x4Board,
+                achievements.FirstCleared4x4Board
+            );
         }
-        if (achievements.FirstCleared5x5Board == 1)
+        if (achievements.FirstCleared5x5Board != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstCleared5x5Board, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstCleared5x5Board,
+                achievements.FirstCleared5x5Board
+            );
         }
-        if (achievements.FirstBingoAtLastChance4x4 == 1)
+        if (achievements.FirstBingoAtLastChance4x4 != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstBingoAtLastChance4x4, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstBingoAtLastChance4x4,
+                achievements.FirstBingoAtLastChance4x4
+            );
         }
-        if (achievements.FirstBingoAtLastChance5x5 == 1)
+        if (achievements.FirstBingoAtLastChance5x5 != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstBingoAtLastChance5x5, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstBingoAtLastChance5x5,
+                achievements.FirstBingoAtLastChance5x5
+            );
         }
-        if (achievements.FirstBingoReached == 1)
+        if (achievements.FirstBingoReached != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstBingoReached, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstBingoReached,
+                achievements.FirstBingoReached
+            );
         }
-        if (achievements.FirstEarnedReward == 1)
+        if (achievements.FirstEarnedReward != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstEarnedReward, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstEarnedReward,
+                achievements.FirstEarnedReward
+            );
         }
-        if (achievements.FirstClearedBeforeDeadline == 1)
+        if (achievements.FirstClearedBeforeDeadline != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstClearedBeforeDeadline, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstClearedBeforeDeadline,
+                achievements.FirstClearedBeforeDeadline
+            );
         }
-        if (achievements.FirstClearedAfterDeadline == 1)
+        if (achievements.FirstClearedAfterDeadline != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstClearedAfterDeadline, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstClearedAfterDeadline,
+                achievements.FirstClearedAfterDeadline
+            );
         }
-        if (achievements.FirstCompleteWithGameModeSwitch == 1)
+        if (achievements.FirstCompleteWithGameModeSwitch != 0)
         {
-            update = update.Inc(x => x.Achievements.FirstCompleteWithGameModeSwitch, 1);
+            update = update.Inc(
+                x => x.Achievements.FirstCompleteWithGameModeSwitch,
+                achievements.FirstCompleteWithGameModeSwitch
+            );
         }
 
         return update;
@@ -199,5 +229,24 @@ public static class UpdateDefinitionBuilderForAchievements
         };
 
         return achievements.ReachedAll ? null : achievements;
+    }
+
+    public static Achievements MapAchievementsForDelete(Users.Models.Achievements achieved)
+    {
+        return new Achievements
+        {
+            FirstCleared3x3Board = achieved.FirstCleared3x3BoardAt is null ? 0 : -1,
+            FirstCleared4x4Board = achieved.FirstCleared4x4BoardAt is null ? 0 : -1,
+            FirstCleared5x5Board = achieved.FirstCleared5x5BoardAt is null ? 0 : -1,
+            FirstBingoAtLastChance4x4 = achieved.FirstBingoAtLastChance4x4At is null ? 0 : -1,
+            FirstBingoAtLastChance5x5 = achieved.FirstBingoAtLastChance5x5At is null ? 0 : -1,
+            FirstBingoReached = achieved.FirstBingoReachedAt is null ? 0 : -1,
+            FirstEarnedReward = achieved.FirstEarnedRewardAt is null ? 0 : -1,
+            FirstClearedBeforeDeadline = achieved.FirstClearedBeforeDeadlineAt is null ? 0 : -1,
+            FirstClearedAfterDeadline = achieved.FirstClearedAfterDeadlineAt is null ? 0 : -1,
+            FirstCompleteWithGameModeSwitch = achieved.FirstCompleteWithGameModeSwitchAt is null
+                ? 0
+                : -1,
+        };
     }
 }

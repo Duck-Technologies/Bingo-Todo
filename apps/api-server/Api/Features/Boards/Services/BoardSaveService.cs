@@ -143,6 +143,7 @@ public class BoardSaveService(
     /// </summary>
     public async Task RemoveAllAsync(Guid userId, CancellationToken cancellationToken)
     {
+        var user = await userService.GetAsync(userId);
         var boards = await boardDataService.GetAllAsync(userId);
         if (boards.Count != 0)
         {
@@ -153,6 +154,20 @@ public class BoardSaveService(
             [.. boards],
             false
         );
+
+        if (user != null)
+        {
+            // Decrease achievements
+            var achievements = UpdateDefinitionBuilderForAchievements.MapAchievementsForDelete(
+                user.Achievements
+            );
+
+            update = UpdateDefinitionBuilderForAchievements.UpdateAchievementsInStatistics(
+                update,
+                achievements
+            );
+        }
+
         await statisticsService.Update(update, cancellationToken);
         await userService.RemoveAsync(userId, cancellationToken);
     }

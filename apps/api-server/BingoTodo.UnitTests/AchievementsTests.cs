@@ -46,7 +46,7 @@ public sealed class AchievementsTests(WebAppFixture webAppFixture)
         // Act
         if (deadline == -1)
         {
-            await Task.Delay(200, TestContext.Current.CancellationToken);
+            await Task.Delay(205, TestContext.Current.CancellationToken);
         }
         await client.CheckCells(id!, request);
 
