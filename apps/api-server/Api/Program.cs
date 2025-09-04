@@ -30,6 +30,7 @@ builder
     .Services.AddSingleton<BoardDataService>()
     .AddSingleton<BoardSaveService>()
     .AddSingleton<UserService>()
+    .AddSingleton(TimeProvider.System)
     .AddSingleton<GlobalStatisticsService>();
 
 var CorsPolicy = "CorsPolicy";

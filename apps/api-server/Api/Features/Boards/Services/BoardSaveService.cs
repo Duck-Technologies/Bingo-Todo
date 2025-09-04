@@ -6,11 +6,13 @@ using BingoTodo.Features.Statistics.Services;
 using BingoTodo.Features.Users.Models;
 using BingoTodo.Features.Users.Services;
 using MongoDB.Driver;
+using Achievements = Statistics.Models.Achievements;
 
 public class BoardSaveService(
     BoardDataService boardDataService,
     UserService userService,
-    GlobalStatisticsService statisticsService
+    GlobalStatisticsService statisticsService,
+    TimeProvider timeProvider
 )
 {
     /// <summary>
@@ -23,7 +25,7 @@ public class BoardSaveService(
         CancellationToken cancellationToken
     )
     {
-        var board = MapPostPayloadToDBModel(request, user.Id);
+        var board = MapPostPayloadToDBModel(request, user.Id, timeProvider);
         await boardDataService.CreateAsync(board, cancellationToken);
         await UpdateCreationStatistics(user, board, cancellationToken);
 
@@ -45,7 +47,7 @@ public class BoardSaveService(
         CancellationToken cancellationToken
     )
     {
-        var analyticsEvent = MapCreatePayloadAndGetEvent(board, payload);
+        var analyticsEvent = MapCreatePayloadAndGetEvent(board, payload, timeProvider);
 
         var result = await boardDataService.UpdateAsync(
             id,
@@ -78,7 +80,7 @@ public class BoardSaveService(
         CancellationToken cancellationToken
     )
     {
-        var updateDate = DateTime.Now;
+        var updateDate = timeProvider.GetUtcNow().UtcDateTime;
         var originalLastChangedDate = board.LastChangedAtUtc;
         var didUpdate = UpdateCells(board, indexes, updateDate);
         if (!didUpdate)
@@ -141,6 +143,7 @@ public class BoardSaveService(
     /// </summary>
     public async Task RemoveAllAsync(Guid userId, CancellationToken cancellationToken)
     {
+        var user = await userService.GetAsync(userId);
         var boards = await boardDataService.GetAllAsync(userId);
         if (boards.Count != 0)
         {
@@ -151,6 +154,20 @@ public class BoardSaveService(
             [.. boards],
             false
         );
+
+        if (user != null)
+        {
+            // Decrease achievements
+            var achievements = UpdateDefinitionBuilderForAchievements.MapAchievementsForDelete(
+                user.Achievements
+            );
+
+            update = UpdateDefinitionBuilderForAchievements.UpdateAchievementsInStatistics(
+                update,
+                achievements
+            );
+        }
+
         await statisticsService.Update(update, cancellationToken);
         await userService.RemoveAsync(userId, cancellationToken);
     }
@@ -178,9 +195,13 @@ public class BoardSaveService(
         }
     }
 
-    private static BoardMongo MapPostPayloadToDBModel(BoardPOST request, Guid userId)
+    private static BoardMongo MapPostPayloadToDBModel(
+        BoardPOST request,
+        Guid userId,
+        TimeProvider timeProvider
+    )
     {
-        var createDate = DateTime.Now;
+        var createDate = timeProvider.GetUtcNow().UtcDateTime;
 
         var board = new BoardMongo
         {
@@ -220,10 +241,11 @@ public class BoardSaveService(
 
     private static BoardAnalyticsEvent? MapCreatePayloadAndGetEvent(
         BoardMongo board,
-        BoardPUT payload
+        BoardPUT payload,
+        TimeProvider timeProvider
     )
     {
-        var updateDate = DateTime.Now;
+        var updateDate = timeProvider.GetUtcNow().UtcDateTime;
         BoardAnalyticsEvent? analyticsEvent = null;
         if (board.GameMode != payload.GameMode)
         {
@@ -354,12 +376,37 @@ public class BoardSaveService(
         CancellationToken cancellationToken
     )
     {
+        var user = await userService.GetAsync(board.CreatedBy);
+        if (user is null)
+        {
+            return;
+        }
+
+        Achievements? achievements = null;
+        if (user.Achievements.ReachedAll is false)
+        {
+            achievements = UpdateDefinitionBuilderForAchievements.MapAchievements(
+                analyticsEvent,
+                board,
+                user.Achievements,
+                timeProvider
+            );
+        }
+
         if (analyticsEvent != null)
         {
             var update = UpdateDefinitionBuilderForStatistics.GetStatisticsUpdate(
                 (BoardAnalyticsEvent)analyticsEvent,
                 board
             );
+
+            if (achievements is not null)
+            {
+                update = UpdateDefinitionBuilderForAchievements.UpdateAchievementsInStatistics(
+                    update,
+                    achievements
+                );
+            }
 
             if (update is not null)
             {
@@ -370,6 +417,16 @@ public class BoardSaveService(
                 (BoardAnalyticsEvent)analyticsEvent,
                 board
             );
+
+            if (achievements is not null)
+            {
+                userUpdate = UpdateDefinitionBuilderForAchievements.SetAchievementsForUser(
+                    userUpdate,
+                    achievements,
+                    board.LastChangedAtUtc,
+                    board.CreatedBy
+                );
+            }
 
             if (userUpdate != null)
             {

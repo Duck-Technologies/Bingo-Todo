@@ -42,7 +42,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         var client = new ApiClient(app.CreateClient(), TestContext.Current.CancellationToken);
 
         var cells = new BoardCellPOST[9];
-        var startDate = DateTime.UtcNow;
+        var startDate = webAppFixture.TimeProvider.GetUtcNow().UtcDateTime;
         Array.Fill(cells, new BoardCellPOST { Name = "a" });
         var request = new BoardPOST
         {
@@ -280,7 +280,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         await client.UpdateBoardSuccess(id!, new BoardPUT { GameMode = GameMode.todo });
         var todoBoardBeforeCheck = await client.LoadBoardSuccess(id!);
 
-        Thread.Sleep(10);
+        await Task.Delay(10, TestContext.Current.CancellationToken);
         await client.CheckCells(id!, [3]);
 
         var todoBoardAfterCheck = await client.LoadBoardSuccess(id!);
@@ -536,11 +536,11 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         var afterFirstCheck = await client.LoadBoardSuccess(id!);
 
         // Act
-        Thread.Sleep(10);
+        await Task.Delay(10, TestContext.Current.CancellationToken);
         await client.CheckCells(id!, [null, 0, 1, 2, 70, int.MaxValue, int.MinValue]);
         var afterSecondCheck = await client.LoadBoardSuccess(id!);
 
-        Thread.Sleep(5);
+        await Task.Delay(5, TestContext.Current.CancellationToken);
         await client.CheckCells(id!, [0, 1, 2, 3]);
         var afterThirdCheck = await client.LoadBoardSuccess(id!);
 
@@ -858,7 +858,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
             {
                 Cells = cells,
                 GameMode = gameMode,
-                CompletionDeadlineUtc = DateTime.Now.AddMilliseconds(300),
+                CompletionDeadlineUtc = DateTime.UtcNow.AddMilliseconds(200),
             }
         );
 
@@ -870,7 +870,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
                 : (DateTime)saved!.TraditionalGame.CompletionDeadlineUtc;
 #pragma warning restore CS8629 // Nullable value type may be null.
 
-        Thread.Sleep(300);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         // Act
         var gameDetail = new GameDetailPUT()
@@ -1156,7 +1156,7 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         await client.UpdateBoardSuccess(id!, payload);
         var updated = await client.LoadBoardSuccess(id!);
 
-        Thread.Sleep(20);
+        await Task.Delay(20, TestContext.Current.CancellationToken);
         await client.UpdateBoardSuccess(id!, payload);
         var updated2 = await client.LoadBoardSuccess(id!);
 
@@ -1257,25 +1257,35 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         var httpClient = app.CreateClient();
         var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
 
-        var cells = new BoardCellPOST[9];
+        var cells = new BoardCellPOST[25];
         Array.Fill(cells, new BoardCellPOST { Name = "a" });
 
-        foreach (var _ in Enumerable.Range(0, 100))
+        string? id = null;
+
+        foreach (var _ in Enumerable.Range(0, 101))
         {
-            await client.CreateBoardSuccess(
+            id = await client.CreateBoardSuccess(
                 new BoardPOST
                 {
                     Cells = cells,
                     GameMode = GameMode.todo,
                     Visibility = Visibility.unlisted,
+                    CompletionDeadlineUtc = DateTime.MaxValue,
+                    CompletionReward = "something",
                 }
             );
         }
 
+        await client.CheckCells(id, Enumerable.Range(0, 25).ToArray());
+
         var user = await webAppFixture.UserService.GetAsync(webAppFixture.DefaultUserId);
         var stats = await webAppFixture.StatisticsService.GetAsync();
-        Assert.True(user!.BoardStatistics.Board3x3.Todo.InProgress >= 100);
-        Assert.True(stats!.BoardStatistics.Board3x3.Todo.InProgress >= 100);
+        Assert.True(user!.BoardStatistics.Board5x5.Todo.InProgress >= 100);
+        Assert.True(stats!.BoardStatistics.Board5x5.Todo.InProgress >= 100);
+        Assert.True(stats!.Achievements.FirstCleared5x5Board >= 1);
+        Assert.True(stats!.Achievements.FirstBingoReached >= 1);
+        Assert.True(stats!.Achievements.FirstEarnedReward >= 1);
+        Assert.True(stats!.Achievements.FirstClearedBeforeDeadline >= 1);
 
         // Act
         var res = await client.UnregisterUser();
@@ -1285,7 +1295,11 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         var userCleared = await webAppFixture.UserService.GetAsync(webAppFixture.DefaultUserId);
         var statsUpdated = await webAppFixture.StatisticsService.GetAsync();
         Assert.Null(userCleared);
-        Assert.True(statsUpdated!.DeletedBoardStatistics.Board3x3.Todo.InProgress >= 100);
+        Assert.True(statsUpdated!.DeletedBoardStatistics.Board5x5.Todo.InProgress >= 100);
         Assert.True(statsUpdated!.DeletedBoardsWithUnRegistration >= 100);
+        Assert.Equal(0, statsUpdated!.Achievements.FirstCleared5x5Board);
+        Assert.Equal(0, statsUpdated!.Achievements.FirstBingoReached);
+        Assert.Equal(0, statsUpdated!.Achievements.FirstEarnedReward);
+        Assert.Equal(0, statsUpdated!.Achievements.FirstClearedBeforeDeadline);
     }
 }
