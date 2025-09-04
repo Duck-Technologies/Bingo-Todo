@@ -104,7 +104,7 @@ export class BoardListView implements OnDestroy {
   }
 
   public checkCard(card: BoardCell | undefined) {
-    if (!card || !!card.CheckedDateUTC || this.disabled()) return;
+    if (!card || !!card.CheckedAtUtc || this.disabled()) return;
 
     card.Selected = !card.Selected;
     this.cards.set([...this.cards()]);

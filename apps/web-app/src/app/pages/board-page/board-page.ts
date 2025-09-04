@@ -61,7 +61,7 @@ import { GameModeIcon } from '../../features/game-mode-icon/game-mode-icon';
     MatCardModule,
     MatMenuModule,
     RouterLink,
-    GameModeIcon
+    GameModeIcon,
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
@@ -101,8 +101,8 @@ export class BoardPage {
       !!this.board().TraditionalGame.CompletedAtUtc &&
       !!this.cells().find(
         (c) =>
-          c.CheckedDateUTC &&
-          c.CheckedDateUTC > this.board().TraditionalGame.CompletedAtUtc!
+          c.CheckedAtUtc &&
+          c.CheckedAtUtc > this.board().TraditionalGame.CompletedAtUtc!
       )
   );
 
@@ -112,7 +112,7 @@ export class BoardPage {
       0
     ),
     checkedCells: this.cells().reduce(
-      (acc, curr) => (acc += +(curr.CheckedDateUTC != null)),
+      (acc, curr) => (acc += +(curr.CheckedAtUtc != null)),
       0
     ),
   }));
@@ -187,7 +187,13 @@ export class BoardPage {
           },
         });
       } else {
-        // this.bingoApi.updateBoard(this.board().Id, formData).subscribe();
+        this.bingoApi
+          .updateBoard(this.board().Id!, updatedBoard)
+          .pipe(
+            switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
+            tap((board) => this.board.set(board))
+          )
+          .subscribe();
       }
       this.displayMode.set('board');
     }
@@ -208,7 +214,7 @@ export class BoardPage {
       this.board(),
       copyCells(this.cells()).map((c) => {
         if (c.Selected) {
-          c.CheckedDateUTC = new Date();
+          c.CheckedAtUtc = new Date();
         }
         return c;
       }),
@@ -233,7 +239,13 @@ export class BoardPage {
           },
         });
       } else {
-        // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+        this.bingoApi
+          .saveSelection(this.board().Id!, selectedIndexes)
+          .pipe(
+            switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
+            tap((board) => this.board.set(board))
+          )
+          .subscribe();
       }
     }
   }
@@ -311,8 +323,11 @@ export class BoardPage {
         })
       );
     } else {
-      return of('Successful continue after bingo update');
-      // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
+      return this.bingoApi.updateBoard(this.board().Id!, updatedBoard).pipe(
+        switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
+        tap((board) => this.board.set(board)),
+        map(() => 'Successful continue after bingo update')
+      );
     }
   }
 
@@ -322,8 +337,10 @@ export class BoardPage {
       this.router.navigate(['board/create']);
       return of('Successful deletion');
     } else {
-      return of('Successful deletion');
-      // this.bingoApi.deleteBoard(this.board().Id).subscribe();
+      return this.bingoApi.deleteBoard(this.board().Id!).pipe(
+        map(() => 'Successful deletion'),
+        tap(() => this.router.navigate(['board/create']))
+      );
     }
   }
 
@@ -357,8 +374,14 @@ export class BoardPage {
               })
             );
           } else {
-            // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
-            return of(null); // should return board as well
+            return this.bingoApi.updateBoard(this.board().Id!, board).pipe(
+              switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
+              tap((board) => {
+                this.boardForm.reset();
+                this.displayMode.set('board');
+                this.board.set(board);
+              })
+            );
           }
         }
         return of(null);
@@ -408,8 +431,14 @@ export class BoardPage {
               })
             );
           } else {
-            // this.bingoApi.updateBoard(this.board().Id, updatedBoard).subscribe();
-            return of(null); // should return board as well
+            return this.bingoApi
+              .updateBoard(this.board().Id!, this.board())
+              .pipe(
+                switchMap(() =>
+                  this.bingoApi.saveSelection(this.board().Id!, selectedIndexes)
+                ),
+                switchMap(() => this.bingoApi.loadBoard(this.board().Id!))
+              );
           }
         }
         return of(null);
@@ -437,7 +466,7 @@ export class BoardPage {
       return false;
     }
 
-    if (cells.every((c) => !!c.CheckedDateUTC)) {
+    if (cells.every((c) => !!c.CheckedAtUtc)) {
       return true;
     }
 

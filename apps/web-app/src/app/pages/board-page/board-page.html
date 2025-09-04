@@ -33,7 +33,7 @@
       <mat-icon>edit</mat-icon>
       Edit
     </button>
-    <a mat-menu-item routerLink="/board/copy/local">
+    <a mat-menu-item [routerLink]="['/board/copy/', this.board().Id ?? 'local']">
       <mat-icon>content_copy</mat-icon>
       Copy
     </a>

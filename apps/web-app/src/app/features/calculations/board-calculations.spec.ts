@@ -96,7 +96,7 @@ describe('BoardCalculations', () => {
               new BoardCell(
                 {
                   Name: '',
-                  CheckedDateUTC:
+                  CheckedAtUtc:
                     (num - i) % dimension === 0 ? new Date() : null,
                   IsInBingoPattern: false,
                   Selected: false,
@@ -125,7 +125,7 @@ describe('BoardCalculations', () => {
               new BoardCell(
                 {
                   Name: '',
-                  CheckedDateUTC:
+                  CheckedAtUtc:
                     Math.floor(num / dimension) === i ? new Date() : null,
                   IsInBingoPattern: false,
                   Selected: false,
@@ -163,7 +163,7 @@ describe('BoardCalculations', () => {
               return new BoardCell(
                 {
                   Name: '',
-                  CheckedDateUTC: checkIt ? new Date() : null,
+                  CheckedAtUtc: checkIt ? new Date() : null,
                   IsInBingoPattern: false,
                   Selected: false,
                 },
@@ -200,7 +200,7 @@ describe('BoardCalculations', () => {
               return new BoardCell(
                 {
                   Name: '',
-                  CheckedDateUTC: checkIt ? new Date() : null,
+                  CheckedAtUtc: checkIt ? new Date() : null,
                   IsInBingoPattern: false,
                   Selected: false,
                 },
@@ -236,7 +236,7 @@ describe('BoardCalculations', () => {
             return new BoardCell(
               {
                 Name: '',
-                CheckedDateUTC: checkIt ? new Date() : null,
+                CheckedAtUtc: checkIt ? new Date() : null,
                 IsInBingoPattern: false,
                 Selected: false,
               },
@@ -279,7 +279,7 @@ describe('BoardCalculations', () => {
             return new BoardCell(
               {
                 Name: '',
-                CheckedDateUTC: checkIt ? new Date() : null,
+                CheckedAtUtc: checkIt ? new Date() : null,
                 IsInBingoPattern: false,
                 Selected: false,
               },
@@ -319,7 +319,7 @@ describe('BoardCalculations', () => {
               new BoardCell(
                 {
                   Name: '',
-                  CheckedDateUTC: new Date(),
+                  CheckedAtUtc: new Date(),
                   IsInBingoPattern: false,
                   Selected: false,
                 },
@@ -385,7 +385,7 @@ describe('BoardCalculations', () => {
               new BoardCell(
                 {
                   Name: '',
-                  CheckedDateUTC: new Date(),
+                  CheckedAtUtc: new Date(),
                   IsInBingoPattern: false,
                   Selected: false,
                 },

@@ -1,4 +1,4 @@
-@let cardsPreview = cards$ | async; @if (!!cardsPreview) {
+@let cardsPreview = cards$ | async; @let isLoggedIn = user$ | async; @if (!!cardsPreview) {
 <mat-stepper
   aria-label="Game setup"
   class="no-space-on-last-step"
@@ -6,18 +6,24 @@
   orientation="vertical"
   #stepper
   (selectionChange)="scrollTo($event)">
-  <mat-step [stepControl]="boardForm">
+  <!--So I'm not sure if it's a bug or what, but without explicitly telling this step that it's not editable
+  when the user enters more than 200 chars as reward, they can switch to it and get stuck. They can't switch to the cells.-->
+  <mat-step
+    [stepControl]="boardForm"
+    [editable]="!(boardForm.controls.TodoGame.invalid || boardForm.controls.TraditionalGame.invalid)">
     <ng-template matStepLabel>Board details</ng-template>
     <div class="container">
       <app-board [cards]="cardsPreview" [previewMode]="'indicator'"></app-board>
       <app-board-details-form
-        [isLoggedIn]="isLoggedIn"
+        [isLoggedIn]="!!isLoggedIn"
         [board]="baseBoard"
         [createMode]="true"
         (resizeBoard)="resizeBoard($event)"></app-board-details-form>
 
       <div class="action-footer">
-        <button matButton matStepperNext>Next</button>
+        <button matButton matStepperNext [disabled]="boardForm.controls.Name.hasError('maxlength')">
+          Next
+        </button>
       </div>
     </div>
   </mat-step>
@@ -46,6 +52,9 @@
               "
               placeholder="Enter something"
               formControlName="Name" />
+            @if(control.controls.Name.hasError("maxlength")) {
+            <mat-error> You can only enter 200 characters. </mat-error>
+            }
           </mat-form-field>
 
           @if(($index + 1) % boardSize === 0 && !last) {
@@ -63,15 +72,25 @@
     </form>
   </mat-step>
 
-  <mat-step [stepControl]="boardForm" label="Deadline and rewards">
+  <mat-step [stepControl]="boardForm.controls.TodoGame" label="Deadline and rewards">
     <div class="container">
       <app-deadline-reward-form
         [createMode]="true"
         [gameMode]="boardForm.getRawValue().GameMode"></app-deadline-reward-form>
 
       <div class="action-footer">
-        <button matButton matStepperPrevious>Back</button>
-        <button matButton matStepperNext>Next</button>
+        <button
+          matButton
+          matStepperPrevious
+          [disabled]="boardForm.controls.TodoGame.invalid || boardForm.controls.TraditionalGame.invalid">
+          Back
+        </button>
+        <button
+          matButton
+          matStepperNext
+          [disabled]="boardForm.controls.TodoGame.invalid || boardForm.controls.TraditionalGame.invalid">
+          Next
+        </button>
       </div>
     </div>
   </mat-step>

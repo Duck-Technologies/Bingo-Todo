@@ -18,7 +18,7 @@ describe('BingoLocalStorage', () => {
           new BoardCell(
             {
               Selected: false,
-              CheckedDateUTC: null,
+              CheckedAtUtc: null,
             },
             idx,
             3
@@ -39,7 +39,7 @@ describe('BingoLocalStorage', () => {
           expect(board.TraditionalGame.CompletedByGameModeSwitch).toBeFalse();
           expect(board.TraditionalGame.CompletedAtUtc).not.toBeNull();
           expect(board.TraditionalGame.CompletedAtUtc).toEqual(
-            board.Cells.at(0)?.CheckedDateUTC ?? null
+            board.Cells.at(0)?.CheckedAtUtc ?? null
           );
           expect(board.TodoGame.CompletedAtUtc).toBeNull();
         } else {
@@ -57,7 +57,7 @@ describe('BingoLocalStorage', () => {
           new BoardCell(
             {
               Selected: false,
-              CheckedDateUTC: null,
+              CheckedAtUtc: null,
             },
             idx,
             3
@@ -92,7 +92,7 @@ describe('BingoLocalStorage', () => {
           new BoardCell(
             {
               Selected: false,
-              CheckedDateUTC: null,
+              CheckedAtUtc: null,
             },
             idx,
             3
@@ -122,13 +122,13 @@ describe('BingoLocalStorage', () => {
           if (board) {
             expect(board.TraditionalGame.CompletedAtUtc).toBeNull();
             expect(board.TodoGame.CompletedAtUtc).not.toBeNull();
-            expect(board.Cells.at(-2)?.CheckedDateUTC?.getTime()).not.toEqual(
-              board.Cells.at(-1)?.CheckedDateUTC?.getTime()
+            expect(board.Cells.at(-2)?.CheckedAtUtc?.getTime()).not.toEqual(
+              board.Cells.at(-1)?.CheckedAtUtc?.getTime()
             );
             expect(board.TodoGame.CompletedAtUtc?.getTime()).toEqual(
-              board.Cells.at(-1)?.CheckedDateUTC?.getTime()
+              board.Cells.at(-1)?.CheckedAtUtc?.getTime()
             );
-            expect(board.Cells[0].CheckedDateUTC?.getTime()).toBeGreaterThan(
+            expect(board.Cells[0].CheckedAtUtc?.getTime()).toBeGreaterThan(
               board.CreatedAtUtc!.getTime()
             );
           } else {
@@ -147,7 +147,7 @@ describe('BingoLocalStorage', () => {
           new BoardCell(
             {
               Selected: false,
-              CheckedDateUTC: null,
+              CheckedAtUtc: null,
             },
             idx,
             3
@@ -176,7 +176,7 @@ describe('BingoLocalStorage', () => {
         }),
         tap((board) => {
           if (board) {
-            expect(board.Cells[0].CheckedDateUTC?.getTime()).toBeGreaterThan(
+            expect(board.Cells[0].CheckedAtUtc?.getTime()).toBeGreaterThan(
               board.CreatedAtUtc!.getTime()
             );
             expect(board.TraditionalGame.CompletedAtUtc).not.toBeNull();
@@ -184,7 +184,7 @@ describe('BingoLocalStorage', () => {
             expect(board.TodoGame.CompletedAtUtc).toBeNull();
             expect(
               board.TraditionalGame.CompletedAtUtc?.getTime()
-            ).toBeGreaterThan(board.Cells.at(2)?.CheckedDateUTC!?.getTime());
+            ).toBeGreaterThan(board.Cells.at(2)?.CheckedAtUtc!?.getTime());
           } else {
             expect(board).not.toBeFalse();
           }
@@ -201,7 +201,7 @@ describe('BingoLocalStorage', () => {
           new BoardCell(
             {
               Selected: false,
-              CheckedDateUTC: null,
+              CheckedAtUtc: null,
             },
             idx,
             3

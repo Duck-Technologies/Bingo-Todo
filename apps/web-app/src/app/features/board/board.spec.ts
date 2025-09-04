@@ -50,12 +50,12 @@ describe('Board', () => {
       expect(component.cards().find((c) => c.Selected)).not.toBeUndefined();
     });
 
-    it('should be able to only select cells without CheckedDateUTC', async () => {
+    it('should be able to only select cells without CheckedAtUtc', async () => {
       const cards = BoardCalculations.getRowIndexes(9).map(
         (idx) =>
           new BoardCell(
             {
-              CheckedDateUTC: new Date(),
+              CheckedAtUtc: new Date(),
             },
             idx,
             3
@@ -76,7 +76,7 @@ describe('Board', () => {
         (idx) =>
           new BoardCell(
             {
-              CheckedDateUTC: null,
+              CheckedAtUtc: null,
             },
             idx,
             3
@@ -95,12 +95,12 @@ describe('Board', () => {
       expect(component.cards().find((c) => c.Selected)).toBeUndefined();
     });
 
-    it('should be able to only click cells without CheckedDateUTC', async () => {
+    it('should be able to only click cells without CheckedAtUtc', async () => {
       const cards = BoardCalculations.getRowIndexes(9).map(
         (idx) =>
           new BoardCell(
             {
-              CheckedDateUTC: new Date(),
+              CheckedAtUtc: new Date(),
             },
             idx,
             3
@@ -119,7 +119,7 @@ describe('Board', () => {
         (idx) =>
           new BoardCell(
             {
-              CheckedDateUTC: idx === 1 || idx === 0 ? new Date() : null,
+              CheckedAtUtc: idx === 1 || idx === 0 ? new Date() : null,
             },
             idx,
             3

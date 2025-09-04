@@ -45,6 +45,10 @@ export class CompletionDialog {
     this.data.board
   );
 
+  public get canCheckMore() {
+    return !!this.data.board.Cells.find(c => c.CheckedAtUtc == null);
+  }
+
   private static generateEndStateMessage(board: BoardInfo) {
     if (!board.CompletedAtUtc) {
       return '';

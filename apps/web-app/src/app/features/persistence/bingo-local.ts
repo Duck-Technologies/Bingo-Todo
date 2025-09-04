@@ -45,7 +45,7 @@ export class BingoLocalStorage {
     board.TraditionalGame.CompletedAtUtc = null;
     board.TraditionalGame.CompletedByGameModeSwitch = undefined;
     board.TodoGame.CompletedAtUtc = null;
-    board.Cells.forEach(c => c.CheckedDateUTC = null);
+    board.Cells.forEach(c => c.CheckedAtUtc = null);
 
     localStorage.setItem(
       BingoLocalStorage.LocalStorageBoardKey,
@@ -84,8 +84,8 @@ export class BingoLocalStorage {
     if (board != false) {
       board.LastChangedAtUtc = saveDate;
       board.Cells.forEach((c, idx) => {
-        if (selectedIndexes.includes(idx) && !c.CheckedDateUTC) {
-          c.CheckedDateUTC = saveDate;
+        if (selectedIndexes.includes(idx) && !c.CheckedAtUtc) {
+          c.CheckedAtUtc = saveDate;
         }
       });
 
@@ -189,7 +189,7 @@ export class BingoLocalStorage {
     if (
       board.GameMode === 'todo' &&
       !board.TodoGame.CompletedAtUtc &&
-      board.Cells.every((c) => c.CheckedDateUTC)
+      board.Cells.every((c) => c.CheckedAtUtc)
     ) {
       board.TodoGame.CompletedAtUtc = dateToUse;
     }
@@ -203,9 +203,9 @@ export class BingoLocalStorage {
 
     const hasCheckedAfterCompletion = board.Cells.find(
       (c) =>
-        c.CheckedDateUTC &&
-        c.CheckedDateUTC > board.TraditionalGame.CompletedAtUtc!
-    )?.CheckedDateUTC;
+        c.CheckedAtUtc &&
+        c.CheckedAtUtc > board.TraditionalGame.CompletedAtUtc!
+    )?.CheckedAtUtc;
 
     if (!hasCheckedAfterCompletion && board.GameMode === 'traditional') {
       board.SwitchedToTodoAfterCompleteDateUtc = undefined;

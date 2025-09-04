@@ -18,7 +18,7 @@ export type GameModeSettingsForm = {
 };
 
 export const boardForm: BoardForm = new FormGroup({
-  Name: new FormControl<string | null>(null),
+  Name: new FormControl<string | null>(null, [Validators.maxLength(200)]),
   BoardSize: new FormControl<BoardSize>(9, {
     nonNullable: true,
   }),
@@ -30,12 +30,12 @@ export const boardForm: BoardForm = new FormGroup({
   }),
   TraditionalGame: new FormGroup<GameModeSettingsForm>({
     CompletedAtUtc: new FormControl<Date | null>(null),
-    CompletionReward: new FormControl<string | null>(null),
+    CompletionReward: new FormControl<string | null>(null, [Validators.maxLength(200)]),
     CompletionDeadlineUtc: new FormControl<Date | null>(null),
   }),
   TodoGame: new FormGroup<GameModeSettingsForm>({
     CompletedAtUtc: new FormControl<Date | null>(null),
-    CompletionReward: new FormControl<string | null>(null),
+    CompletionReward: new FormControl<string | null>(null, [Validators.maxLength(200)]),
     CompletionDeadlineUtc: new FormControl<Date | null>(null),
   }),
 });

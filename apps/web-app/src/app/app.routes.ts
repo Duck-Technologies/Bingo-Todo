@@ -24,6 +24,15 @@ export const routes: Routes = [
     },
   },
   {
+    path: 'board/copy/:id',
+    loadComponent: () =>
+      import('./pages/board-setup-page/board-setup').then((m) => m.BoardSetup),
+    resolve: {
+      board: boardToCopyResolver,
+    },
+    canActivate: [MsalGuard],
+  },
+  {
     path: 'board/local',
     loadComponent: () =>
       import('./pages/board-page/board-page').then((m) => m.BoardPage),
@@ -31,15 +40,15 @@ export const routes: Routes = [
       board: boardResolver,
     },
   },
-  // {
-  //   path: 'board/:id',
-  //   loadComponent: () =>
-  //     import('./pages/board-page/board-page').then((m) => m.BoardPage),
-  //   resolve: {
-  //     board: boardResolver,
-  //   },
-  //   canActivate: [MsalGuard],
-  // },
+  {
+    path: 'board/:id',
+    loadComponent: () =>
+      import('./pages/board-page/board-page').then((m) => m.BoardPage),
+    resolve: {
+      board: boardResolver,
+    },
+    canActivate: [MsalGuard],
+  },
   {
     path: '**',
     redirectTo: 'board/local',

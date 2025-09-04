@@ -41,8 +41,8 @@ export class BoardCalculations {
     cells.forEach((c, i) => {
       c.IsInBingoPattern =
         c.IsInBingoPattern ||
-        (c.CheckedDateUTC !== null &&
-          c.CheckedDateUTC !== undefined &&
+        (c.CheckedAtUtc !== null &&
+          c.CheckedAtUtc !== undefined &&
           (BoardCalculations.cellInBingoPattern(setting.diagonals, cells, i) ||
             BoardCalculations.cellInBingoPattern(setting.rows, cells, i) ||
             BoardCalculations.cellInBingoPattern(setting.cols, cells, i)));
@@ -155,7 +155,7 @@ export class BoardCalculations {
     return !!combinations
       .filter((c) => c.includes(cellIdx))
       .find((combination) =>
-        combination?.every((x) => cards[x].CheckedDateUTC !== null)
+        combination?.every((x) => cards[x].CheckedAtUtc !== null)
       );
   }
 }

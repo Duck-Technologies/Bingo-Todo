@@ -94,6 +94,8 @@
     [formControl]="gameModeForm().controls.CompletionReward" />
   @if (completionRewardHint$() | async; as rewardHint) {
   <mat-hint>{{rewardHint}}</mat-hint>
+  } @if(gameModeForm().controls.CompletionReward.hasError("maxlength")) {
+  <mat-error> You can only enter 200 characters. </mat-error>
   }
 </mat-form-field>
 } @else {

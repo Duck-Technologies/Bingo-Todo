@@ -2,10 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CompletionDialog } from './completion-dialog';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { BoardInfo } from '../board/board';
+import { BoardCell, BoardInfo } from '../board/board';
 import { MatTestDialogOpener } from '@angular/material/dialog/testing';
 import { calculateDateFromNow } from '../calculations/date-calculations';
 import { boardForm } from '../board-details-form/form';
+import { BoardCalculations } from '../calculations/board-calculations';
 
 describe('CompletionWarnDialog', () => {
   let component: MatTestDialogOpener<CompletionDialog>;
@@ -48,6 +49,9 @@ describe('CompletionWarnDialog', () => {
     const board = new BoardInfo();
     board.GameMode = 'traditional';
     board.TraditionalGame.CompletedAtUtc = new Date();
+    board.Cells = BoardCalculations.getRowIndexes(9).map(
+      (i) => new BoardCell({ Name: i.toString() }, i, 3)
+    );
     createComponent({ board: board });
     const dialogContainer = document.querySelector('mat-dialog-container');
     expect(dialogContainer!.innerHTML).toContain(

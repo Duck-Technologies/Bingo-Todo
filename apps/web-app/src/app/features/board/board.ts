@@ -33,7 +33,7 @@ export function copyCells(cells: BoardCell[]) {
 
 export class BoardCell {
   public Name: string | null;
-  public CheckedDateUTC: Date | null;
+  public CheckedAtUtc: Date | null;
   public IsInBingoPattern: boolean;
   public Selected: boolean;
   public Row: number;
@@ -41,8 +41,8 @@ export class BoardCell {
 
   constructor(cell: Partial<BoardCell>, index: number, boardDimension: number) {
     this.Name = cell.Name ?? null;
-    this.CheckedDateUTC = cell.CheckedDateUTC
-      ? new Date(cell.CheckedDateUTC)
+    this.CheckedAtUtc = cell.CheckedAtUtc
+      ? new Date(cell.CheckedAtUtc)
       : null;
     this.IsInBingoPattern = false;
     this.Selected = false;
@@ -185,7 +185,7 @@ export class Board {
   );
 
   public checkCard(card: BoardCell) {
-    if (!!card.CheckedDateUTC || this.isPreview()) return;
+    if (!!card.CheckedAtUtc || this.isPreview()) return;
 
     card.Selected = !card.Selected;
     this.cards.set([...this.cards()]);
