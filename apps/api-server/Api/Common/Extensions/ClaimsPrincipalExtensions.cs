@@ -14,13 +14,13 @@ public static class ClaimsPrincipalExtensions
                 c.Type == ClaimTypes.Role && c.Value == "Application.TestAgent"
             ) != null;
 
-        if (isTestAgent)
-        {
-            return new User(Guid.Empty, "Test Agent", "");
-        }
-
         if (Guid.TryParse(principal.GetObjectId(), out var userId))
         {
+            if (isTestAgent)
+            {
+                return new User(userId, "Test Agent", "");
+            }
+
             var email = principal.FindFirstValue(ClaimConstants.PreferredUserName);
             try
             {

@@ -100,6 +100,11 @@ public class ApiClient
         );
     }
 
+    public async Task<HttpResponseMessage> UnregisterUser()
+    {
+        return await client.DeleteAsync("/users", cancellationToken);
+    }
+
     public async Task<HttpResponseMessage> UpdateBoard(string id, BoardPUT board)
     {
         return await client.PutAsJsonAsync(

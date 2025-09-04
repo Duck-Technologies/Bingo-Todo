@@ -1,9 +1,10 @@
 namespace BingoTodo.Features.Users.Models;
 
+using BingoTodo.Features.Statistics.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-public sealed class User
+public sealed class User : IBoardStatistics
 {
     [BsonId]
     [BsonGuidRepresentation(GuidRepresentation.Standard)]
@@ -11,25 +12,8 @@ public sealed class User
     public string Name { get; set; } = "";
     public string Email { get; set; } = "";
     public bool IsValidEmail { get; set; } = false;
-    public GameStatistics Statistics { get; set; } = new();
+    public GameStatistics BoardStatistics { get; set; } = new();
     public Achievements Achievements { get; set; } = new();
-}
-
-public sealed class BoardStatistics
-{
-    public int Created { get; set; }
-    public int CompletedInTodoMode { get; set; }
-    public int CompletedInTraditionalMode { get; set; }
-    public int CompletedWithDeadline { get; set; }
-    public int CompletedWithReward { get; set; }
-    public int ContinuedInTodoMode { get; set; } // after the first check (after game mode change)
-}
-
-public sealed class GameStatistics
-{
-    public BoardStatistics Board3x3 { get; set; } = new();
-    public BoardStatistics Board4x4 { get; set; } = new();
-    public BoardStatistics Board5x5 { get; set; } = new();
 }
 
 public sealed class Achievements
