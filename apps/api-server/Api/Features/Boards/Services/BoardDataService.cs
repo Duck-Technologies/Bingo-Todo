@@ -15,13 +15,16 @@ public class BoardDataService
         var mongoDatabase = mongoClient.GetDatabase(mongoDatabaseSettings.Value.DatabaseName);
 
         _boardsCollection = mongoDatabase.GetCollection<BoardMongo>("Boards");
+        var userIdIndex = new IndexKeysDefinitionBuilder<BoardMongo>().Ascending(x => x.CreatedBy);
+        var indexModel = new CreateIndexModel<BoardMongo>(userIdIndex);
+        _boardsCollection.Indexes.CreateOne(indexModel);
     }
+
+    public async Task<List<BoardMongo>> GetAllAsync(Guid userId) =>
+        await _boardsCollection.Find(x => x.CreatedBy == userId).ToListAsync();
 
     public async Task<BoardMongo?> GetAsync(string id) =>
         await _boardsCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
-
-    // public async Task<List<BoardMongo>> GetAllAsync() =>
-    //     await _boardsCollection.Find(x => x.Name != "").ToListAsync();
 
     public async Task CreateAsync(BoardMongo board, CancellationToken cancellationToken) =>
         await _boardsCollection.InsertOneAsync(board, cancellationToken: cancellationToken);
@@ -37,6 +40,12 @@ public class BoardDataService
             updatedBoard,
             cancellationToken: cancellationToken
         );
+
+    public async Task<DeleteResult> RemoveAllAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var filter = new FilterDefinitionBuilder<BoardMongo>().Eq(x => x.CreatedBy, userId);
+        return await _boardsCollection.DeleteManyAsync(filter, cancellationToken);
+    }
 
     public async Task<DeleteResult> RemoveAsync(string id, CancellationToken cancellationToken) =>
         await _boardsCollection.DeleteOneAsync(x => x.Id == id, cancellationToken);

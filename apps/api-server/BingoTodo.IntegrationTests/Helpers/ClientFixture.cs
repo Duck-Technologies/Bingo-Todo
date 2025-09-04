@@ -42,18 +42,14 @@ public sealed class ClientFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        if (BoardId is not null)
-        {
-            await api.DeleteForAppAsync<JsonDocument?>(
-                ClientName,
-                null,
-                options =>
-                {
-                    options.RelativePath = $"/boards/{BoardId}";
-                },
-                TestContext.Current.CancellationToken
-            );
-        }
+        await api.DeleteForAppAsync<JsonDocument?>(
+            ClientName,
+            null,
+            options =>
+            {
+                options.RelativePath = "/users";
+            }
+        );
     }
 
     public async ValueTask InitializeAsync() { }

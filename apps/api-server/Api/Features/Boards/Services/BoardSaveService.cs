@@ -8,7 +8,7 @@ using BingoTodo.Features.Users.Services;
 using MongoDB.Driver;
 
 public class BoardSaveService(
-    BoardDataService dataService,
+    BoardDataService boardDataService,
     UserService userService,
     GlobalStatisticsService statisticsService
 )
@@ -24,7 +24,7 @@ public class BoardSaveService(
     )
     {
         var board = MapPostPayloadToDBModel(request, user.Id);
-        await dataService.CreateAsync(board, cancellationToken);
+        await boardDataService.CreateAsync(board, cancellationToken);
         await UpdateCreationStatistics(user, board, cancellationToken);
 
         return board.Id;
@@ -47,7 +47,7 @@ public class BoardSaveService(
     {
         var analyticsEvent = MapCreatePayloadAndGetEvent(board, payload);
 
-        var result = await dataService.UpdateAsync(
+        var result = await boardDataService.UpdateAsync(
             id,
             board,
             originalLastChangedDate,
@@ -89,7 +89,7 @@ public class BoardSaveService(
         board.LastChangedAtUtc = updateDate;
         var didComplete = SetCompletedDateIfApplicable(board, updateDate);
 
-        var result = await dataService.UpdateAsync(
+        var result = await boardDataService.UpdateAsync(
             id,
             board,
             originalLastChangedDate,
@@ -124,16 +124,35 @@ public class BoardSaveService(
     /// </summary>
     public async Task RemoveAsync(string id, CancellationToken cancellationToken)
     {
-        var board = await dataService.GetAsync(id);
-        await dataService.RemoveAsync(id, cancellationToken);
+        var board = await boardDataService.GetAsync(id);
         if (board != null)
         {
+            await boardDataService.RemoveAsync(id, cancellationToken);
             var update = UpdateDefinitionBuilderForStatistics.GetDeletedGameStatisticsUpdate(
                 [board],
                 true
             );
             await statisticsService.Update(update, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Removes all boards of the user, the user and updates the global statistics
+    /// </summary>
+    public async Task RemoveAllAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var boards = await boardDataService.GetAllAsync(userId);
+        if (boards.Count != 0)
+        {
+            await boardDataService.RemoveAllAsync(userId, cancellationToken);
+        }
+
+        var update = UpdateDefinitionBuilderForStatistics.GetDeletedGameStatisticsUpdate(
+            [.. boards],
+            false
+        );
+        await statisticsService.Update(update, cancellationToken);
+        await userService.RemoveAsync(userId, cancellationToken);
     }
 
     private static void CalculateUpdateFields(

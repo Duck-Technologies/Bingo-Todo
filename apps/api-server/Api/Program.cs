@@ -2,6 +2,7 @@ using BingoTodo.Common.Extensions;
 using BingoTodo.Features.Boards;
 using BingoTodo.Features.Boards.Services;
 using BingoTodo.Features.Statistics.Services;
+using BingoTodo.Features.Users;
 using BingoTodo.Features.Users.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -73,6 +74,7 @@ if (app.Environment.IsDevelopment())
 app.MapOpenApi();
 app.UseHttpsRedirection();
 app.RegisterBoardsRoutes();
+app.RegisterUsersRoutes();
 
 app.Run();
 

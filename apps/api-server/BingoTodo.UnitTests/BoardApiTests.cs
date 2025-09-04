@@ -1250,4 +1250,42 @@ public sealed class BoardApiTests(WebAppFixture webAppFixture) : IClassFixture<W
         Assert.Equal(1, responses.Count(r => r.IsSuccessStatusCode));
         Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
     }
+
+    [Fact]
+    public async Task UnregisterClearsUserData()
+    {
+        var httpClient = app.CreateClient();
+        var client = new ApiClient(httpClient, TestContext.Current.CancellationToken);
+
+        var cells = new BoardCellPOST[9];
+        Array.Fill(cells, new BoardCellPOST { Name = "a" });
+
+        foreach (var _ in Enumerable.Range(0, 100))
+        {
+            await client.CreateBoardSuccess(
+                new BoardPOST
+                {
+                    Cells = cells,
+                    GameMode = GameMode.todo,
+                    Visibility = Visibility.unlisted,
+                }
+            );
+        }
+
+        var user = await webAppFixture.UserService.GetAsync(webAppFixture.DefaultUserId);
+        var stats = await webAppFixture.StatisticsService.GetAsync();
+        Assert.True(user!.BoardStatistics.Board3x3.Todo.InProgress >= 100);
+        Assert.True(stats!.BoardStatistics.Board3x3.Todo.InProgress >= 100);
+
+        // Act
+        var res = await client.UnregisterUser();
+
+        // Assert
+        res.EnsureSuccessStatusCode();
+        var userCleared = await webAppFixture.UserService.GetAsync(webAppFixture.DefaultUserId);
+        var statsUpdated = await webAppFixture.StatisticsService.GetAsync();
+        Assert.Null(userCleared);
+        Assert.True(statsUpdated!.DeletedBoardStatistics.Board3x3.Todo.InProgress >= 100);
+        Assert.True(statsUpdated!.DeletedBoardsWithUnRegistration >= 100);
+    }
 }
