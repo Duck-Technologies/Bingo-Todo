@@ -69,6 +69,17 @@
 
 @if (displayMode() === 'edit') {
 <section class="edit" aria-label="Game actions and game edit form">
+  @if (displayConflictMessage()) {
+  <app-message [type]="'warning'" [title]="'Conflict'">
+    <p>It seems you've modified the board elsewhere since you've started editing here.</p>
+    <p>
+      Please either reload, or cancel and re-enter edit mode to edit the latest version of the
+      board.
+    </p>
+    <p>Your changes applied here will be lost.</p>
+  </app-message>
+  }
+
   <app-board-details-form
     [isLoggedIn]="board().Visibility !== 'local'"
     [gameFinished]="allChecked()"

@@ -41,9 +41,7 @@ export class BoardCell {
 
   constructor(cell: Partial<BoardCell>, index: number, boardDimension: number) {
     this.Name = cell.Name ?? null;
-    this.CheckedAtUtc = cell.CheckedAtUtc
-      ? new Date(cell.CheckedAtUtc)
-      : null;
+    this.CheckedAtUtc = cell.CheckedAtUtc ? new Date(cell.CheckedAtUtc) : null;
     this.IsInBingoPattern = false;
     this.Selected = false;
     this.Row = Math.floor(index / boardDimension) + 1;
@@ -53,6 +51,7 @@ export class BoardCell {
 
 export class BoardInfo<T = BoardCell> {
   Id?: string;
+  Etag?: string | null;
   Name: string | null = null;
   GameMode: 'traditional' | 'todo' = 'traditional';
   CreatedAtUtc: Date | undefined;
@@ -125,11 +124,18 @@ export class BoardInfo<T = BoardCell> {
           null;
     }
 
-    this.TraditionalGame.CompletedAtUtc = normalizeDate(this.TraditionalGame.CompletedAtUtc);
-    this.TraditionalGame.CompletionDeadlineUtc = normalizeDate(this.TraditionalGame.CompletionDeadlineUtc);
+    this.TraditionalGame.CompletedAtUtc = normalizeDate(
+      this.TraditionalGame.CompletedAtUtc
+    );
+    this.TraditionalGame.CompletionDeadlineUtc = normalizeDate(
+      this.TraditionalGame.CompletionDeadlineUtc
+    );
     this.TodoGame.CompletedAtUtc = normalizeDate(this.TodoGame.CompletedAtUtc);
-    this.TodoGame.CompletionDeadlineUtc = normalizeDate(this.TodoGame.CompletionDeadlineUtc);
-    this.SwitchedToTodoAfterCompleteDateUtc = normalizeDate(this.SwitchedToTodoAfterCompleteDateUtc) ?? undefined;
+    this.TodoGame.CompletionDeadlineUtc = normalizeDate(
+      this.TodoGame.CompletionDeadlineUtc
+    );
+    this.SwitchedToTodoAfterCompleteDateUtc =
+      normalizeDate(this.SwitchedToTodoAfterCompleteDateUtc) ?? undefined;
     this.LastChangedAtUtc = normalizeDate(this.LastChangedAtUtc) ?? undefined;
     this.CreatedAtUtc = normalizeDate(this.CreatedAtUtc) ?? undefined;
   }
@@ -203,5 +209,5 @@ export class Board {
 }
 
 function normalizeDate(date: string | Date | undefined | null) {
-  return date ? new Date(date) : null
+  return date ? new Date(date) : null;
 }

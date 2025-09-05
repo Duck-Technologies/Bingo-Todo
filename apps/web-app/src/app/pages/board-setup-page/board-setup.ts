@@ -93,6 +93,7 @@ type CellForm = FormGroup<{
 })
 export class BoardSetup implements OnInit {
   public readonly board = input<BoardInfo | null>(null);
+  public readonly user = input<User | null>(null);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly bingoApi = inject(BingoApi);
@@ -147,6 +148,10 @@ export class BoardSetup implements OnInit {
     }
     const baseBoard = board ? new BoardInfo(board) : this.baseBoard;
 
+    if (!!this.user()) {
+      baseBoard.Visibility = 'unlisted';
+    }
+
     this.boardForm.reset();
     this.boardForm.enable();
     this.boardForm.patchValue(baseBoard);
@@ -172,7 +177,9 @@ export class BoardSetup implements OnInit {
     const dialogRef = this.dialog.open(CreateWarnDialog, {
       data: {
         board: board,
-        overridesLocal: BingoLocalStorage.boardInLocalStorage(),
+        overridesLocal:
+          BingoLocalStorage.boardInLocalStorage() &&
+          board.Visibility == 'local',
       },
     });
 

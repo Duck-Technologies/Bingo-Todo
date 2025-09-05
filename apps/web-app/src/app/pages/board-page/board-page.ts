@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   linkedSignal,
   model,
@@ -31,13 +32,26 @@ import { BoardCalculations } from '../../features/calculations/board-calculation
 import { DeadlineHourglass } from '../../features/deadline-hourglass/deadline-hourglass';
 import { MatDialog } from '@angular/material/dialog';
 import { CompletionDialog } from '../../features/completion-warn-dialog/completion-dialog';
-import { EMPTY, map, Observable, of, pipe, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  EMPTY,
+  map,
+  Observable,
+  of,
+  pipe,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import { BoardHistory } from '../../features/board-history/board-history';
 import { ProgressCircle } from '../../features/progress-circle/progress-circle';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { ConfirmDialog } from '../../features/confirm-dialog/confirm-dialog';
 import { GameModeIcon } from '../../features/game-mode-icon/game-mode-icon';
+import { HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
+import { Message } from '../../features/message/message';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-board-page',
@@ -62,6 +76,7 @@ import { GameModeIcon } from '../../features/game-mode-icon/game-mode-icon';
     MatMenuModule,
     RouterLink,
     GameModeIcon,
+    Message,
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.css',
@@ -77,6 +92,7 @@ export class BoardPage {
   private readonly calculationService = inject(BoardCalculations);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
+  private readonly titleService = inject(Title);
 
   public readonly displayMode = signal<'board' | 'edit' | 'history'>('board');
   public readonly cells = linkedSignal(() => this.board().Cells);
@@ -89,6 +105,7 @@ export class BoardPage {
       : null
   );
   public readonly isLocal = computed(() => this.board().Visibility === 'local');
+  public readonly displayConflictMessage = signal(false);
 
   public readonly allChecked = computed(() =>
     this.cells().every((c) => c.IsInBingoPattern)
@@ -124,8 +141,30 @@ export class BoardPage {
   public groupingOption: 'row' | 'col' | 'diagonal' = 'row';
   public readonly boardForm = boardForm;
 
+  constructor() {
+    effect(() => {
+      if (
+        this.titleService.getTitle() != (this.board().Name || 'Untitled board')
+      )
+        this.titleService.setTitle(this.board().Name || 'Untitled board');
+    });
+  }
+
   public cancelChanges() {
-    this.displayMode.set('board');
+    if (this.displayConflictMessage()) {
+      this.bingoApi
+        .loadBoard(this.board().Id!)
+        .pipe(
+          tap((board) => {
+            this.board.set(board);
+            this.displayConflictMessage.set(false);
+            this.displayMode.set('board');
+          })
+        )
+        .subscribe();
+    } else {
+      this.displayMode.set('board');
+    }
   }
 
   public deleteBoardClick() {
@@ -145,10 +184,27 @@ export class BoardPage {
   }
 
   public editBoard() {
-    this.boardForm.reset();
-    this.boardForm.enable();
-    this.boardForm.patchValue(this.board());
-    this.displayMode.set('edit');
+    if (!this.isLocal()) {
+      this.bingoApi
+        .loadBoard(this.board().Id!)
+        .pipe(
+          tap((board) => {
+            if (!!board) {
+              this.board.set(board);
+              this.boardForm.reset();
+              this.boardForm.enable();
+              this.boardForm.patchValue(this.board());
+              this.displayMode.set('edit');
+            }
+          })
+        )
+        .subscribe();
+    } else {
+      this.boardForm.reset();
+      this.boardForm.enable();
+      this.boardForm.patchValue(this.board());
+      this.displayMode.set('edit');
+    }
   }
 
   public saveChanges() {
@@ -157,6 +213,7 @@ export class BoardPage {
     const formValue = this.boardForm.getRawValue();
     const updatedBoard = new BoardInfo({
       ...formValue,
+      Etag: this.board().Etag,
       TraditionalGame: {
         ...formValue.TraditionalGame,
         CompletedByGameModeSwitch:
@@ -175,27 +232,26 @@ export class BoardPage {
       // when changing game mode from todo to traditional this can happen
       this.saveCompletion(updatedBoard).pipe(this.afterCompletion).subscribe();
     } else {
-      if (this.isLocal()) {
-        BingoLocalStorage.updateBoard(
-          updatedBoard,
-          this.calculationService
-        ).subscribe({
-          next: (board) => {
-            if (board !== false) {
-              this.board.set(updatedBoard);
+      const request = this.isLocal()
+        ? BingoLocalStorage.updateBoard(updatedBoard, this.calculationService)
+        : this.bingoApi
+            .updateBoard(this.board().Id!, updatedBoard)
+            .pipe(switchMap(() => this.bingoApi.loadBoard(this.board().Id!)));
+
+      request
+        .pipe(
+          tap((board) => {
+            if (!!board) {
+              this.board.set(board);
             }
-          },
-        });
-      } else {
-        this.bingoApi
-          .updateBoard(this.board().Id!, updatedBoard)
-          .pipe(
-            switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
-            tap((board) => this.board.set(board))
-          )
-          .subscribe();
-      }
-      this.displayMode.set('board');
+            this.displayMode.set('board');
+          }),
+          catchError((e) => {
+            this.handleError(e);
+            return of(null);
+          })
+        )
+        .subscribe();
     }
   }
 
@@ -240,8 +296,12 @@ export class BoardPage {
         });
       } else {
         this.bingoApi
-          .saveSelection(this.board().Id!, selectedIndexes)
+          .saveSelection(this.board().Id!, selectedIndexes, this.board().Etag)
           .pipe(
+            catchError((e) => {
+              this.handleError(e);
+              return throwError(() => e);
+            }),
             switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
             tap((board) => this.board.set(board))
           )
@@ -303,32 +363,31 @@ export class BoardPage {
       GameMode: 'todo' as const,
     });
 
-    if (this.isLocal()) {
-      this.board.set(updatedBoard);
-      return BingoLocalStorage.updateBoard(
-        this.board(),
-        this.calculationService
-      ).pipe(
-        tap((board) => {
-          if (board != false) {
-            this.board.set(updatedBoard);
-          }
-        }),
-        map((board) => {
-          if (!!board) {
-            return 'Successful continue after bingo update';
-          } else {
-            return 'Failed to switch game mode';
-          }
-        })
-      );
-    } else {
-      return this.bingoApi.updateBoard(this.board().Id!, updatedBoard).pipe(
-        switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
-        tap((board) => this.board.set(board)),
-        map(() => 'Successful continue after bingo update')
-      );
-    }
+    const request = this.isLocal()
+      ? BingoLocalStorage.updateBoard(
+          updatedBoard,
+          this.calculationService
+        ).pipe(map((savedBoard) => (savedBoard === false ? null : savedBoard)))
+      : this.bingoApi
+          .updateBoard(this.board().Id!, updatedBoard)
+          .pipe(switchMap(() => this.bingoApi.loadBoard(this.board().Id!)));
+
+    return request.pipe(
+      catchError((e) => {
+        // conflict can happen if the user leaves the complete dialog open
+        // and modifies the board on a different tab before clicking continue on the current one
+        this.handleError(e);
+        return throwError(() => e);
+      }),
+      map((board) => {
+        if (!!board) {
+          this.board.set(board);
+          return 'Successful continue after bingo update';
+        } else {
+          return 'Failed to switch game mode';
+        }
+      })
+    );
   }
 
   private deleteBoard() {
@@ -355,38 +414,89 @@ export class BoardPage {
 
     return dialogRef.afterClosed().pipe(
       switchMap((result: undefined | string) => {
-        if (result !== undefined) {
-          const formValue = this.boardForm.getRawValue();
-          board.TodoGame.CompletionReward = formValue.TodoGame.CompletionReward;
-          board.TraditionalGame.CompletionReward =
-            formValue.TraditionalGame.CompletionReward;
-          board = new BoardInfo(board);
-
-          if (this.isLocal()) {
-            return BingoLocalStorage.updateBoard(
-              board,
-              this.calculationService
-            ).pipe(
-              map((savedBoard) => (savedBoard === false ? null : savedBoard)),
-              tap((_) => {
-                this.boardForm.reset();
-                this.displayMode.set('board');
-              })
-            );
-          } else {
-            return this.bingoApi.updateBoard(this.board().Id!, board).pipe(
-              switchMap(() => this.bingoApi.loadBoard(this.board().Id!)),
-              tap((board) => {
-                this.boardForm.reset();
-                this.displayMode.set('board');
-                this.board.set(board);
-              })
-            );
-          }
+        if (!result) {
+          return of(null);
         }
-        return of(null);
+
+        const formValue = this.boardForm.getRawValue();
+        board.TodoGame.CompletionReward = formValue.TodoGame.CompletionReward;
+        board.TraditionalGame.CompletionReward =
+          formValue.TraditionalGame.CompletionReward;
+        board = new BoardInfo(board);
+        board.Etag = this.board().Etag;
+
+        const request = this.isLocal()
+          ? BingoLocalStorage.updateBoard(board, this.calculationService).pipe(
+              map((savedBoard) => (savedBoard === false ? null : savedBoard))
+            )
+          : this.bingoApi
+              .updateBoard(this.board().Id!, board)
+              .pipe(switchMap(() => this.bingoApi.loadBoard(this.board().Id!)));
+
+        return request.pipe(
+          catchError((e) => {
+            // conflict can happen if the user has the board open in two tabs, changes game mode to traditional
+            // on both, completes on the other tab, and then tries to proceed in this one
+            this.handleError(e);
+            return throwError(() => e);
+          }),
+          tap((board) => {
+            this.boardForm.reset();
+            this.displayMode.set('board');
+            if (!!board) {
+              this.board.set(board);
+            }
+          })
+        );
       })
     );
+  }
+
+  private handleError(response: any) {
+    if (!(response instanceof HttpErrorResponse)) {
+      return;
+    }
+
+    if (response.status == HttpStatusCode.Conflict) {
+      if (this.displayMode() == 'edit') {
+        this.displayConflictMessage.set(true);
+      } else {
+        this.dialog.open(ConfirmDialog, {
+          data: {
+            type: 'alert',
+            alertTitle: 'Conflict',
+            alertDescription:
+              "You've modified the board elsewhere. You should reload the page.",
+          },
+        });
+      }
+    }
+
+    // update bad requests shouldn't really happen. The user will get conflict
+    // if they modify the board somewhere else.
+    if (response.status == HttpStatusCode.BadRequest) {
+      if (response.error.includes("The board can't be updated")) {
+        this.dialog.open(ConfirmDialog, {
+          data: {
+            type: 'alert',
+            alertTitle: response.error,
+            alertDescription:
+              "Maybe you've modified the board elsewhere. You should reload the page.",
+          },
+        });
+      }
+
+      if (JSON.stringify(response.error).includes('must be in the future')) {
+        this.dialog.open(ConfirmDialog, {
+          data: {
+            type: 'alert',
+            alertTitle: 'Invalid update',
+            alertDescription:
+              "Please set your deadline again as it's no longer valid.",
+          },
+        });
+      }
+    }
   }
 
   private saveSelectionAndComplete(
@@ -405,43 +515,64 @@ export class BoardPage {
 
     return dialogRef.afterClosed().pipe(
       switchMap((result: undefined | string) => {
-        if (result !== undefined) {
-          const formValue = this.boardForm.getRawValue();
-          board.TodoGame.CompletionReward = formValue.TodoGame.CompletionReward;
-          board.TraditionalGame.CompletionReward =
-            formValue.TraditionalGame.CompletionReward;
-          board = new BoardInfo(board);
+        if (!result) {
+          return of(null);
+        }
 
-          if (this.isLocal()) {
-            //TODO only update if reward changed
-            return BingoLocalStorage.updateBoard(
-              board,
-              this.calculationService
-            ).pipe(
-              switchMap((board) => {
-                if (board !== false) {
-                  return BingoLocalStorage.saveSelection(
+        const formValue = this.boardForm.getRawValue();
+        const rewardChanged =
+          board.TodoGame.CompletionReward !=
+            formValue.TodoGame.CompletionReward ||
+          board.TraditionalGame.CompletionReward !=
+            formValue.TraditionalGame.CompletionReward;
+
+        board.TodoGame.CompletionReward = formValue.TodoGame.CompletionReward;
+        board.TraditionalGame.CompletionReward =
+          formValue.TraditionalGame.CompletionReward;
+        board = new BoardInfo(board);
+
+        const request: Observable<false | void | BoardInfo<BoardCell>> =
+          !rewardChanged
+            ? of(board)
+            : this.isLocal()
+            ? BingoLocalStorage.updateBoard(board, this.calculationService)
+            : this.bingoApi.updateBoard(board.Id!, board).pipe(
+                catchError((e) => {
+                  // in case of conflict worst case is that the board is already in a different mode, so
+                  // we would accidentally modify the game mode and reward which could result in bad request;
+                  // best case is that the user only modified the name in which case this is kind of inconvenient
+                  this.handleError(e);
+                  return throwError(() => e);
+                })
+              );
+
+        return request.pipe(
+          switchMap((board) => {
+            if (this.isLocal()) {
+              return !board
+                ? of(null)
+                : BingoLocalStorage.saveSelection(
                     board,
                     selectedIndexes,
                     this.calculationService
                   );
-                } else {
-                  return of(null);
-                }
-              })
-            );
-          } else {
-            return this.bingoApi
-              .updateBoard(this.board().Id!, this.board())
-              .pipe(
-                switchMap(() =>
-                  this.bingoApi.saveSelection(this.board().Id!, selectedIndexes)
-                ),
-                switchMap(() => this.bingoApi.loadBoard(this.board().Id!))
-              );
-          }
-        }
-        return of(null);
+            } else {
+              return this.bingoApi
+                .saveSelection(
+                  this.board().Id!,
+                  selectedIndexes,
+                  this.board().Etag
+                )
+                .pipe(
+                  catchError((e) => {
+                    this.handleError(e);
+                    return throwError(() => e);
+                  }),
+                  switchMap(() => this.bingoApi.loadBoard(this.board().Id!))
+                );
+            }
+          })
+        );
       }),
       map((res) => {
         if (!!res) {

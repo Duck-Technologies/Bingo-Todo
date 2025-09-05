@@ -449,6 +449,8 @@ describe('BoardPage', () => {
         }),
       });
 
+      BingoLocalStorage.createBoard(board);
+
       await helper.setBoard(board);
       await helper.saveSelected();
       await dialogHelper.setActiveDialog();

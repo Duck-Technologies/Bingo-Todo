@@ -7,7 +7,7 @@
     </a>
     <a>
       @if (!!user) {
-        <button matButton (click)="logout()" disabled>Sign Out</button>
+        <button matButton (click)="logout()">Sign Out</button>
       } @else {
         <button matButton (click)="login()">Sign In</button>
       }
