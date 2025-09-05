@@ -9,33 +9,33 @@
     [class.focus]="activeCell() === actualIdx"
     id="cell_{{actualIdx}}"
     role="option"
-    [attr.aria-disabled]="!!card.CheckedDateUTC || disabled()"
-    [attr.aria-selected]="!!card.CheckedDateUTC || card.Selected">
+    [attr.aria-disabled]="!!card.CheckedAtUtc || disabled()"
+    [attr.aria-selected]="!!card.CheckedAtUtc || card.Selected">
     @let ariaOption = (groupBy() !== 'row' ? 'Row ' + card.Row : '') + (groupBy() === 'diagonal' ?
     ', ' : '') + (groupBy() !== 'col' ? 'Column ' + card.Column : '') + ': ' + card.Name;
 
     <span class="cdk-visually-hidden"
       >{{ariaOption}}
       <!-- prettier-ignore -->
-      @if (!!card.CheckedDateUTC) { 
-        Marked as done {{card.CheckedDateUTC | intlRelativeTime}}. }
+      @if (!!card.CheckedAtUtc) { 
+        Marked as done {{card.CheckedAtUtc | intlRelativeTime}}. }
     </span>
 
     <mat-card
       aria-hidden="true"
       [class.bg-green]="card.IsInBingoPattern"
-      [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
+      [class.bg-yellow]="!!card.CheckedAtUtc && !card.IsInBingoPattern"
       [class.bg-blue]="card.Selected"
       (click)="checkCard(card)">
       <mat-card-header>
         <span>Row {{card.Row}}, Col {{card.Column}}</span>
 
-        @if (!!card.CheckedDateUTC) {
+        @if (!!card.CheckedAtUtc) {
         <time
-          [matTooltip]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
-          [attr.datetime]="card.CheckedDateUTC"
-          [attr.title]="card.CheckedDateUTC | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
-          >{{card.CheckedDateUTC | intlRelativeTime}}
+          [matTooltip]="card.CheckedAtUtc | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
+          [attr.datetime]="card.CheckedAtUtc"
+          [attr.title]="card.CheckedAtUtc | intlDate : {dateStyle: 'medium', timeStyle: 'medium'}"
+          >{{card.CheckedAtUtc | intlRelativeTime}}
         </time>
         } @else {
         <!-- prettier-ignore -->

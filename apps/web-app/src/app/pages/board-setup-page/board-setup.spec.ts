@@ -18,6 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { of } from 'rxjs';
 import { BingoLocalStorage } from '../../features/persistence/bingo-local';
+import { User } from '../../core/auth/user';
 
 describe('BoardSetup', () => {
   let component: BoardSetup;
@@ -33,6 +34,10 @@ describe('BoardSetup', () => {
         {
           provide: BingoApi,
           useValue: jasmine.createSpyObj<BingoApi>(['createBoard']),
+        },
+        {
+          provide: User,
+          useValue: jasmine.createSpyObj<User>('user', [], ['user$']),
         },
       ],
     }).compileComponents();
@@ -296,7 +301,7 @@ describe('BoardSetup', () => {
     component.boardForm.controls.Visibility.setValue('local');
 
     spyOn(BingoLocalStorage, 'createBoard');
-    spyOn((component as any).dialog, "open").and.returnValue({
+    spyOn((component as any).dialog, 'open').and.returnValue({
       afterClosed: () => of(''),
     });
 

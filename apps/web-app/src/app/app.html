@@ -7,19 +7,15 @@
     </a>
     <a>
       @if (!!user) {
-        <button matButton (click)="logout()" disabled>Sign Out</button>
+        <button matButton (click)="logout()">Sign Out</button>
       } @else {
-        <button matButton (click)="login()" disabled>Sign In</button>
+        <button matButton (click)="login()">Sign In</button>
       }
     </a>
 </mat-toolbar>
 
 <mat-sidenav-container>
   <mat-sidenav-content>
-    @if (!!user) {
-      <a [routerLink]="['profile']" class="btn btn-secondary">View Your Profile {{user.name}}</a> 
-    }
-
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

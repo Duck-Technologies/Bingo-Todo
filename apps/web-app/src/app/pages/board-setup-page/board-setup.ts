@@ -48,6 +48,7 @@ import { DeadlineRewardForm } from '../../features/deadline-reward-form/deadline
 import { CreateWarnDialog } from '../../features/create-warn-dialog/create-warn-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GameModeIcon } from '../../features/game-mode-icon/game-mode-icon';
+import { User } from '../../core/auth/user';
 
 type CellForm = FormGroup<{
   Name: FormControl<string | null>;
@@ -75,7 +76,7 @@ type CellForm = FormGroup<{
     BoardListView,
     MatDivider,
     DeadlineRewardForm,
-    GameModeIcon
+    GameModeIcon,
   ],
   providers: [
     {
@@ -92,9 +93,11 @@ type CellForm = FormGroup<{
 })
 export class BoardSetup implements OnInit {
   public readonly board = input<BoardInfo | null>(null);
+  public readonly user = input<User | null>(null);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly bingoApi = inject(BingoApi);
+  private readonly userService = inject(User);
 
   public readonly baseBoard = new BoardInfo(BingoLocalStorage.DefaultBoard);
   public readonly boardForm = boardForm;
@@ -103,12 +106,16 @@ export class BoardSetup implements OnInit {
   public boardSize: 3 | 4 | 5 = 3;
   public readonly gridMode = signal<'grid' | 'list'>('grid');
   public inputFocused = false;
-  public isLoggedIn = false;
+  public user$ = this.userService.user$;
 
   public readonly cardsFormArray = new FormArray<CellForm>(
     [...Array(this.defaultBoardSize).keys()].map((_, index) => {
       return new FormGroup({
-        Name: new FormControl<string | null>(null, [Validators.required]),
+        Name: new FormControl<string | null>(null, [
+          Validators.required,
+          Validators.pattern(NotOnlyWhiteSpacePattern),
+          Validators.maxLength(200),
+        ]),
         Selected: new FormControl<boolean>(false, { nonNullable: true }),
         Row: new FormControl<number>(Math.floor(index / this.boardSize) + 1, {
           nonNullable: true,
@@ -141,6 +148,10 @@ export class BoardSetup implements OnInit {
     }
     const baseBoard = board ? new BoardInfo(board) : this.baseBoard;
 
+    if (!!this.user()) {
+      baseBoard.Visibility = 'unlisted';
+    }
+
     this.boardForm.reset();
     this.boardForm.enable();
     this.boardForm.patchValue(baseBoard);
@@ -158,7 +169,7 @@ export class BoardSetup implements OnInit {
         (c) =>
           ({
             Name: c.Name,
-            CheckedDateUTC: null,
+            CheckedAtUtc: null,
           } as BoardCellDto)
       ),
     });
@@ -166,7 +177,9 @@ export class BoardSetup implements OnInit {
     const dialogRef = this.dialog.open(CreateWarnDialog, {
       data: {
         board: board,
-        overridesLocal: BingoLocalStorage.boardInLocalStorage(),
+        overridesLocal:
+          BingoLocalStorage.boardInLocalStorage() &&
+          board.Visibility == 'local',
       },
     });
 
@@ -176,7 +189,9 @@ export class BoardSetup implements OnInit {
           BingoLocalStorage.createBoard(board);
           this.router.navigate(['board/local']);
         } else {
-          // this.bingoApi.createBoard(board).subscribe();
+          this.bingoApi.createBoard(board).subscribe({
+            next: (id) => this.router.navigate([`board/${id}`]),
+          });
         }
       }
     });
@@ -220,7 +235,11 @@ export class BoardSetup implements OnInit {
         new FormGroup({
           Name: new FormControl<string | null>(
             cellsBeforeResize.at(idx)?.Name,
-            [Validators.required, Validators.pattern(NotOnlyWhiteSpacePattern)]
+            [
+              Validators.required,
+              Validators.pattern(NotOnlyWhiteSpacePattern),
+              Validators.maxLength(200),
+            ]
           ),
           Selected: new FormControl<boolean>(false, { nonNullable: true }),
           Row: new FormControl<number>(Math.floor(idx / dimension) + 1, {

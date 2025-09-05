@@ -275,9 +275,9 @@ export class BoardHistory {
         new BoardCell(
           {
             ...c,
-            CheckedDateUTC:
-              !!c.CheckedDateUTC && c.CheckedDateUTC <= asOfDate
-                ? c.CheckedDateUTC
+            CheckedAtUtc:
+              !!c.CheckedAtUtc && c.CheckedAtUtc <= asOfDate
+                ? c.CheckedAtUtc
                 : null,
           },
           i,
@@ -289,7 +289,7 @@ export class BoardHistory {
 
     return {
       green: mappedCells.reduce((a, c) => (a += +c.IsInBingoPattern), 0),
-      yellow: mappedCells.filter((c) => !!c.CheckedDateUTC).length,
+      yellow: mappedCells.filter((c) => !!c.CheckedAtUtc).length,
     };
   }
 
@@ -300,13 +300,13 @@ export class BoardHistory {
           (group?.[1]?.length ?? 0) > 1 ? group![1]![0].Name : undefined
       ) ?? [];
     return cells
-      .filter((c) => !!c.CheckedDateUTC)
-      .sort((a, b) => a.CheckedDateUTC!.getTime() - b.CheckedDateUTC!.getTime())
+      .filter((c) => !!c.CheckedAtUtc)
+      .sort((a, b) => a.CheckedAtUtc!.getTime() - b.CheckedAtUtc!.getTime())
       .map((c, i) => ({
         label: repeatingLabels.includes(c.Name)
           ? `${c.Name} (Row ${c.Row} Col ${c.Column})`
           : c.Name,
-        date: c.CheckedDateUTC,
+        date: c.CheckedAtUtc,
         type: EventType.CellCheck,
       }));
   }

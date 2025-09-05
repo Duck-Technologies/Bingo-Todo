@@ -21,6 +21,7 @@ public class GetBoardById
         [AsParameters] IdParam request,
         BoardDataService database,
         ClaimsPrincipal claimsPrincipal,
+        HttpContext context,
         CancellationToken cancellationToken
     )
     {
@@ -31,6 +32,7 @@ public class GetBoardById
             return result == false ? TypedResults.Forbid() : TypedResults.NotFound();
         }
 
+        context.Response.Headers.ETag = board!.LastChangedAtUtc.Ticks.ToString();
         return TypedResults.Ok(
             new BoardGET
             {

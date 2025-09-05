@@ -18,7 +18,7 @@
 <h2 mat-dialog-title>{{data.board.GameMode === 'traditional' ? 'BINGO!' : 'Well done!'}}</h2>
 <mat-dialog-content>
   <app-message [title]="endStateMessage" [type]="'success'">
-    @if (data.board.GameMode === 'traditional') {
+    @if (data.board.GameMode === 'traditional' && canCheckMore) {
     <p>Consider continuing the board in TO-DO mode to mark all cells as done</p>
     }
   </app-message>
@@ -39,7 +39,7 @@
   }
 
   <!-- prettier-ignore -->
-  @if (data.board.GameMode === 'traditional' && !deleteBoard()) {
+  @if (data.board.GameMode === 'traditional' && !deleteBoard() && canCheckMore) {
   <button mat-flat-button [mat-dialog-close]="'continue'" cdkFocusInitial>
     Continue in TO-DO mode
   </button>

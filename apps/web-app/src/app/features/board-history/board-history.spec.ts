@@ -36,7 +36,7 @@ describe('BoardHistory', () => {
         Cells: [
           {
             Name: 0,
-            CheckedDateUTC: new Date('2025-08-19T21:00:07.525Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:07.525Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -44,7 +44,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 1,
-            CheckedDateUTC: new Date('2025-08-19T21:00:07.525Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:07.525Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -52,7 +52,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 2,
-            CheckedDateUTC: new Date('2025-08-19T21:00:07.525Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:07.525Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -60,7 +60,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 3,
-            CheckedDateUTC: new Date('2025-08-19T21:00:14.703Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:14.703Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -68,7 +68,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 4,
-            CheckedDateUTC: new Date('2025-08-19T21:00:14.703Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:14.703Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -76,7 +76,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 5,
-            CheckedDateUTC: new Date('2025-08-19T21:00:14.703Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:14.703Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -84,7 +84,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 6,
-            CheckedDateUTC: new Date('2025-08-19T21:00:14.703Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:14.703Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -92,7 +92,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 7,
-            CheckedDateUTC: new Date('2025-08-19T21:00:14.703Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:14.703Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -100,7 +100,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 8,
-            CheckedDateUTC: new Date('2025-08-19T21:00:14.703Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:00:14.703Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -264,7 +264,7 @@ describe('BoardHistory', () => {
         Cells: [
           {
             Name: 0,
-            CheckedDateUTC: new Date('2025-08-19T21:15:56.162Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:15:56.162Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -272,7 +272,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 1,
-            CheckedDateUTC: new Date('2025-08-19T21:15:56.162Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:15:56.162Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -280,7 +280,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 2,
-            CheckedDateUTC: new Date('2025-08-19T21:15:56.162Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:15:56.162Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -288,7 +288,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 3,
-            CheckedDateUTC: new Date('2025-08-19T21:16:22.876Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:16:22.876Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -296,7 +296,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 4,
-            CheckedDateUTC: new Date('2025-08-19T21:16:28.919Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:16:28.919Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -304,7 +304,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 5,
-            CheckedDateUTC: new Date('2025-08-19T21:16:33.930Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:16:33.930Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -312,7 +312,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 6,
-            CheckedDateUTC: new Date('2025-08-19T21:16:33.930Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:16:33.930Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -320,7 +320,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 7,
-            CheckedDateUTC: new Date('2025-08-19T21:16:48.391Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:16:48.391Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -328,7 +328,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 8,
-            CheckedDateUTC: new Date('2025-08-19T21:16:48.391Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:16:48.391Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -515,7 +515,7 @@ describe('BoardHistory', () => {
         Cells: [
           {
             Name: 0,
-            CheckedDateUTC: new Date('2025-08-19T21:27:43.539Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:27:43.539Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -523,7 +523,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 1,
-            CheckedDateUTC: new Date('2025-08-19T21:27:43.539Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:27:43.539Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -531,7 +531,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 2,
-            CheckedDateUTC: new Date('2025-08-19T21:27:43.539Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:27:43.539Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -539,7 +539,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 3,
-            CheckedDateUTC: new Date('2025-08-19T21:27:46.427Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:27:46.427Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -547,7 +547,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 4,
-            CheckedDateUTC: new Date('2025-08-19T21:28:10.999Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:28:10.999Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -555,7 +555,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 5,
-            CheckedDateUTC: new Date('2025-08-19T21:28:13.172Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:28:13.172Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -563,7 +563,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 6,
-            CheckedDateUTC: new Date('2025-08-19T21:28:13.172Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:28:13.172Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -571,7 +571,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 7,
-            CheckedDateUTC: new Date('2025-08-19T21:28:16.663Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:28:16.663Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -579,7 +579,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 8,
-            CheckedDateUTC: new Date('2025-08-19T21:28:16.663Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:28:16.663Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -812,7 +812,7 @@ describe('BoardHistory', () => {
         Cells: [
           {
             Name: 0,
-            CheckedDateUTC: new Date('2025-08-19T21:36:44.516Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:36:44.516Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -820,7 +820,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 1,
-            CheckedDateUTC: new Date('2025-08-19T21:36:44.516Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:36:44.516Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -828,7 +828,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 2,
-            CheckedDateUTC: new Date('2025-08-19T21:36:44.516Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:36:44.516Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -836,7 +836,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 3,
-            CheckedDateUTC: new Date('2025-08-19T21:37:04.755Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:37:04.755Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -844,7 +844,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 4,
-            CheckedDateUTC: new Date('2025-08-19T21:37:06.380Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:37:06.380Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -852,7 +852,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 5,
-            CheckedDateUTC: new Date('2025-08-19T21:37:08.228Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:37:08.228Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -860,7 +860,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 6,
-            CheckedDateUTC: new Date('2025-08-19T21:37:08.228Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:37:08.228Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -868,7 +868,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 7,
-            CheckedDateUTC: new Date('2025-08-19T21:37:32.144Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:37:32.144Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -876,7 +876,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 8,
-            CheckedDateUTC: new Date('2025-08-19T21:37:32.144Z'),
+            CheckedAtUtc: new Date('2025-08-19T21:37:32.144Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -1142,7 +1142,7 @@ describe('BoardHistory', () => {
         Cells: [
           {
             Name: 0,
-            CheckedDateUTC: new Date('2025-08-20T08:13:52.472Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:13:52.472Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -1150,7 +1150,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 1,
-            CheckedDateUTC: new Date('2025-08-20T08:22:31.434Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:22:31.434Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -1158,7 +1158,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 2,
-            CheckedDateUTC: new Date('2025-08-20T08:14:02.220Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:14:02.220Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -1166,7 +1166,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 3,
-            CheckedDateUTC: new Date('2025-08-20T08:23:01.851Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:23:01.851Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -1174,7 +1174,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 4,
-            CheckedDateUTC: new Date('2025-08-20T08:16:12.618Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:16:12.618Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -1182,7 +1182,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 5,
-            CheckedDateUTC: new Date('2025-08-20T08:22:46.641Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:22:46.641Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -1190,7 +1190,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 6,
-            CheckedDateUTC: new Date('2025-08-20T08:15:18.337Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:15:18.337Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -1198,7 +1198,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 7,
-            CheckedDateUTC: new Date('2025-08-20T08:23:04.690Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:23:04.690Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -1206,7 +1206,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 8,
-            CheckedDateUTC: new Date('2025-08-20T08:16:10.517Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:16:10.517Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -1403,7 +1403,7 @@ describe('BoardHistory', () => {
         Cells: [
           {
             Name: 0,
-            CheckedDateUTC: new Date('2025-08-20T08:34:14.341Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:34:14.341Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -1411,7 +1411,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 1,
-            CheckedDateUTC: new Date('2025-08-20T08:34:36.670Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:34:36.670Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -1419,7 +1419,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 2,
-            CheckedDateUTC: new Date('2025-08-20T08:34:14.341Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:34:14.341Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 1,
@@ -1427,7 +1427,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 3,
-            CheckedDateUTC: new Date('2025-08-20T08:34:23.176Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:34:23.176Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -1435,7 +1435,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 4,
-            CheckedDateUTC: null,
+            CheckedAtUtc: null,
             IsInBingoPattern: false,
             Selected: false,
             Row: 2,
@@ -1443,7 +1443,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 5,
-            CheckedDateUTC: new Date('2025-08-20T08:36:44.677Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:36:44.677Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 2,
@@ -1451,7 +1451,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 6,
-            CheckedDateUTC: new Date('2025-08-20T08:34:14.341Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:34:14.341Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,
@@ -1459,7 +1459,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 7,
-            CheckedDateUTC: null,
+            CheckedAtUtc: null,
             IsInBingoPattern: false,
             Selected: false,
             Row: 3,
@@ -1467,7 +1467,7 @@ describe('BoardHistory', () => {
           },
           {
             Name: 8,
-            CheckedDateUTC: new Date('2025-08-20T08:34:14.341Z'),
+            CheckedAtUtc: new Date('2025-08-20T08:34:14.341Z'),
             IsInBingoPattern: true,
             Selected: false,
             Row: 3,

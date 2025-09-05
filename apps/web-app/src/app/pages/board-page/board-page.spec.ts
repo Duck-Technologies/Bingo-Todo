@@ -285,7 +285,7 @@ describe('BoardPage', () => {
           return new BoardCell(
             {
               Name: i.toString(),
-              CheckedDateUTC: i < 3 ? new Date() : null,
+              CheckedAtUtc: i < 3 ? new Date() : null,
             },
             i,
             3
@@ -320,7 +320,7 @@ describe('BoardPage', () => {
           return new BoardCell(
             {
               Name: i.toString(),
-              CheckedDateUTC: i < 3 ? new Date() : null,
+              CheckedAtUtc: i < 3 ? new Date() : null,
             },
             i,
             3
@@ -449,6 +449,8 @@ describe('BoardPage', () => {
         }),
       });
 
+      BingoLocalStorage.createBoard(board);
+
       await helper.setBoard(board);
       await helper.saveSelected();
       await dialogHelper.setActiveDialog();
@@ -483,7 +485,7 @@ describe('BoardPage', () => {
             new BoardCell(
               {
                 Name: i.toString(),
-                CheckedDateUTC: new Date(),
+                CheckedAtUtc: new Date(),
               },
               i,
               3
@@ -522,7 +524,7 @@ describe('BoardPage', () => {
             new BoardCell(
               {
                 Name: i.toString(),
-                CheckedDateUTC: i < 3 ? new Date() : null,
+                CheckedAtUtc: i < 3 ? new Date() : null,
               },
               i,
               3
@@ -611,7 +613,7 @@ describe('BoardPage', () => {
             new BoardCell(
               {
                 Name: i.toString(),
-                CheckedDateUTC: i < 3 ? new Date() : null,
+                CheckedAtUtc: i < 3 ? new Date() : null,
               },
               i,
               3
@@ -652,7 +654,7 @@ describe('BoardPage', () => {
             new BoardCell(
               {
                 Name: i.toString(),
-                CheckedDateUTC: i < 3 ? new Date() : null,
+                CheckedAtUtc: i < 3 ? new Date() : null,
               },
               i,
               3

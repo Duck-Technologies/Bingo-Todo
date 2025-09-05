@@ -5,26 +5,26 @@
   <mat-card
     aria-hidden="true"
     [class.bg-green]="card.IsInBingoPattern"
-    [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
+    [class.bg-yellow]="!!card.CheckedAtUtc && !card.IsInBingoPattern"
     [class.bg-blue]="card.Selected">{{card.Selected ? "*" : ""}}</mat-card>
   } @else { @let actualIdx = idx + (boardSize() * row);
   <mat-card
     [class.bg-green]="card.IsInBingoPattern"
-    [class.bg-yellow]="!!card.CheckedDateUTC && !card.IsInBingoPattern"
+    [class.bg-yellow]="!!card.CheckedAtUtc && !card.IsInBingoPattern"
     [class.bg-blue]="card.Selected"
     (click)="checkCard(card)">
     <div
       role="gridcell"
       [matTooltip]="card.Name"
-      [attr.aria-readonly]="!!card.CheckedDateUTC || previewMode()">
+      [attr.aria-readonly]="!!card.CheckedAtUtc || previewMode()">
       @if(!previewMode()) {
       <input
         class="cdk-visually-hidden"
         type="checkbox"
         name="task"
         [attr.aria-labelledby]="'cell_' + actualIdx"
-        [disabled]="!!card.CheckedDateUTC"
-        [checked]="card.CheckedDateUTC || card.Selected"
+        [disabled]="!!card.CheckedAtUtc"
+        [checked]="card.CheckedAtUtc || card.Selected"
         (keyup.space)="handleCheckboxKeydown($any($event), card);"/>
       }
       <span id="cell_{{actualIdx}}">{{ card.Name }}</span>
