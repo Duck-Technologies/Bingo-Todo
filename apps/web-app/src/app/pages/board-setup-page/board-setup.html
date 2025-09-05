@@ -72,7 +72,7 @@
     </form>
   </mat-step>
 
-  <mat-step [stepControl]="boardForm.controls.TodoGame" label="Deadline and rewards">
+  <mat-step [stepControl]="boardForm" label="Deadline and rewards">
     <div class="container">
       <app-deadline-reward-form
         [createMode]="true"
