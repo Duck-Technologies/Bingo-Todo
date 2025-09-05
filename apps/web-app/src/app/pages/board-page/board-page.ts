@@ -393,12 +393,12 @@ export class BoardPage {
   private deleteBoard() {
     if (this.isLocal()) {
       BingoLocalStorage.resetBoard();
-      this.router.navigate(['board/create']);
+      this.router.navigateByUrl('');
       return of('Successful deletion');
     } else {
       return this.bingoApi.deleteBoard(this.board().Id!).pipe(
         map(() => 'Successful deletion'),
-        tap(() => this.router.navigate(['board/create']))
+        tap(() => this.router.navigateByUrl(''))
       );
     }
   }

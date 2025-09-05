@@ -20,8 +20,10 @@ public class BoardDataService
         _boardsCollection.Indexes.CreateOne(indexModel);
     }
 
-    public async Task<List<BoardMongo>> GetAllAsync(Guid userId) =>
-        await _boardsCollection.Find(x => x.CreatedBy == userId).ToListAsync();
+    public async Task<List<BoardMongo>> GetAllAsync(Guid userId, bool queryOwn) =>
+        await _boardsCollection
+            .Find(x => x.CreatedBy == userId && (queryOwn || x.Visibility == Visibility.@public))
+            .ToListAsync();
 
     public async Task<BoardMongo?> GetAsync(string id) =>
         await _boardsCollection.Find(x => x.Id == id).FirstOrDefaultAsync();

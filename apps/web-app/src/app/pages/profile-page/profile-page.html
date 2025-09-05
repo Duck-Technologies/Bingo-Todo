@@ -1,0 +1,32 @@
+@let ownBoard = ownBoard$ | async;
+
+<div>
+  @if (userName$ | async; as userName) {
+  <h1>{{userName}} boards</h1>
+
+  } @else { <h1>Unknown user</h1> }
+  
+  @if (ownBoard) {
+  <a mat-stroked-button [routerLink]="['/board/create']">Add new</a>
+  }
+</div>
+
+@if (user$ | async) {
+<section>
+  <mat-icon>filter_list</mat-icon>
+  <mat-chip-listbox multiple [(ngModel)]="filters">
+    <mat-chip-option value="todo">todo</mat-chip-option>
+    <mat-chip-option value="traditional">traditional</mat-chip-option>
+    <mat-chip-option value="completed">completed</mat-chip-option>
+    <mat-chip-option value="incomplete">incomplete</mat-chip-option>
+  </mat-chip-listbox>
+  <mat-icon>sort</mat-icon>
+  <mat-chip-listbox [(ngModel)]="sortBy">
+    <mat-chip-option value="creation">creation</mat-chip-option>
+    <mat-chip-option value="completion">completion</mat-chip-option>
+    <mat-chip-option value="name">name</mat-chip-option>
+  </mat-chip-listbox>
+</section>
+} @for (board of displayedBoards$ | async; track board.Id) {
+<app-board-preview [board]="board"></app-board-preview>
+}

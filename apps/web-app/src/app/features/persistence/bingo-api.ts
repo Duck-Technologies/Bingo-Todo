@@ -22,10 +22,23 @@ export class BingoApi {
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private baseUrl = `${environment.BingoApi.Uri}/boards`;
+  private usersUrl = `${environment.BingoApi.Uri}/users`;
 
-  public boards$: Observable<any[]> = this.http.get<any[]>(
-    `${environment.BingoApi.Uri}/boards`
-  );
+  public getUser(userId: string) {
+    return this.http
+      .get<{ Id: string; Name: string }>(`${this.usersUrl}/${userId}`)
+      .pipe(
+        catchError((e) => {
+          if (
+            e instanceof HttpErrorResponse &&
+            e.status == HttpStatusCode.NotFound
+          ) {
+            return of(null);
+          }
+          return throwError(() => e);
+        })
+      );
+  }
 
   public createBoard(board: BoardInfo<BoardCellDto>): Observable<string> {
     return this.http
@@ -99,7 +112,29 @@ export class BingoApi {
   }
 
   public loadBoards(userId: string | null = null): Observable<BoardInfo[]> {
-    return this.http.get<BoardInfo[]>(this.baseUrl);
+    return this.http.get<BoardInfo[]>(this.baseUrl + `/all/${userId}`).pipe(
+      map((response) =>
+        response.map(
+          (board) =>
+            new BoardInfo({
+              ...board,
+              Cells: BoardCalculations.calculateCellBingoState(
+                board.Cells.map(
+                  (c, idx) =>
+                    new BoardCell(
+                      c,
+                      idx,
+                      BoardCalculations.getBoardDimensionFromCellCount(
+                        board.Cells.length
+                      ) as number
+                    )
+                ),
+                this.calculationService
+              ),
+            })
+        )
+      )
+    );
   }
 
   public saveSelection(
@@ -174,9 +209,7 @@ export class BingoApi {
                 'The id in the URL is invalid. You will be redirected.',
             },
           });
-          badIdRef
-            .afterClosed()
-            .subscribe(() => this.router.navigate(['board/create']));
+          badIdRef.afterClosed().subscribe(() => this.router.navigateByUrl(''));
         }
         break;
       case HttpStatusCode.NotFound:
@@ -188,9 +221,7 @@ export class BingoApi {
               'Board with given id not found. You will be redirected.',
           },
         });
-        ref
-          .afterClosed()
-          .subscribe(() => this.router.navigate(['board/create']));
+        ref.afterClosed().subscribe(() => this.router.navigateByUrl(''));
         break;
       case HttpStatusCode.InternalServerError:
         this.dialog.open(ConfirmDialog, {

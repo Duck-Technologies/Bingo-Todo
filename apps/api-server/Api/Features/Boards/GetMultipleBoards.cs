@@ -1,43 +1,46 @@
-// namespace BingoTodo.Features.Boards;
+namespace BingoTodo.Features.Boards;
 
-// using System.Security.Claims;
-// using BingoTodo.Common.Extensions;
-// using BingoTodo.Features.Boards.Models;
-// using BingoTodo.Features.Boards.Services;
-// using Microsoft.AspNetCore.Http.HttpResults;
+using System.Security.Claims;
+using BingoTodo.Common.Extensions;
+using BingoTodo.Features.Boards.Models;
+using BingoTodo.Features.Boards.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
-// public class GetMultipleBoards
-// {
-//     public static void Map(IEndpointRouteBuilder app) =>
-//         app.MapGet("/", Handle).WithSummary("Gets multiple boards");
+public class GetMultipleBoards
+{
+    public record IdParam(Guid Id);
 
-//     private static async Task<Results<Ok<BoardGET[]>, ForbidHttpResult>> Handle(
-//         BoardDataService database,
-//         ClaimsPrincipal claimsPrincipal,
-//         CancellationToken cancellationToken
-//     )
-//     {
-//         var userId = claimsPrincipal.ExtractUser().Id;
+    public static void Map(IEndpointRouteBuilder app) =>
+        app.MapGet("/all/{id}", Handle).WithSummary("Gets multiple boards");
 
-//         var boards = await database.GetAllAsync(); // get public boards only and or any if it's the user's own
+    private static async Task<Results<Ok<BoardGET[]>, ForbidHttpResult>> Handle(
+        [AsParameters] IdParam request,
+        BoardDataService database,
+        ClaimsPrincipal claimsPrincipal,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = claimsPrincipal.ExtractUser()?.Id;
 
-//         return TypedResults.Ok(
-//             boards
-//                 .Select(board => new BoardGET
-//                 {
-//                     Id = board.Id,
-//                     CreatedBy = board.CreatedBy,
-//                     CreatedAtUtc = board.CreatedAtUtc,
-//                     LastChangedAtUtc = board.LastChangedAtUtc,
-//                     Name = board.Name,
-//                     GameMode = board.GameMode,
-//                     Cells = board.Cells,
-//                     Visibility = board.Visibility,
-//                     SwitchedToTodoAfterCompleteDateUtc = board.SwitchedToTodoAfterCompleteDateUtc,
-//                     TraditionalGame = board.TraditionalGame,
-//                     TodoGame = board.TodoGame,
-//                 })
-//                 .ToArray()
-//         );
-//     }
-// }
+        var boards = await database.GetAllAsync(request.Id, userId == request.Id);
+
+        return TypedResults.Ok(
+            boards
+                .Select(board => new BoardGET
+                {
+                    Id = board.Id,
+                    CreatedBy = board.CreatedBy,
+                    CreatedAtUtc = board.CreatedAtUtc,
+                    LastChangedAtUtc = board.LastChangedAtUtc,
+                    Name = board.Name,
+                    GameMode = board.GameMode,
+                    Cells = board.Cells,
+                    Visibility = board.Visibility,
+                    SwitchedToTodoAfterCompleteDateUtc = board.SwitchedToTodoAfterCompleteDateUtc,
+                    TraditionalGame = board.TraditionalGame,
+                    TodoGame = board.TodoGame,
+                })
+                .ToArray()
+        );
+    }
+}

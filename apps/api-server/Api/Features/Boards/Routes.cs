@@ -11,7 +11,7 @@ public static class Routes
 
         CreateBoard.Map(boardEndpoints);
         GetBoardById.Map(boardEndpoints);
-        // GetMultipleBoards.Map(boardEndpoints);
+        GetMultipleBoards.Map(boardEndpoints);
         DeleteBoard.Map(boardEndpoints);
         CheckCells.Map(boardEndpoints);
         UpdateBoardExclCells.Map(boardEndpoints);

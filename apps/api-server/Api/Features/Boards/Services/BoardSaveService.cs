@@ -144,7 +144,7 @@ public class BoardSaveService(
     public async Task RemoveAllAsync(Guid userId, CancellationToken cancellationToken)
     {
         var user = await userService.GetAsync(userId);
-        var boards = await boardDataService.GetAllAsync(userId);
+        var boards = await boardDataService.GetAllAsync(userId, user.Id == userId);
         if (boards.Count != 0)
         {
             await boardDataService.RemoveAllAsync(userId, cancellationToken);

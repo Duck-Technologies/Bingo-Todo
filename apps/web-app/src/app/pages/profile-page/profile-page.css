@@ -1,0 +1,41 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+
+  div:first-of-type {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  section {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    padding: 1rem;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+
+    h4 {
+      margin: 0;
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+    }
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-block-start: 0;
+    margin-block-end: 0;
+  }
+
+  app-board-preview {
+    padding: 0.1rem 0;
+    width: min(calc(100cqw - 1rem), 35.5rem);
+    overflow: auto;
+  }
+}

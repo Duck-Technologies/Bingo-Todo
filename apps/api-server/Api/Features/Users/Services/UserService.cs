@@ -45,7 +45,7 @@ public class UserService
             var emailsetter = new UpdateDefinitionBuilder<User>();
             await _usersCollection.UpdateOneAsync(
                 x => x.Id == user.Id,
-                emailsetter.Set(x => x.Email, user.Email)
+                emailsetter.Set(x => x.Email, user.Email).Set(x => x.RegisteredAt, DateTime.UtcNow)
             );
         }
 
