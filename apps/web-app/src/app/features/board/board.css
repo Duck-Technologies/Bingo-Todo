@@ -39,10 +39,10 @@
     mat-card {
       padding: 0;
     }
-    --box-size: 2rem;
+    --box-size: var(--indicator-size, 2rem);
 
     &.five {
-      --box-size: 1.5rem;
+      --box-size: var(--indicator-size-five, 1.5rem);
     }
 
     mat-card:not(.bg-green):not(.bg-yellow):not(.bg-blue) {

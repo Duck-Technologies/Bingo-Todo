@@ -52,7 +52,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
     }
 
@@ -130,7 +130,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
     }
 
@@ -180,7 +180,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
     }
 
@@ -227,7 +227,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
 
         // Then switching game mode
@@ -244,7 +244,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
         Assert.EquivalentWithExclusions(
             new User { BoardStatistics = user.BoardStatistics },
             user3,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
     }
 
@@ -293,7 +293,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
     }
 
@@ -346,7 +346,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
 
         // Check all cells
@@ -365,7 +365,7 @@ public class UserTests(WebAppFixture webAppFixture) : IClassFixture<WebAppFixtur
                 },
             },
             user2,
-            ["Id", "Email", "Name", "Achievements"]
+            ["Id", "Email", "Name", "Achievements", "RegisteredAt"]
         );
     }
 

@@ -1,16 +1,21 @@
 import { Routes } from '@angular/router';
-import { ProfilePage } from './features/init/profile-page/profile-page';
+// import { ProfilePage } from './features/init/profile-page/profile-page';
 import { MsalGuard } from '@azure/msal-angular';
 import { boardResolver } from './pages/board-page/board-resolver';
 import { boardToCopyResolver } from './pages/board-setup-page/board-resolver';
 import { userResolver } from './pages/user-resolver';
+import { ProfilePage } from './pages/profile-page/profile-page';
 
 export const routes: Routes = [
-  // {
-  //   path: 'profile',
-  //   component: ProfilePage,
-  //   canActivate: [MsalGuard],
-  // },
+  {
+    path: '',
+    component: ProfilePage,
+  },
+  {
+    path: 'profile/:id',
+    component: ProfilePage,
+    canActivate: [MsalGuard],
+  },
   {
     path: 'board/create',
     loadComponent: () =>

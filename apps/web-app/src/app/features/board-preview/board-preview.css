@@ -1,0 +1,117 @@
+:host {
+  cursor: pointer;
+
+  h3 {
+    letter-spacing: 0.06rem;
+    height: 1.3rem;
+    width: 99%;
+    overflow: hidden;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    margin: 0;
+    margin-block-start: 0;
+    margin-block-end: 0.8rem;
+    grid-area: name;
+    color: var(--mat-sys-primary);
+  }
+
+  mat-card-footer {
+    padding: 16px;
+    color: var(--mat-sys-secondary);
+  }
+
+  mat-card-content {
+    display: flex;
+    gap: 1rem;
+    flex-direction: row;
+
+    div.grid {
+      flex: 1;
+      height: fit-content;
+      display: grid;
+      grid-template-rows: 30px 5px minmax(1rem, auto) minmax(0, 1fr);
+      grid-template-areas:
+        "info"
+        "."
+        "summary"
+        "after-summary";
+    }
+
+    app-board {
+      grid-area: board;
+      flex-basis: 130px;
+
+      &.three {
+        --indicator-size: 2.4rem;
+      }
+
+      &.four {
+        --indicator-size: 1.7rem;
+      }
+
+      &.five {
+        --indicator-size-five: 1.25rem;
+      }
+    }
+
+    section.info {
+      display: flex;
+      grid-area: info;
+      gap: 0.2rem;
+      align-items: flex-start;
+
+      app-game-mode-icon {
+        margin-top: 1px;
+      }
+
+      .trophy {
+        --mat-icon-color: var(--yellow-primary);
+      }
+    }
+
+    section.summary {
+      grid-area: summary;
+
+      overflow: hidden;
+      max-height: 4.3rem;
+      display: flex;
+      gap: 0.2rem 0.4rem;
+      flex-wrap: wrap;
+      span.task {
+        &.green {
+          color: light-dark(
+            var(--green-primary),
+            hsl(from var(--green-primary) h s calc(l + 10))
+          );
+        }
+
+        &.yellow {
+          color: light-dark(var(--blue-primary), var(--yellow-primary));
+        }
+
+        display: inline-block;
+        text-wrap-mode: nowrap;
+        max-width: 25rem;
+        height: 1.3rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &:not(.last)::after {
+          content: ",";
+        }
+      }
+    }
+
+    section.after-summary {
+      grid-area: after-summary;
+      font-size: small;
+      color: var(--mat-sys-secondary);
+      padding-top: 0.3rem;
+    }
+  }
+
+  app-progress-circle {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+}

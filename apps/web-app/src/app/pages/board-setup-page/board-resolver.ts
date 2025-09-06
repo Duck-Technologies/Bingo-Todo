@@ -25,7 +25,7 @@ export const boardToCopyResolver: ResolveFn<Observable<BoardInfo>> = (
           titleService.setTitle('Copy ' + (board.Name ?? 'Untitled board'));
           return of(board);
         } else {
-          router.navigate(['board/create']);
+          router.navigateByUrl('');
           return EMPTY;
         }
       })
@@ -40,6 +40,6 @@ export const boardToCopyResolver: ResolveFn<Observable<BoardInfo>> = (
       );
   }
 
-  router.navigate(['board/create']);
+  router.navigateByUrl('');
   return EMPTY;
 };

@@ -1,0 +1,89 @@
+<!-- prettier-ignore -->
+@let tooltips = { 
+    creator: "Board created by you.",
+    visible_local: "Local board, not visible or available for others and on other devices.",
+    visible_unlisted: "Unlisted board, only visible to you and whoever you share the link with.",
+    visible_public: "Public board, visible to those who visit your profile.",
+    game_mode_bingo: "Bingo game mode with the goal of reaching a vertical, horizontal or diagonal pattern from marked tasks.",
+    game_mode_todo: "TO-DO game mode with the goal of marking all tasks.",
+};
+
+@let totalCells = cells().length;
+<mat-card aria-label="Board">
+  <mat-card-header>
+    <h3>{{board().Name ?? 'Untitled board'}}</h3>
+  </mat-card-header>
+  <mat-card-content>
+    <app-board [(cards)]="board().Cells" [previewMode]="'indicator'"></app-board>
+
+    <div class="grid">
+      <section class="info">
+        <app-game-mode-icon [gameMode]="board().GameMode"></app-game-mode-icon>
+
+        @switch (board().Visibility) { @case ('local') {
+        <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['visible_local']"
+          >visibility_off</mat-icon
+        >
+        <span class="cdk-visually-hidden">{{ tooltips["visible_local"] }}</span>
+        } @case ('unlisted') {
+        <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['visible_unlisted']"
+          >visibility_lock</mat-icon
+        >
+        <span class="cdk-visually-hidden">{{ tooltips["visible_unlisted"] }}</span>
+        } @case ('public') {
+        <mat-icon fontSet="material-symbols-outlined" [matTooltip]="tooltips['visible_public']"
+          >visibility</mat-icon
+        >
+        <span class="cdk-visually-hidden">{{ tooltips["visible_public"] }}</span>
+        } }
+
+        <app-deadline-hourglass
+          [completionDate]="board().CompletedAtUtc"
+          [deadlineDate]="board().CompletionDeadlineUtc"></app-deadline-hourglass>
+
+        @if (!!board().CompletedAtUtc) {
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="trophy"
+          [matTooltip]="'Goal reached on ' + (board().CompletedAtUtc | date : 'MMM dd, yyyy')"
+          >trophy</mat-icon
+        >
+        } @else {
+        <app-progress-circle
+          [attr.aria-label]="boardStats().checkedCells + '/' + totalCells + ' tasks marked as done'"
+          [matTooltip]="boardStats().checkedCells + '/' + totalCells + ' tasks marked as done'"
+          [total]="totalCells"
+          [green]="boardStats().bingoCells"
+          [yellow]="boardStats().checkedCells"
+          [blue]="0">
+        </app-progress-circle>
+        }
+      </section>
+      <section class="summary" #cellSummary>
+        @for (cell of cells(); track idx; let idx = $index; let last=$last) {
+        <span
+          class="task"
+          [class.last]="last"
+          [class.yellow]="!!cell.CheckedAtUtc && !cell.IsInBingoPattern"
+          [class.green]="cell.IsInBingoPattern"
+          >{{cell.Name}}</span
+        >
+        }
+      </section>
+      <section class="after-summary">
+        @if (overflowing()) {
+        <span>and more</span>
+        }
+      </section>
+    </div>
+  </mat-card-content>
+  <mat-card-footer>
+    @if (board().GameMode == 'traditional' && board().TraditionalGame.CompletedAtUtc == null) {
+    Reach a strike of {{boardSize()}} cells } @if (board().GameMode == 'todo' &&
+    board().CompletedAtUtc == null) { {{totalCells - boardStats().checkedCells}} more to check } @if
+    (board().CompletedAtUtc != null) { Completed {{board().CompletedAtUtc | intlRelativeTime}}
+    } @if (beforeDeadline() == true && board().CompletedAtUtc == null) {
+    {{board().CompletionDeadlineUtc | intlRelativeTime}}
+    }
+  </mat-card-footer>
+</mat-card>

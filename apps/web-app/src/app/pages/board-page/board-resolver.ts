@@ -24,7 +24,7 @@ export const boardResolver: ResolveFn<Observable<BoardInfo>> = (
           titleService.setTitle(board.Name ?? 'Untitled board');
           return of(board);
         } else {
-          router.navigate(['board/create']);
+          router.navigateByUrl('');
           return EMPTY;
         }
       })
@@ -37,6 +37,6 @@ export const boardResolver: ResolveFn<Observable<BoardInfo>> = (
     );
   }
 
-  router.navigate(['board/local']);
+  router.navigateByUrl('');
   return EMPTY;
 };

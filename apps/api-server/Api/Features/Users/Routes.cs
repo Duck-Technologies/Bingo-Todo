@@ -10,5 +10,6 @@ public static class Routes
             .RequireAuthorization();
 
         Unregister.Map(userEndpoints);
+        GetUserById.Map(userEndpoints);
     }
 }
